@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">GoTravel</string>
+    <string name="email_label">tuemail@example.com</string>
+    <string name="passwd_label">Passwd123!</string>
+</resources>

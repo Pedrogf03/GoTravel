@@ -16,9 +16,7 @@ public class HiloInicioSesion extends Thread {
 
     public HiloInicioSesion(Socket cliente) {
         this.cliente = cliente;
-
         daoUsuario = new DAOUsuario();
-
     }
 
     public boolean correcto() {
