@@ -2,4 +2,5 @@
     <string name="app_name">GoTravel</string>
     <string name="email_label">tuemail@example.com</string>
     <string name="passwd_label">Passwd123!</string>
+    <string name="username_label">Pedrogf.03</string>
 </resources>

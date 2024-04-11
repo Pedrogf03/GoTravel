@@ -62,6 +62,7 @@ public class Registro {
                 if(entrada.readBoolean()) {
                     mensajeError.setText("Usuario registrado correctamente");
                     mensajeError.setVisible(true);
+                    //TODO: setUsuario
                 } else {
                     mensajeError.setText("Ese email ya está en uso");
                     mensajeError.setVisible(true);

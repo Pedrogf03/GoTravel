@@ -54,6 +54,7 @@ public class InicioSesion {
                 if(entrada.readBoolean()) {
                     mensajeError.setText("Sesión iniciada correctamente");
                     mensajeError.setVisible(true);
+                    //TODO: setUsuario
                 } else {
                     mensajeError.setText("Usuario o contraseña incorrectos");
                     mensajeError.setVisible(true);
