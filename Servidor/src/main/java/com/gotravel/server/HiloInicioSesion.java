@@ -1,7 +1,8 @@
-package com.gotravel.servidor;
+package com.gotravel.server;
 
-import com.gotravel.dao.DAOUsuario;
-import com.gotravel.entity.Usuario;
+import com.gotravel.model.Cliente;
+import com.gotravel.repository.ClienteRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -12,11 +13,11 @@ public class HiloInicioSesion extends Thread {
 
     private Socket cliente;
     private boolean sesionIniciada;
-    private DAOUsuario daoUsuario;
+    private ClienteRepository repo;
 
     public HiloInicioSesion(Socket cliente) {
         this.cliente = cliente;
-        daoUsuario = new DAOUsuario();
+        this.repo = new ClienteRepository();
     }
 
     public boolean correcto() {
@@ -43,9 +44,9 @@ public class HiloInicioSesion extends Thread {
                     String email = fromCliente[1];
                     String passwd = fromCliente[2];
 
-                    Usuario u = daoUsuario.getUsuario(email);
+                    Cliente c = repo.getClienteByEmail(email);
 
-                    if(u != null && u.getPassword().equals(passwd)) {
+                    if(c != null && c.getPassword().equals(passwd)) {
                         salida.writeBoolean(true);
                         sesionIniciada = true;
                     } else {
@@ -56,11 +57,14 @@ public class HiloInicioSesion extends Thread {
 
                     String email = fromCliente[1];
                     String passwd = fromCliente[2];
-                    String usuario = fromCliente[3];
+                    String nombre = fromCliente[3];
 
-                    Integer idUsuario = daoUsuario.addUsuario(usuario, email, passwd);
+                    Integer idUsuario = repo.addCliente(new Cliente(nombre, email, passwd));
 
                     salida.writeBoolean(idUsuario != null);
+                    if(idUsuario != null) {
+                        sesionIniciada = true;
+                    }
 
                 }
 

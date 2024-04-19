@@ -1,4 +1,4 @@
-package com.gotravel.entity;
+package com.gotravel.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -13,12 +13,12 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Usuario {
+public class Cliente {
 
     @Id
     @Column(name="idUsuario")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int idUsuario;
+    private int id;
 
     @Column(name="nombre")
     private String nombre;
@@ -29,7 +29,7 @@ public class Usuario {
     @Column(name="password")
     private String password;
 
-    public Usuario(String nombre, String email, String password) {
+    public Cliente(String nombre, String email, String password) {
         this.nombre = nombre;
         this.email = email;
         this.password = password;
