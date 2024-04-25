@@ -49,16 +49,17 @@ public class InicioSesion {
                 DataInputStream entrada = new DataInputStream(App.getCliente().getInputStream());
                 DataOutputStream salida = new DataOutputStream(App.getCliente().getOutputStream());
 
+                String fromServer;
                 salida.writeUTF("login;" + email.getText() + ";" + password.getText());
 
-                if(entrada.readBoolean()) {
+                fromServer = entrada.readUTF();
+                if(fromServer.equalsIgnoreCase("correcto")) {
                     mensajeError.setText("Sesión iniciada correctamente");
-                    mensajeError.setVisible(true);
                     //TODO: setUsuario
                 } else {
                     mensajeError.setText("Usuario o contraseña incorrectos");
-                    mensajeError.setVisible(true);
                 }
+                mensajeError.setVisible(true);
 
             } catch (IOException e) {
                 System.out.println("No se puede conectar con el servidor");

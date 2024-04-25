@@ -17,9 +17,9 @@ import java.util.List;
 @Repository
 public class ClienteRepository implements GoTravelRepository {
 
-    private static Logger LOG = LoggerFactory.getLogger(ServidorApplication.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ServidorApplication.class);
 
-    private SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Cliente.class).buildSessionFactory();
+    private final SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Cliente.class).buildSessionFactory();
 
     @Override
     @Transactional
@@ -46,7 +46,11 @@ public class ClienteRepository implements GoTravelRepository {
         Cliente c = null;
         Query q = s.createQuery("FROM Cliente WHERE email = :email");
         q.setParameter("email", email);
-        c = (Cliente) q.list().get(0);
+        try {
+            c = (Cliente) q.list().get(0);
+        } catch (IndexOutOfBoundsException e) {
+            return null;
+        }
         return c;
     }
 

@@ -66,7 +66,6 @@ fun LoginScreen(
 
             if(registro) {
 
-                Text(text = "Usuario")
                 TextField(
                     value = usuario,
                     onValueChange = { usuario = it },
@@ -82,7 +81,6 @@ fun LoginScreen(
                 )
             }
 
-            Text(text = "Email")
             TextField(
                 value = email,
                 onValueChange = { email = it },
@@ -97,7 +95,6 @@ fun LoginScreen(
                     .padding(horizontal = 40.dp)
             )
 
-            Text(text = "Contraseña")
             TextField(
                 value = passwd,
                 onValueChange = { passwd = it },

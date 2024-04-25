@@ -61,7 +61,8 @@ class LoginViewModel : ViewModel(){
                     val entrada = DataInputStream(cliente.getInputStream())
                     val salida = DataOutputStream(cliente.getOutputStream())
                     salida.writeUTF("login;$email;$passwd")
-                    if (entrada.readBoolean()) {
+                    var input = entrada.readUTF()
+                    if (input.equals("correcto")) {
                         mensajeUi.postValue("Sesión iniciada correctamente")
                         //TODO: setUsuario
                     } else {
@@ -104,7 +105,8 @@ class LoginViewModel : ViewModel(){
                     val entrada = DataInputStream(cliente.getInputStream())
                     val salida = DataOutputStream(cliente.getOutputStream())
                     salida.writeUTF("registro;$email;$passwd;$usuario")
-                    if (entrada.readBoolean()) {
+                    var input = entrada.readUTF()
+                    if (input.equals("correcto")) {
                         mensajeUi.postValue("Usuario registrado correctamente")
                         //TODO: setUsuario
                     } else {
