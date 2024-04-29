@@ -1,7 +1,5 @@
 package com.gotravel.service;
 
-import com.gotravel.model.Cliente;
-
 import java.util.List;
 
 public interface GoTravelService {

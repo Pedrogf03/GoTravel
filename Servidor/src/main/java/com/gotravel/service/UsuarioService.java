@@ -1,17 +1,16 @@
 package com.gotravel.service;
 
-import com.gotravel.model.Cliente;
-import com.gotravel.repository.ClienteRepository;
+import com.gotravel.repository.UsuarioRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public class ClienteService implements GoTravelService {
+public class UsuarioService implements GoTravelService {
 
     @Autowired
-    private ClienteRepository repo;
+    private UsuarioRepo repo;
 
 
     @Override

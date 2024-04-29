@@ -1,11 +1,10 @@
 package com.gotravel.repository;
 
 import com.gotravel.ServidorApplication;
-import com.gotravel.model.Cliente;
+import com.gotravel.model.Usuario;
 import jakarta.transaction.Transactional;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.query.Query;
 import org.slf4j.Logger;
@@ -15,54 +14,56 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public class ClienteRepository implements GoTravelRepository {
+public class UsuarioRepo implements GoTravelRepository {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServidorApplication.class);
 
-    private final SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Cliente.class).buildSessionFactory();
+    private final SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Usuario.class).buildSessionFactory();
 
     @Override
     @Transactional
     public List getAll() { // Obtener todos los clientes de la base de datos
         Session s = factory.openSession();
-        List clientes = null;
-        clientes = s.createQuery("FROM Cliente").list();
-        return clientes;
+        List usuarios = null;
+        usuarios = s.createQuery("FROM Usuario").list();
+        return usuarios;
     }
 
     @Override
     @Transactional
     public Object getById(int id) {
         Session s = factory.openSession();
-        Cliente c = null;
-        Query q = s.createQuery("FROM Cliente WHERE id = :id");
+        Usuario u = null;
+        Query q = s.createQuery("FROM Usuario WHERE id = :id");
         q.setParameter("id", id);
-        c = (Cliente) q.list().get(0);
-        return c;
+        if(!q.list().isEmpty()) u = (Usuario) q.list().get(0);
+        return u;
     }
 
-    public Cliente getClienteByEmail(String email) {
+    @Transactional
+    public Usuario getUsuarioByEmail(String email) {
         Session s = factory.openSession();
-        Cliente c = null;
-        Query q = s.createQuery("FROM Cliente WHERE email = :email");
+        Usuario u = null;
+        Query q = s.createQuery("FROM Usuario WHERE email = :email");
         q.setParameter("email", email);
         try {
-            c = (Cliente) q.list().get(0);
+            u = (Usuario) q.list().get(0);
         } catch (IndexOutOfBoundsException e) {
             return null;
         }
-        return c;
+        return u;
     }
 
-    public Integer addCliente(Cliente c) {
+    /*
+    public Integer addUsuario(Usuario c) {
         Session s = factory.openSession();
         Transaction tx = null;
-        Integer idCliente = null;
+        Integer idUsuario = null;
 
         try {
             tx = s.beginTransaction();
 
-            idCliente = (int) s.save(c);
+            idUsuario = (int) s.save(c);
 
             tx.commit();
 
@@ -71,6 +72,7 @@ public class ClienteRepository implements GoTravelRepository {
             LOG.error(e.getMessage());
             return null;
         }
-        return idCliente;
+        return idUsuario;
     }
+     */
 }

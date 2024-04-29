@@ -1,23 +1,19 @@
 package com.gotravel;
 
-import com.gotravel.server.HiloInicioSesion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ConfigurableApplicationContext;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.Properties;
-import java.util.Scanner;
 
 @SpringBootApplication
-public class ServidorApplication implements Runnable {
+public class ServidorApplication /*implements Runnable*/ {
 
-	private static Logger LOG = LoggerFactory.getLogger(ServidorApplication.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ServidorApplication.class);
 	private int puerto;
 	private boolean pararServidor;
 	private ServerSocket socketServidor;
@@ -45,7 +41,7 @@ public class ServidorApplication implements Runnable {
 	}
 
 	public static void main(String[] args) {
-
+	/*
 		ConfigurableApplicationContext context = SpringApplication.run(ServidorApplication.class, args);
 		ServidorApplication server = new ServidorApplication();
 		Thread hiloServidor = new Thread(server);
@@ -62,8 +58,11 @@ public class ServidorApplication implements Runnable {
 		sc.close();
 
 		context.close();
+		*/
+		SpringApplication.run(ServidorApplication.class, args);
 	}
 
+	/*
 	public void iniciarServidor() {
 
 		try(ServerSocket server = new ServerSocket(puerto)) {
@@ -93,4 +92,5 @@ public class ServidorApplication implements Runnable {
 	public void run() {
 		iniciarServidor();
 	}
+	*/
 }

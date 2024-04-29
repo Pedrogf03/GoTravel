@@ -1,15 +1,7 @@
 package com.gotravel.server;
 
-import com.gotravel.model.Cliente;
-import com.gotravel.repository.ClienteRepository;
-
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.net.Socket;
-
 public class HiloInicioSesion extends Thread {
-
+/*
     private final Socket cliente;
     private boolean sesionIniciada;
     private final ClienteRepository repo;
@@ -50,7 +42,7 @@ public class HiloInicioSesion extends Thread {
 
                 if(opcion.equalsIgnoreCase("login")) {
 
-                    Cliente c = repo.getClienteByEmail(email);
+                    Cliente c = repo.getUsuarioByEmail(email);
 
                     // COMPROBACION -> SESION_INICIADA || CREDENCIALES
                     output = protocolo.procesarMensaje("" + (c != null && c.getPassword().equals(passwd)));
@@ -80,5 +72,5 @@ public class HiloInicioSesion extends Thread {
         }
 
     }
-
+*/
 }
