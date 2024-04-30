@@ -1,20 +1,19 @@
 package com.gotravel.model;
 
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import lombok.*;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "paypal")
 public class Paypal extends Metodopago {
 
-    @MapsId
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "idMetodoPago", nullable = false)
-    private Metodopago metodoPago;
-
+    @NonNull
     @Column(name = "Email", nullable = false, length = 45)
     private String email;
 

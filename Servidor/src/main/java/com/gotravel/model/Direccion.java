@@ -1,36 +1,35 @@
 package com.gotravel.model;
 
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import lombok.*;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "direccion")
-public class Direccion {
+public class Direccion extends Localizacion {
 
-    @Id
-    @Column(name = "idLocalizacion", nullable = false)
-    private Integer id;
-
-    @MapsId
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "idLocalizacion", nullable = false)
-    private Localizacion localizacion;
-
+    @NonNull
     @Column(name = "Calle", nullable = false, length = 100)
     private String calle;
 
+    @NonNull
     @Column(name = "Numero", nullable = false, length = 5)
     private String numero;
 
+    @NonNull
     @Column(name = "Ciudad", nullable = false, length = 50)
     private String ciudad;
 
+    @NonNull
     @Column(name = "Estado", nullable = false, length = 50)
     private String estado;
 
+    @NonNull
     @Column(name = "CP", nullable = false, length = 5)
     private String cp;
 

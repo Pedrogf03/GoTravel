@@ -18,26 +18,6 @@ CREATE SCHEMA IF NOT EXISTS `gotravel` DEFAULT CHARACTER SET utf8mb3 ;
 USE `gotravel` ;
 
 -- -----------------------------------------------------
--- Table `gotravel`.`localizacion`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `gotravel`.`localizacion` (
-  `idLocalizacion` INT NOT NULL AUTO_INCREMENT,
-  PRIMARY KEY (`idLocalizacion`))
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8mb3;
-
-
--- -----------------------------------------------------
--- Table `gotravel`.`tiposervicio`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `gotravel`.`tiposervicio` (
-  `NombreTipoServicio` VARCHAR(100) NOT NULL,
-  PRIMARY KEY (`NombreTipoServicio`))
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8mb3;
-
-
--- -----------------------------------------------------
 -- Table `gotravel`.`usuario`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `gotravel`.`usuario` (
@@ -53,36 +33,7 @@ CREATE TABLE IF NOT EXISTS `gotravel`.`usuario` (
   UNIQUE INDEX `Email_UNIQUE` (`Email` ASC) VISIBLE,
   UNIQUE INDEX `Tfno_UNIQUE` (`Tfno` ASC) VISIBLE)
 ENGINE = InnoDB
-AUTO_INCREMENT = 2
-DEFAULT CHARACTER SET = utf8mb3;
-
-
--- -----------------------------------------------------
--- Table `gotravel`.`servicio`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `gotravel`.`servicio` (
-  `idServicio` INT NOT NULL AUTO_INCREMENT,
-  `Nombre` VARCHAR(45) NOT NULL,
-  `Descripcion` VARCHAR(100) NOT NULL,
-  `Precio` DOUBLE NOT NULL,
-  `NombreTipoServicio` VARCHAR(100) NOT NULL,
-  `idLocalizacion` INT NOT NULL,
-  `idUsuario` INT NOT NULL,
-  `oculto` ENUM('0', '1') NOT NULL,
-  PRIMARY KEY (`idServicio`),
-  INDEX `fk_Servicio_TipoServicio1_idx` (`NombreTipoServicio` ASC) VISIBLE,
-  INDEX `fk_Servicio_Localizacion1_idx` (`idLocalizacion` ASC) VISIBLE,
-  INDEX `fk_Servicio_Usuario1_idx` (`idUsuario` ASC) VISIBLE,
-  CONSTRAINT `fk_Servicio_Localizacion1`
-    FOREIGN KEY (`idLocalizacion`)
-    REFERENCES `gotravel`.`localizacion` (`idLocalizacion`),
-  CONSTRAINT `fk_Servicio_TipoServicio1`
-    FOREIGN KEY (`NombreTipoServicio`)
-    REFERENCES `gotravel`.`tiposervicio` (`NombreTipoServicio`),
-  CONSTRAINT `fk_Servicio_Usuario1`
-    FOREIGN KEY (`idUsuario`)
-    REFERENCES `gotravel`.`usuario` (`idUsuario`))
-ENGINE = InnoDB
+AUTO_INCREMENT = 3
 DEFAULT CHARACTER SET = utf8mb3;
 
 
@@ -127,6 +78,92 @@ DEFAULT CHARACTER SET = utf8mb3;
 
 
 -- -----------------------------------------------------
+-- Table `gotravel`.`localizacion`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `gotravel`.`localizacion` (
+  `idLocalizacion` INT NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`idLocalizacion`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb3;
+
+
+-- -----------------------------------------------------
+-- Table `gotravel`.`tiposervicio`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `gotravel`.`tiposervicio` (
+  `NombreTipoServicio` VARCHAR(100) NOT NULL,
+  PRIMARY KEY (`NombreTipoServicio`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb3;
+
+
+-- -----------------------------------------------------
+-- Table `gotravel`.`servicio`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `gotravel`.`servicio` (
+  `idServicio` INT NOT NULL AUTO_INCREMENT,
+  `Nombre` VARCHAR(45) NOT NULL,
+  `Descripcion` VARCHAR(100) NOT NULL,
+  `Precio` DOUBLE NOT NULL,
+  `NombreTipoServicio` VARCHAR(100) NOT NULL,
+  `idLocalizacion` INT NOT NULL,
+  `idUsuario` INT NOT NULL,
+  `oculto` ENUM('0', '1') NOT NULL,
+  PRIMARY KEY (`idServicio`),
+  INDEX `fk_Servicio_TipoServicio1_idx` (`NombreTipoServicio` ASC) VISIBLE,
+  INDEX `fk_Servicio_Localizacion1_idx` (`idLocalizacion` ASC) VISIBLE,
+  INDEX `fk_Servicio_Usuario1_idx` (`idUsuario` ASC) VISIBLE,
+  CONSTRAINT `fk_Servicio_Localizacion1`
+    FOREIGN KEY (`idLocalizacion`)
+    REFERENCES `gotravel`.`localizacion` (`idLocalizacion`),
+  CONSTRAINT `fk_Servicio_TipoServicio1`
+    FOREIGN KEY (`NombreTipoServicio`)
+    REFERENCES `gotravel`.`tiposervicio` (`NombreTipoServicio`),
+  CONSTRAINT `fk_Servicio_Usuario1`
+    FOREIGN KEY (`idUsuario`)
+    REFERENCES `gotravel`.`usuario` (`idUsuario`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb3;
+
+
+-- -----------------------------------------------------
+-- Table `gotravel`.`metodopago`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `gotravel`.`metodopago` (
+  `idMetodoPago` INT NOT NULL AUTO_INCREMENT,
+  `idUsuario` INT NOT NULL,
+  PRIMARY KEY (`idMetodoPago`),
+  INDEX `fk_MetodoPago_Usuario1_idx` (`idUsuario` ASC) VISIBLE,
+  CONSTRAINT `fk_MetodoPago_Usuario1`
+    FOREIGN KEY (`idUsuario`)
+    REFERENCES `gotravel`.`usuario` (`idUsuario`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb3;
+
+
+-- -----------------------------------------------------
+-- Table `gotravel`.`pago`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `gotravel`.`pago` (
+  `idPago` INT NOT NULL AUTO_INCREMENT,
+  `idUsuario` INT NOT NULL,
+  `Coste` DOUBLE NOT NULL,
+  `Fecha` DATE NOT NULL,
+  `idMetodoPago` INT NOT NULL,
+  PRIMARY KEY (`idPago`),
+  INDEX `fk_Pago_Usuario1_idx` (`idUsuario` ASC) VISIBLE,
+  INDEX `fk_Pago_MetodoPago1_idx` (`idMetodoPago` ASC) VISIBLE,
+  CONSTRAINT `fk_Pago_MetodoPago1`
+    FOREIGN KEY (`idMetodoPago`)
+    REFERENCES `gotravel`.`metodopago` (`idMetodoPago`),
+  CONSTRAINT `fk_Pago_Usuario1`
+    FOREIGN KEY (`idUsuario`)
+    REFERENCES `gotravel`.`usuario` (`idUsuario`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb3;
+
+
+-- -----------------------------------------------------
 -- Table `gotravel`.`contratacion`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `gotravel`.`contratacion` (
@@ -134,20 +171,25 @@ CREATE TABLE IF NOT EXISTS `gotravel`.`contratacion` (
   `idServicio` INT NOT NULL,
   `idUsuario` INT NOT NULL,
   `fecha` DATE NOT NULL,
-  `idEtapa` INT NULL,
+  `idEtapa` INT NULL DEFAULT NULL,
+  `idPago` INT NOT NULL,
   PRIMARY KEY (`idContratacion`),
   INDEX `fk_Contratacion_Servicio1_idx` (`idServicio` ASC) VISIBLE,
   INDEX `fk_Contratacion_Usuario1_idx` (`idUsuario` ASC) VISIBLE,
   INDEX `fk_contratacion_etapa1_idx` (`idEtapa` ASC) VISIBLE,
+  INDEX `fk_contratacion_pago1_idx` (`idPago` ASC) VISIBLE,
+  CONSTRAINT `fk_contratacion_etapa1`
+    FOREIGN KEY (`idEtapa`)
+    REFERENCES `gotravel`.`etapa` (`idEtapa`),
   CONSTRAINT `fk_Contratacion_Servicio1`
     FOREIGN KEY (`idServicio`)
     REFERENCES `gotravel`.`servicio` (`idServicio`),
   CONSTRAINT `fk_Contratacion_Usuario1`
     FOREIGN KEY (`idUsuario`)
     REFERENCES `gotravel`.`usuario` (`idUsuario`),
-  CONSTRAINT `fk_contratacion_etapa1`
-    FOREIGN KEY (`idEtapa`)
-    REFERENCES `gotravel`.`etapa` (`idEtapa`)
+  CONSTRAINT `fk_contratacion_pago1`
+    FOREIGN KEY (`idPago`)
+    REFERENCES `gotravel`.`pago` (`idPago`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
@@ -204,43 +246,6 @@ CREATE TABLE IF NOT EXISTS `gotravel`.`mensaje` (
     REFERENCES `gotravel`.`usuario` (`idUsuario`),
   CONSTRAINT `fk_Mensaje_Usuario2`
     FOREIGN KEY (`idReceptor`)
-    REFERENCES `gotravel`.`usuario` (`idUsuario`))
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8mb3;
-
-
--- -----------------------------------------------------
--- Table `gotravel`.`metodopago`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `gotravel`.`metodopago` (
-  `idMetodoPago` INT NOT NULL AUTO_INCREMENT,
-  `idUsuario` INT NOT NULL,
-  PRIMARY KEY (`idMetodoPago`),
-  INDEX `fk_MetodoPago_Usuario1_idx` (`idUsuario` ASC) VISIBLE,
-  CONSTRAINT `fk_MetodoPago_Usuario1`
-    FOREIGN KEY (`idUsuario`)
-    REFERENCES `gotravel`.`usuario` (`idUsuario`))
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8mb3;
-
-
--- -----------------------------------------------------
--- Table `gotravel`.`pago`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `gotravel`.`pago` (
-  `idPago` INT NOT NULL AUTO_INCREMENT,
-  `idUsuario` INT NOT NULL,
-  `Coste` DOUBLE NOT NULL,
-  `Fecha` DATE NOT NULL,
-  `idMetodoPago` INT NOT NULL,
-  PRIMARY KEY (`idPago`),
-  INDEX `fk_Pago_Usuario1_idx` (`idUsuario` ASC) VISIBLE,
-  INDEX `fk_Pago_MetodoPago1_idx` (`idMetodoPago` ASC) VISIBLE,
-  CONSTRAINT `fk_Pago_MetodoPago1`
-    FOREIGN KEY (`idMetodoPago`)
-    REFERENCES `gotravel`.`metodopago` (`idMetodoPago`),
-  CONSTRAINT `fk_Pago_Usuario1`
-    FOREIGN KEY (`idUsuario`)
     REFERENCES `gotravel`.`usuario` (`idUsuario`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb3;
@@ -369,8 +374,6 @@ SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
 
-
-
 -- -----------------------------------------------------
 -- Insercion de datos por defecto
 -- -----------------------------------------------------
@@ -379,8 +382,24 @@ INSERT INTO `GoTravel`.`TipoServicio` (`NombreTipoServicio`) VALUES ('Transporte
 
 
 -- -----------------------------------------------------
--- Trigger de suscripcion que añade rol
+-- Triggers de roles
 -- -----------------------------------------------------
+
+DELIMITER //
+CREATE TRIGGER tr_insertar_rol_usuario
+AFTER INSERT ON Usuario
+FOR EACH ROW
+BEGIN
+
+    DECLARE idUsuario INT;
+    SET idUsuario = NEW.idUsuario;
+
+    INSERT INTO UsuarioRol (NombreRol, idUsuario)
+    VALUES ('Usuario', idUsuario);
+
+END;
+//
+DELIMITER ;
 
 DELIMITER //
 CREATE TRIGGER tr_insertar_rol_profesional

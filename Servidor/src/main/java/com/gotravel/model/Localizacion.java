@@ -1,17 +1,21 @@
 package com.gotravel.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.io.Serializable;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "localizacion")
-public class Localizacion {
+@Inheritance(strategy= InheritanceType.JOINED)
+public abstract class Localizacion implements Serializable {
 
     @Id
     @Column(name = "idLocalizacion", nullable = false)

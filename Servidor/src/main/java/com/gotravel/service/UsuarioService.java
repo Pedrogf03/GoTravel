@@ -12,7 +12,6 @@ public class UsuarioService implements GoTravelService {
     @Autowired
     private UsuarioRepo repo;
 
-
     @Override
     public List getAll() {
         return repo.getAll();

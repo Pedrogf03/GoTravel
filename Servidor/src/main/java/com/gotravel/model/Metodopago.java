@@ -1,21 +1,24 @@
 package com.gotravel.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.io.Serializable;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "metodopago")
-public abstract class Metodopago {
+@Inheritance(strategy=InheritanceType.JOINED)
+public abstract class Metodopago implements Serializable {
 
     @Id
     @Column(name = "idMetodoPago", nullable = false)
     protected Integer id;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "idUsuario", nullable = false)
-    protected Usuario usuario;
 
 }

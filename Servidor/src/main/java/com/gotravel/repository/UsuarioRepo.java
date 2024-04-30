@@ -2,11 +2,13 @@ package com.gotravel.repository;
 
 import com.gotravel.ServidorApplication;
 import com.gotravel.model.Usuario;
+import jakarta.persistence.Entity;
 import jakarta.transaction.Transactional;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.query.Query;
+import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
@@ -18,7 +20,18 @@ public class UsuarioRepo implements GoTravelRepository {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServidorApplication.class);
 
-    private final SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Usuario.class).buildSessionFactory();
+    private final SessionFactory factory;
+
+    {
+        Configuration configuration = new Configuration().configure("hibernate.cfg.xml");
+        Reflections reflections = new Reflections("com.gotravel.model"); // Busca en este paquete
+
+        for (Class<?> clazz : reflections.getTypesAnnotatedWith(Entity.class)) { // todas las clases que sean @Entity
+            configuration.addAnnotatedClass(clazz); // lo añade a la session factory
+        }
+
+        factory = configuration.buildSessionFactory();
+    }
 
     @Override
     @Transactional

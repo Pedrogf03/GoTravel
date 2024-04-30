@@ -1,32 +1,34 @@
 package com.gotravel.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@RequiredArgsConstructor // Constructor con aquellos atributos que son NonNull
 @Entity
 @Table(name = "pago")
-public class Pago {
+public class Pago implements Serializable {
 
     @Id
     @Column(name = "idPago", nullable = false)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "idUsuario", nullable = false)
-    private Usuario usuario;
-
+    @NonNull
     @Column(name = "Coste", nullable = false)
     private Double coste;
 
+    @NonNull
     @Column(name = "Fecha", nullable = false)
     private LocalDate fecha;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @NonNull
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "idMetodoPago", nullable = false)
     private Metodopago metodoPago;
 

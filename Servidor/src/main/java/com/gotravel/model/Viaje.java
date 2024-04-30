@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -11,7 +12,7 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name = "viaje")
-public class Viaje {
+public class Viaje implements Serializable {
 
     @Id
     @Column(name = "idViaje", nullable = false)
@@ -31,10 +32,6 @@ public class Viaje {
 
     @Column(name = "CosteTotal", nullable = false)
     private Double costeTotal;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "idUsuario", nullable = false)
-    private Usuario usuario;
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "idViaje")
