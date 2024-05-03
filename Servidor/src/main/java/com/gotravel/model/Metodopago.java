@@ -6,19 +6,21 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.io.Serializable;
-
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "metodopago")
-@Inheritance(strategy=InheritanceType.JOINED)
-public abstract class Metodopago implements Serializable {
+@Inheritance(strategy = InheritanceType.JOINED)
+public abstract class Metodopago {
 
     @Id
-    @Column(name = "idMetodoPago", nullable = false)
-    protected Integer id;
+    @Column(name = "id_metodopago", nullable = false)
+    private Integer id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_usuario", nullable = false)
+    private Usuario usuario;
 
 }

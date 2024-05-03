@@ -1,16 +1,24 @@
 package com.gotravel.server;
 
+import com.gotravel.model.Usuario;
+import com.gotravel.repository.UsuarioRepository;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
+
 public class HiloInicioSesion extends Thread {
-/*
+
     private final Socket cliente;
     private boolean sesionIniciada;
-    private final ClienteRepository repo;
     private final Protocolo protocolo;
+    private final UsuarioRepository repo;
 
     public HiloInicioSesion(Socket cliente) {
         this.cliente = cliente;
-        this.repo = new ClienteRepository();
-        protocolo = new Protocolo();
+        this.repo = new UsuarioRepository();
+        this.protocolo = new Protocolo();
     }
 
     public boolean correcto() {
@@ -38,29 +46,34 @@ public class HiloInicioSesion extends Thread {
 
                 String opcion = fromCliente[0];
                 String email = fromCliente[1];
-                String passwd = fromCliente[2];
+                String contrasena = fromCliente[2];
 
                 if(opcion.equalsIgnoreCase("login")) {
 
-                    Cliente c = repo.getUsuarioByEmail(email);
+                    Usuario u = repo.findUsuarioByEmail(email);
 
                     // COMPROBACION -> SESION_INICIADA || CREDENCIALES
-                    output = protocolo.procesarMensaje("" + (c != null && c.getPassword().equals(passwd)));
-                    salida.writeUTF(output);
+                    output = protocolo.procesarMensaje("" + (u != null && u.getContrasena().equals(contrasena)));
                     if(output.equalsIgnoreCase("correcto")){
                         sesionIniciada = true;
+                        salida.writeUTF(output + ";" + u.getId());
+                    } else {
+                        salida.writeUTF(output);
                     }
 
                 } else if (opcion.equalsIgnoreCase("registro")) {
 
                     String nombre = fromCliente[3];
 
-                    Integer idUsuario = repo.addCliente(new Cliente(nombre, email, passwd));
+                    Integer idUsuario = repo.save(new Usuario(nombre, email, contrasena));
+
                     // COMPROBACION -> CREDENCIALES
                     output = protocolo.procesarMensaje("" + (idUsuario != null));
-                    salida.writeUTF(output);
                     if(output.equalsIgnoreCase("correcto")){
                         sesionIniciada = true;
+                        salida.writeUTF(output + ";" + idUsuario);
+                    } else {
+                        salida.writeUTF(output);
                     }
 
                 }
@@ -72,5 +85,5 @@ public class HiloInicioSesion extends Thread {
         }
 
     }
-*/
+
 }

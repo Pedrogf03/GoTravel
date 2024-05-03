@@ -9,18 +9,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.io.Serializable;
-
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "tiposervicio")
-public class Tiposervicio implements Serializable {
+public class Tiposervicio {
 
     @Id
-    @Column(name = "NombreTipoServicio", nullable = false, length = 100)
-    private String nombreTipoServicio;
+    @Column(name = "nombre", nullable = false, length = 100)
+    private String nombre;
 
 }

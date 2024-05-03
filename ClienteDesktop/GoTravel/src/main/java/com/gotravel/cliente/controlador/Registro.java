@@ -57,13 +57,13 @@ public class Registro {
                 DataInputStream entrada = new DataInputStream(App.getCliente().getInputStream());
                 DataOutputStream salida = new DataOutputStream(App.getCliente().getOutputStream());
 
-                String fromServer;
+                String[] fromServer;
                 salida.writeUTF("registro;" + email.getText() + ";" + password.getText() + ";" + usuario.getText());
 
-                fromServer = entrada.readUTF();
-                if(fromServer.equalsIgnoreCase("correcto")) {
+                fromServer = entrada.readUTF().split(";");
+                if(fromServer[0].equalsIgnoreCase("correcto")) {
                     mensajeError.setText("Usuario registrado correctamente");
-                    //TODO: setUsuario
+                    System.out.println(fromServer[1]);
                 } else {
                     mensajeError.setText("Ese email ya está en uso");
                 }

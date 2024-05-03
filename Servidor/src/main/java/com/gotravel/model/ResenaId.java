@@ -8,25 +8,21 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.Hibernate;
 
-import java.io.Serializable;
 import java.util.Objects;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Embeddable
-public class ResenaId implements Serializable {
+public class ResenaId implements java.io.Serializable {
 
-    // El serialVersionUID es un valor que se asocia con cada clase serializable en tiempo de ejecución. Es un número único que representa la versión de la clase.
-    // Durante la deserialización, Java verifica si el serialVersionUID del objeto serializado coincide con el serialVersionUID de la clase local.
-    // Si no coinciden, se lanza una excepción InvalidClassException.
     private static final long serialVersionUID = -3017767775810651976L;
 
-    @Column(name = "idUsuario", nullable = false)
+    @Column(name = "id_usuario", nullable = false)
     private Integer idUsuario;
 
-    @Column(name = "idContratacion", nullable = false)
+    @Column(name = "id_contratacion", nullable = false)
     private Integer idContratacion;
 
     @Override

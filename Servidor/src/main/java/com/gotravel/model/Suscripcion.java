@@ -1,46 +1,41 @@
 package com.gotravel.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.io.Serializable;
 import java.time.LocalDate;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-@RequiredArgsConstructor // Constructor con aquellos atributos que son NonNull
+@AllArgsConstructor
 @Entity
 @Table(name = "suscripcion")
-public class Suscripcion implements Serializable {
+public class Suscripcion {
 
     @Id
-    @Column(name = "idSuscripcion", nullable = false)
+    @Column(name = "id_suscripcion", nullable = false)
     private Integer id;
 
-    @NonNull
-    @Column(name = "FechaIni", nullable = false)
-    private LocalDate fechaIni;
+    @Column(name = "fecha_inicio", nullable = false)
+    private LocalDate fechaInicio;
 
-    @NonNull
-    @Column(name = "FechaFin", nullable = false)
-    private LocalDate fechaFin;
+    @Column(name = "fecha_final", nullable = false)
+    private LocalDate fechaFinal;
 
-    @NonNull
     @Lob
-    @Column(name = "Estado", nullable = false)
+    @Column(name = "estado", nullable = false, columnDefinition = "ENUM('activa', 'inactiva')")
     private String estado;
 
-    @NonNull
-    @OneToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "idPago", nullable = false)
-    private Pago pago;
-
-    @JsonIgnore
-    @OneToOne
-    @JoinColumn(name="idUsuario")
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_usuario", nullable = false)
     private Usuario usuario;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_pago", nullable = false)
+    private Pago pago;
 
 }

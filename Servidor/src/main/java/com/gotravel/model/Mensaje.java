@@ -1,45 +1,41 @@
 package com.gotravel.model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-@RequiredArgsConstructor // Constructor con aquellos atributos que son NonNull
+@AllArgsConstructor
 @Entity
 @Table(name = "mensaje")
-public class Mensaje implements Serializable {
+public class Mensaje {
 
     @Id
-    @Column(name = "idMensaje", nullable = false)
+    @Column(name = "id_mensaje", nullable = false)
     private Integer id;
 
-    @NonNull
-    @Column(name = "Contenido", nullable = false, length = 500)
+    @Column(name = "contenido", nullable = false, length = 500)
     private String contenido;
 
-    @NonNull
-    @Column(name = "Fecha", nullable = false)
+    @Column(name = "fecha", nullable = false)
     private LocalDate fecha;
 
-    @NonNull
-    @Column(name = "Hora", nullable = false)
+    @Column(name = "hora", nullable = false)
     private LocalTime hora;
 
-    @NonNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "idEmisor", nullable = false)
+    @JoinColumn(name = "id_emisor", nullable = false)
     private Usuario emisor;
 
-    @NonNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "idReceptor", nullable = false)
+    @JoinColumn(name = "id_receptor", nullable = false)
     private Usuario receptor;
 
 }

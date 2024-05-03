@@ -42,7 +42,8 @@ fun GoTravelTopAppBar (
         title = {
             Text(
                 text = title,
-                color = MaterialTheme.colorScheme.onPrimary
+                color = MaterialTheme.colorScheme.primaryContainer,
+                style = MaterialTheme.typography.titleLarge
             )
         },
         modifier = modifier,

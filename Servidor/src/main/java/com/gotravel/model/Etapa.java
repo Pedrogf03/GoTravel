@@ -1,48 +1,43 @@
 package com.gotravel.model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.List;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-@RequiredArgsConstructor // Constructor con aquellos atributos que son NonNull
+@AllArgsConstructor
 @Entity
 @Table(name = "etapa")
-public class Etapa implements Serializable {
+public class Etapa {
 
     @Id
-    @Column(name = "idEtapa", nullable = false)
+    @Column(name = "id_etapa", nullable = false)
     private Integer id;
 
-    @NonNull
-    @Column(name = "Nombre", nullable = false, length = 45)
+    @Column(name = "nombre", nullable = false, length = 45)
     private String nombre;
 
-    @NonNull
-    @Column(name = "FechaIni", nullable = false)
-    private LocalDate fechaIni;
+    @Column(name = "fecha_inicio", nullable = false)
+    private LocalDate fechaInicio;
 
-    @NonNull
-    @Column(name = "FechaFin", nullable = false)
-    private LocalDate fechaFin;
+    @Column(name = "fecha_final", nullable = false)
+    private LocalDate fechaFinal;
 
-    @NonNull
-    @Column(name = "CosteTotal", nullable = false)
+    @Column(name = "coste_total", nullable = false)
     private Double costeTotal;
 
-    @NonNull
     @Lob
-    @Column(name = "Tipo", nullable = false)
+    @Column(name = "tipo", nullable = false, columnDefinition = "ENUM('transporte', 'estancia')")
     private String tipo;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "idEtapa")
-    private List<Contratacion> contrataciones;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_viaje", nullable = false)
+    private Viaje viaje;
 
 }

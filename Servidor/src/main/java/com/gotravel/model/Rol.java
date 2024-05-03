@@ -1,6 +1,5 @@
 package com.gotravel.model;
 
-import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -10,19 +9,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.io.Serializable;
-
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "rol")
-public class Rol implements Serializable {
+public class Rol {
 
     @Id
-    @Column(name = "NombreRol", nullable = false, length = 50)
-    @JsonView(Views.UsuarioView.class)
-    private String nombreRol;
+    @Column(name = "nombre", nullable = false, length = 50)
+    private String nombre;
 
 }

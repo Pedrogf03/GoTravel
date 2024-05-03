@@ -1,40 +1,38 @@
 package com.gotravel.model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.List;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-@RequiredArgsConstructor // Constructor con aquellos atributos que son NonNull
+@AllArgsConstructor
 @Entity
 @Table(name = "contratacion")
-public class Contratacion implements Serializable {
+public class Contratacion {
 
     @Id
-    @Column(name = "idContratacion", nullable = false)
+    @Column(name = "id_contratacion", nullable = false)
     private Integer id;
 
-    @NonNull
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "idServicio", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_servicio", nullable = false)
     private Servicio servicio;
 
-    @NonNull
     @Column(name = "fecha", nullable = false)
     private LocalDate fecha;
 
-    @NonNull
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "idPago", referencedColumnName = "idPago")
-    private Pago pago;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_etapa")
+    private Etapa etapa;
 
-    @OneToMany(mappedBy = "contratacion", cascade = CascadeType.ALL)
-    private List<Resena> resenas;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_pago", nullable = false)
+    private Pago pago;
 
 }

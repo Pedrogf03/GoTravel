@@ -1,16 +1,15 @@
 package com.gotravel.cliente.controlador;
 
 import com.gotravel.cliente.App;
+import com.gotravel.cliente.model.Usuario;
 import javafx.fxml.FXML;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.Properties;
 
 public class InicioSesion {
@@ -49,13 +48,13 @@ public class InicioSesion {
                 DataInputStream entrada = new DataInputStream(App.getCliente().getInputStream());
                 DataOutputStream salida = new DataOutputStream(App.getCliente().getOutputStream());
 
-                String fromServer;
+                String[] fromServer;
                 salida.writeUTF("login;" + email.getText() + ";" + password.getText());
 
-                fromServer = entrada.readUTF();
-                if(fromServer.equalsIgnoreCase("correcto")) {
+                fromServer = entrada.readUTF().split(";");
+                if(fromServer[0].equalsIgnoreCase("correcto")) {
                     mensajeError.setText("Sesión iniciada correctamente");
-                    //TODO: setUsuario
+                    System.out.println(fromServer[1]); // ID del usuario
                 } else {
                     mensajeError.setText("Usuario o contraseña incorrectos");
                 }

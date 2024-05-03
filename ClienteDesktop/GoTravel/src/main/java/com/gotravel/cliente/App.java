@@ -1,5 +1,6 @@
 package com.gotravel.cliente;
 
+import com.gotravel.cliente.model.Usuario;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -17,6 +18,9 @@ public class App extends Application {
     @Getter
     @Setter
     private static Socket cliente;
+    @Getter
+    @Setter
+    private static Usuario usuario;
 
     @Override
     public void start(Stage stage) throws IOException {

@@ -1,30 +1,29 @@
 package com.gotravel.model;
 
 import jakarta.persistence.*;
-import lombok.*;
-
-import java.io.Serializable;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-@RequiredArgsConstructor // Constructor con aquellos atributos que son NonNull
+@AllArgsConstructor
 @Entity
 @Table(name = "imagen")
-public class Imagen implements Serializable {
+public class Imagen {
 
     @Id
-    @Column(name = "idServicio", nullable = false)
+    @Column(name = "id_servicio", nullable = false)
     private Integer id;
 
-    @NonNull
     @MapsId
     @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "idServicio", nullable = false)
+    @JoinColumn(name = "id_servicio", nullable = false)
     private Servicio servicio;
 
-    @Column(name = "Imagen", nullable = false)
-    private byte @NonNull [] imagen;
+    @Column(name = "imagen", nullable = false)
+    private byte[] imagen;
 
 }

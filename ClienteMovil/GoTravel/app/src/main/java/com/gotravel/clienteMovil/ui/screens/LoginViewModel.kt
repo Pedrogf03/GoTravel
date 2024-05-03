@@ -31,15 +31,18 @@ class LoginViewModel : ViewModel(){
         }
     }
 
-    fun updateSocket(cliente: Socket) {
+    private fun updateSocket(cliente: Socket) {
         _uiState.update { currentState ->
             currentState.copy(cliente = cliente)
         }
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun iniciarSesion(email: String, passwd: String, context: Context) {
-        if (!(email.isBlank() || email.isEmpty()) && !(passwd.isBlank() || passwd.isEmpty())) {
+    fun iniciarSesion(email: String, contrasena: String, context: Context) : Boolean{
+
+        var correcto = false;
+
+        if (!(email.isBlank() || email.isEmpty()) && !(contrasena.isBlank() || contrasena.isEmpty())) {
             var dirIp = "192.168.1.39"
             var puerto = 8484
 
@@ -49,28 +52,32 @@ class LoginViewModel : ViewModel(){
                 conf.load(inputStream)
                 puerto = Integer.parseInt(conf.getProperty("PUERTO"))
                 dirIp = conf.getProperty("IP")
-                println("$puerto, $dirIp")
             } catch (e: IOException) {
                 println("No se ha podido leer el archivo de propiedades")
             }
 
             GlobalScope.launch {
                 try {
+
                     val cliente = Socket(dirIp, puerto)
                     updateSocket(cliente)
                     val entrada = DataInputStream(cliente.getInputStream())
                     val salida = DataOutputStream(cliente.getOutputStream())
-                    salida.writeUTF("login;$email;$passwd")
-                    var input = entrada.readUTF()
-                    if (input.equals("correcto")) {
+
+                    salida.writeUTF("login;$email;$contrasena")
+                    val fromServer: List<String> = entrada.readUTF().split(";")
+
+                    if (fromServer[0] == "correcto") {
                         mensajeUi.postValue("Sesión iniciada correctamente")
-                        //TODO: setUsuario
+                        println(fromServer[1]) // ID del usuario
+                        correcto = true;
                     } else {
                         mensajeUi.postValue("Usuario o contraseña incorrectos")
                     }
 
                 } catch (e: IOException) {
                     mensajeUi.postValue("No se ha podido conectar con el servidor")
+                    e.printStackTrace()
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -79,11 +86,17 @@ class LoginViewModel : ViewModel(){
         } else {
             mensajeUi.value = "Por favor, rellena todos los campos"
         }
+
+        return correcto
+
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun registrarse(usuario: String, email: String, passwd: String, context: Context) {
-        if (!(usuario.isBlank() || usuario.isEmpty()) && !(email.isBlank() || email.isEmpty()) && !(passwd.isBlank() || passwd.isEmpty())) {
+    fun registrarse(nombre: String, email: String, passwd: String, context: Context) : Boolean {
+
+        var correcto = false;
+
+        if (!(nombre.isBlank() || nombre.isEmpty()) && !(email.isBlank() || email.isEmpty()) && !(passwd.isBlank() || passwd.isEmpty())) {
             var dirIp = "192.168.1.39"
             var puerto = 8484
 
@@ -100,15 +113,19 @@ class LoginViewModel : ViewModel(){
 
             GlobalScope.launch {
                 try {
+
                     val cliente = Socket(dirIp, puerto)
                     updateSocket(cliente)
                     val entrada = DataInputStream(cliente.getInputStream())
                     val salida = DataOutputStream(cliente.getOutputStream())
-                    salida.writeUTF("registro;$email;$passwd;$usuario")
-                    var input = entrada.readUTF()
-                    if (input.equals("correcto")) {
-                        mensajeUi.postValue("Usuario registrado correctamente")
-                        //TODO: setUsuario
+
+                    salida.writeUTF("registro;$email;$passwd;$nombre")
+                    val fromServer: List<String> = entrada.readUTF().split(";")
+
+                    if (fromServer[0] == "correcto") {
+                        mensajeUi.postValue("Sesión iniciada correctamente")
+                        println(fromServer[1]) // ID del usuario
+                        correcto = true;
                     } else {
                         mensajeUi.postValue("Ese email ya está en uso")
                     }
@@ -123,6 +140,9 @@ class LoginViewModel : ViewModel(){
         } else {
             mensajeUi.value = "Por favor, rellena todos los campos"
         }
+
+        return correcto
+
     }
 
 }

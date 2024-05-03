@@ -3,34 +3,32 @@ package com.gotravel.model;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "direccion")
 public class Direccion extends Localizacion {
 
-    @NonNull
-    @Column(name = "Calle", nullable = false, length = 100)
+    @Column(name = "calle", nullable = false, length = 100)
     private String calle;
 
-    @NonNull
-    @Column(name = "Numero", nullable = false, length = 5)
+    @Column(name = "numero", nullable = false, length = 5)
     private String numero;
 
-    @NonNull
-    @Column(name = "Ciudad", nullable = false, length = 50)
+    @Column(name = "ciudad", nullable = false, length = 50)
     private String ciudad;
 
-    @NonNull
-    @Column(name = "Estado", nullable = false, length = 50)
+    @Column(name = "estado", nullable = false, length = 50)
     private String estado;
 
-    @NonNull
-    @Column(name = "CP", nullable = false, length = 5)
+    @Column(name = "cp", nullable = false, length = 5, columnDefinition = "CHAR")
     private String cp;
 
 }

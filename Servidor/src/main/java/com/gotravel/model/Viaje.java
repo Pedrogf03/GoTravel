@@ -1,40 +1,42 @@
 package com.gotravel.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.List;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "viaje")
-public class Viaje implements Serializable {
+public class Viaje {
 
     @Id
-    @Column(name = "idViaje", nullable = false)
+    @Column(name = "id_viaje", nullable = false)
     private Integer id;
 
-    @Column(name = "Nombre", nullable = false, length = 45)
+    @Column(name = "nombre", nullable = false, length = 45)
     private String nombre;
 
-    @Column(name = "Descripcion", nullable = false, length = 150)
+    @Column(name = "descripcion", length = 150)
     private String descripcion;
 
-    @Column(name = "FechaIni", nullable = false)
-    private LocalDate fechaIni;
+    @Column(name = "fecha_inicio", nullable = false)
+    private LocalDate fechaInicio;
 
-    @Column(name = "FechaFin", nullable = false)
+    @Column(name = "fecha_fin", nullable = false)
     private LocalDate fechaFin;
 
-    @Column(name = "CosteTotal", nullable = false)
+    @Column(name = "coste_total", nullable = false)
     private Double costeTotal;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "idViaje")
-    private List<Etapa> etapas;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_usuario", nullable = false)
+    private Usuario usuario;
 
 }

@@ -1,58 +1,46 @@
 package com.gotravel.model;
 
 import jakarta.persistence.*;
-import lombok.*;
-
-import java.io.Serializable;
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-@RequiredArgsConstructor // Constructor con aquellos atributos que son NonNull
+@AllArgsConstructor
 @Entity
 @Table(name = "servicio")
-public class Servicio implements Serializable {
+public class Servicio {
 
     @Id
-    @Column(name = "idServicio", nullable = false)
+    @Column(name = "id_servicio", nullable = false)
     private Integer id;
 
-    @NonNull
-    @Column(name = "Nombre", nullable = false, length = 45)
+    @Column(name = "nombre", nullable = false, length = 45)
     private String nombre;
 
-    @NonNull
-    @Column(name = "Descripcion", nullable = false, length = 100)
+    @Column(name = "descripcion", nullable = false, length = 100)
     private String descripcion;
 
-    @NonNull
-    @Column(name = "Precio", nullable = false)
+    @Column(name = "precio", nullable = false)
     private Double precio;
 
-    @NonNull
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "NombreTipoServicio", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "tipo_servicio", nullable = false)
     private Tiposervicio tipoServicio;
 
-    @NonNull
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "idLocalizacion", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_localizacion", nullable = false)
     private Localizacion localizacion;
 
-    @NonNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "idUsuario", nullable = false)
-    private Usuario profesional;
+    @JoinColumn(name = "id_usuario", nullable = false)
+    private Usuario usuario;
 
-    @NonNull
     @Lob
-    @Column(name = "oculto", nullable = false)
+    @Column(name = "oculto", nullable = false, columnDefinition = "ENUM('0', '1')")
     private String oculto;
-
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "idServicio")
-    private List<Imagen> imagenes;
 
 }

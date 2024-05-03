@@ -1,45 +1,40 @@
 package com.gotravel.model;
 
 import jakarta.persistence.*;
-import lombok.*;
-
-import java.io.Serializable;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-@RequiredArgsConstructor // Constructor con aquellos atributos que son NonNull
+@AllArgsConstructor
 @Entity
 @Table(name = "resena")
-public class Resena implements Serializable {
+public class Resena {
 
     @EmbeddedId
     private ResenaId id;
 
-    @NonNull
     @MapsId("idUsuario")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "idUsuario", nullable = false)
+    @JoinColumn(name = "id_usuario", nullable = false)
     private Usuario usuario;
 
-    @NonNull
     @MapsId("idContratacion")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "idContratacion", nullable = false)
+    @JoinColumn(name = "id_contratacion", nullable = false)
     private Contratacion contratacion;
 
-    @NonNull
-    @Column(name = "Puntuacion", nullable = false)
+    @Column(name = "puntuacion", nullable = false)
     private Integer puntuacion;
 
-    @NonNull
-    @Column(name = "Contenido", nullable = false, length = 200)
+    @Column(name = "contenido", nullable = false, length = 200)
     private String contenido;
 
-    @NonNull
     @Lob
-    @Column(name = "oculto", nullable = false)
+    @Column(name = "oculto", nullable = false, columnDefinition = "ENUM('0', '1')")
     private String oculto;
 
 }

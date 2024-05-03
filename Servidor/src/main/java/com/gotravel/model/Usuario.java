@@ -2,98 +2,92 @@ package com.gotravel.model;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.io.Serializable;
 import java.util.List;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-@RequiredArgsConstructor // Constructor con aquellos atributos que son NonNull
+@AllArgsConstructor
 @Entity
 @Table(name = "usuario")
-public class Usuario implements Serializable {
+public class Usuario {
+
+    public Usuario(String nombre, String email, String contrasena) {
+        this.nombre = nombre;
+        this.email = email;
+        this.contrasena = contrasena;
+    }
 
     @Id
-    @Column(name = "idUsuario", nullable = false)
-    @JsonView(Views.UsuarioView.class)
+    @Column(name = "id_usuario", nullable = false)
+    @JsonView(Views.Usuario.class)
     private Integer id;
 
-    @NonNull
-    @Column(name = "Nombre", nullable = false, length = 45)
-    @JsonView(Views.UsuarioView.class)
+    @Column(name = "nombre", nullable = false, length = 45)
+    @JsonView(Views.Usuario.class)
     private String nombre;
 
-    @NonNull
-    @Column(name = "Apellidos", nullable = false, length = 200)
-    @JsonView(Views.UsuarioView.class)
+    @Column(name = "apellidos", length = 200)
+    @JsonView(Views.Usuario.class)
     private String apellidos;
 
-    @NonNull
-    @Column(name = "Email", nullable = false, length = 150)
-    @JsonView(Views.UsuarioView.class)
+    @Column(name = "email", nullable = false, length = 150)
+    @JsonView(Views.Usuario.class)
     private String email;
 
-    @NonNull
-    @Column(name = "Contrasena", nullable = false, length = 300)
-    @JsonView(Views.UsuarioView.class)
+    @Column(name = "contrasena", nullable = false, length = 300)
+    @JsonView(Views.Usuario.class)
     private String contrasena;
 
-    @Column(name = "Tfno", length = 9)
-    @JsonView(Views.UsuarioView.class)
+    @Column(name = "tfno", length = 9, columnDefinition = "CHAR")
+    @JsonView(Views.Usuario.class)
     private String tfno;
 
-    @Column(name = "Foto")
-    @JsonView(Views.UsuarioView.class)
+    @Column(name = "foto")
+    @JsonView(Views.Usuario.class)
     private byte[] foto;
 
-    @NonNull
     @Lob
-    @Column(name = "oculto", nullable = false)
-    @JsonView(Views.UsuarioView.class)
+    @Column(name = "oculto", nullable = false, columnDefinition = "ENUM('0', '1')")
+    @JsonView(Views.Usuario.class)
     private String oculto;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "idUsuario")
+    @OneToMany(mappedBy = "usuario")
     private List<Viaje> viajes;
 
-    @NonNull
     @ManyToMany
     @JoinTable(
             name = "usuariorol",
-            joinColumns = @JoinColumn(name = "idUsuario"),
-            inverseJoinColumns = @JoinColumn(name = "NombreRol")
+            joinColumns = @JoinColumn(name = "id_usuario"),
+            inverseJoinColumns = @JoinColumn(name = "rol")
     )
-    @JsonView(Views.UsuarioView.class)
     private List<Rol> roles;
+
+    @OneToMany(mappedBy = "usuario")
+    private List<Servicio> servicios;
+
+    @OneToMany(mappedBy = "usuario")
+    private List<Pago> pagos;
+
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_usuario", nullable = false)
+    private List<Contratacion> contrataciones;
 
     @OneToOne(mappedBy = "usuario")
     private Suscripcion suscripcion;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "idUsuario")
-    private List<Pago> pagos;
-
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "idEmisor")
+    @OneToMany(mappedBy = "emisor")
     private List<Mensaje> mensajesEnviados;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "idReceptor")
+    @OneToMany(mappedBy = "receptor")
     private List<Mensaje> mensajesRecibidos;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "idUsuario")
-    private List<Servicio> servicios;
-
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "idUsuario")
-    private List<Contratacion> contrataciones;
-
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "idUsuario")
+    @OneToMany(mappedBy = "usuario")
     private List<Metodopago> metodosPago;
 
 }
