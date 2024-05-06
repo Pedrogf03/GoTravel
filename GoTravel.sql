@@ -374,6 +374,14 @@ SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
 
 
 -- -----------------------------------------------------
+-- Inserts por defecto
+-- -----------------------------------------------------
+
+INSERT INTO rol (nombre) VALUES ('Usuario'), ('Profesional'), ('Administrador');
+INSERT INTO tiposervicio (nombre) VALUES ('Transporte'), ('Alojamiento'), ('Visita'), ('Guía');
+
+
+-- -----------------------------------------------------
 -- Triggers de roles
 -- -----------------------------------------------------
 
