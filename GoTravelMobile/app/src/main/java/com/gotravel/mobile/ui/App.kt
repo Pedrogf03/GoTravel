@@ -48,7 +48,7 @@ fun AppTopBar (
             Text(
                 text = title,
                 color = MaterialTheme.colorScheme.onPrimary,
-                //style = MaterialTheme.typography.titleLarge
+                style = MaterialTheme.typography.titleLarge
             )
         },
         modifier = modifier,
@@ -69,6 +69,10 @@ fun AppTopBar (
 }
 
 sealed class Screen(val route: String, val label: String, val icon: Int, val iconSelected: Int) {
+    object Inicio : Screen("home", "Inicio",
+        R.drawable.outline_home_24,
+        R.drawable.baseline_home_24
+    )
     object Viajes : Screen("viajes", "Viajes",
         R.drawable.outline_location_on_24,
         R.drawable.baseline_location_on_24
@@ -84,20 +88,19 @@ sealed class Screen(val route: String, val label: String, val icon: Int, val ico
     )
 }
 
-val items = listOf(Screen.Viajes, Screen.Servicios, Screen.Chats, Screen.Perfil)
+val items = listOf(Screen.Inicio, Screen.Viajes, Screen.Servicios, Screen.Chats, Screen.Perfil)
 
 @Composable
 fun AppBottomBar(
     currentRoute: String,
-    navController: NavHostController,
-    usuarioId: Int
+    navController: NavHostController
 ) {
     BottomNavigation (
-        //backgroundColor = MaterialTheme.colorScheme.primary
+        backgroundColor = MaterialTheme.colorScheme.primary
     ){
 
         items.forEach { screen ->
-            var selected = false;
+            var selected = false
 
             if(currentRoute == screen.route) {
                 selected = true
@@ -106,15 +109,16 @@ fun AppBottomBar(
                 icon = { Icon(
                     painterResource(id = if(selected) screen.iconSelected else screen.icon),
                     contentDescription = null,
-                    //tint = MaterialTheme.colorScheme.onPrimary
+                    tint = MaterialTheme.colorScheme.onPrimary
                 ) },
                 label = { Text(
                     text = screen.label,
-                    //color = MaterialTheme.colorScheme.onPrimary
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    style = MaterialTheme.typography.titleSmall
                 ) },
                 selected = selected,
                 onClick = {
-                    navController.navigate("${screen.route}/${usuarioId}")
+                    navController.navigate(screen.route)
                 }
             )
         }

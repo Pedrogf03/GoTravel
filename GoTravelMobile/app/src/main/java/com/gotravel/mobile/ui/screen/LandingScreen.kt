@@ -1,7 +1,6 @@
 package com.gotravel.mobile.ui.screen
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,20 +14,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,7 +54,6 @@ object LandingDestination : NavDestination {
 
 @Composable
 fun LandingScreen(
-    modifier: Modifier = Modifier,
     viewModel: LandingViewModel = viewModel(factory = AppViewModelProvider.Factory),
     navigateToCredenciales: (String) -> Unit
 ) {
@@ -78,6 +72,7 @@ fun LandingScreen(
             val context = LocalContext.current
             ContentLanding(imagen = imagen, navigateToCredenciales, cambiarIp = { viewModel.cambiarIp(context, it) })
         }
+        else -> TODO()
     }
 
 }

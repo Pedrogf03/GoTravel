@@ -9,6 +9,7 @@ import com.gotravel.mobile.GoTravelApplication
 import com.gotravel.mobile.ui.screen.viewmodel.CredencialesViewModel
 import com.gotravel.mobile.ui.screen.viewmodel.HomeViewModel
 import com.gotravel.mobile.ui.screen.viewmodel.LandingViewModel
+import com.gotravel.mobile.ui.screen.viewmodel.ViajesViewModel
 
 object AppViewModelProvider {
 
@@ -23,7 +24,11 @@ object AppViewModelProvider {
         }
 
         initializer {
-            HomeViewModel(this.createSavedStateHandle())
+            HomeViewModel()
+        }
+
+        initializer {
+            ViajesViewModel()
         }
 
     }

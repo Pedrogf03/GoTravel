@@ -14,6 +14,8 @@ import com.gotravel.mobile.ui.screen.HomeDestination
 import com.gotravel.mobile.ui.screen.HomeScreen
 import com.gotravel.mobile.ui.screen.LandingDestination
 import com.gotravel.mobile.ui.screen.LandingScreen
+import com.gotravel.mobile.ui.screen.ViajesDestination
+import com.gotravel.mobile.ui.screen.ViajesScreen
 
 @Composable
 fun AppNavHost(
@@ -55,7 +57,14 @@ fun AppNavHost(
 
         // Pantalla home
         composable(route = HomeDestination.route) {
-            HomeScreen()
+            HomeScreen(
+                navController = navController
+            )
+        }
+
+        // Pantalla viajes
+        composable(route = ViajesDestination.route) {
+            ViajesScreen()
         }
 
     }

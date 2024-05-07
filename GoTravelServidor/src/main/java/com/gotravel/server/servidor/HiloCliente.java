@@ -4,12 +4,14 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.gotravel.server.ServerApplication;
 import com.gotravel.server.model.Usuario;
+import com.gotravel.server.model.Viaje;
 import com.gotravel.server.service.AppService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.List;
 
 public class HiloCliente extends Thread {
 
@@ -61,7 +63,6 @@ public class HiloCliente extends Thread {
                     if(output.equalsIgnoreCase("correcto")){
                         sesionIniciada = true;
                         String json = gson.toJson(u);
-                        System.out.println(json);
                         salida.writeUTF(json);
                     } else {
                         salida.writeUTF("");
@@ -75,7 +76,6 @@ public class HiloCliente extends Thread {
 
                     // COMPROBACION -> CREDENCIALES
                     output = protocolo.procesarMensaje("" + (u != null));
-                    System.out.println(output);
                     if(output.equalsIgnoreCase("correcto")){
                         sesionIniciada = true;
                         String json = gson.toJson(u);
@@ -88,8 +88,24 @@ public class HiloCliente extends Thread {
 
             }
 
+            String data;
+            while((data = entrada.readUTF()) != null) {
+
+                String[] fromUser = data.split(";");
+                String peticion = fromUser[0];
+                int idUsuario = Integer.parseInt(fromUser[1]);
+
+                if(peticion.equalsIgnoreCase("viajes")) {
+                    List<Viaje> viajes = service.findViajesByUsuarioId(idUsuario);
+                    String json = gson.toJson(viajes);
+                    salida.writeUTF(json);
+                    System.out.println(json);
+                }
+
+            }
+
         } catch (IOException e) {
-            LOG.warn("Se ha desconectado un cliente");
+            LOG.warn("Se ha desconectado un usuario");
         }
 
     }

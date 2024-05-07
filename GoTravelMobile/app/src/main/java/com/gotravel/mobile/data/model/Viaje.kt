@@ -12,13 +12,10 @@ import lombok.Setter
 @AllArgsConstructor
 @Serializable
 data class Viaje (
-    val id: Int,
+    val id: Int?,
     val nombre: String,
     val descripcion: String,
     val fechaInicio: String,
     val fechaFin: String,
     val costeTotal: Double,
-    val usuario: Usuario,
-) {
-    val etapas: List<Etapa>? = null
-}
+)

@@ -7,10 +7,6 @@ import androidx.lifecycle.ViewModel
 import com.google.gson.GsonBuilder
 import com.gotravel.mobile.data.model.Usuario
 import com.gotravel.mobile.ui.screen.CredencialesDestination
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
@@ -32,11 +28,11 @@ class CredencialesViewModel(
     val regexNombre = "^[a-zA-Z0-9]*$".toRegex()
 
     private fun updateSocket(cliente: Socket) {
-        GoTravelUiState.socket = cliente
+        AppUiState.socket = cliente
     }
 
     private fun updateUsuario(usuario: Usuario) {
-        GoTravelUiState.usuario = usuario
+        AppUiState.usuario = usuario
     }
 
     fun String.sha256(): String {
@@ -85,6 +81,7 @@ class CredencialesViewModel(
 
                     if (usuario != null) {
                         mensajeUi.postValue("Sesión iniciada correctamente")
+                        updateUsuario(usuario)
                     } else {
                         mensajeUi.postValue("Usuario o contraseña incorrectos")
                     }
@@ -96,7 +93,6 @@ class CredencialesViewModel(
                     e.printStackTrace()
                 }
 
-                updateUsuario(usuario!!)
                 return usuario
 
         } else {
@@ -164,6 +160,7 @@ class CredencialesViewModel(
 
                         if (usuario != null) {
                             mensajeUi.postValue("Usuario registrado correctamente")
+                            updateUsuario(usuario)
                         } else {
                             mensajeUi.postValue("Ese email ya está en uso")
                         }
@@ -175,7 +172,6 @@ class CredencialesViewModel(
                         e.printStackTrace()
                     }
 
-                    updateUsuario(usuario!!)
                     return usuario
 
                 }

@@ -25,6 +25,8 @@ public class Protocolo {
                     mensaje = "incorrecto";
                 }
                 break;
+            case SESION_INICIADA:
+                break;
         }
 
 

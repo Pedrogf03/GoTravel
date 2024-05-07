@@ -1,22 +1,15 @@
 package com.gotravel.mobile.ui.screen.viewmodel
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.res.painterResource
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gotravel.gotravel.R
 import com.gotravel.mobile.data.AppRepository
 import kotlinx.coroutines.launch
-import java.io.FileReader
-import java.io.FileWriter
 import java.io.IOException
 import java.util.Properties
 
@@ -37,13 +30,12 @@ class LandingViewModel(
         getImagen()
     }
 
-    fun getImagen() {
+    private fun getImagen() {
         viewModelScope.launch {
-            try {
-                uiState = LandingUiState.Success(repository.getImagen())
+            uiState = try {
+                LandingUiState.Success(repository.getImagen())
             } catch (e: IOException) {
-                uiState =
-                    LandingUiState.Error(R.drawable.resource_default)
+                LandingUiState.Error(R.drawable.resource_default)
             }
         }
     }
