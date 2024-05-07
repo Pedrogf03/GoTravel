@@ -64,7 +64,7 @@ fun AppNavHost(
 
         // Pantalla viajes
         composable(route = ViajesDestination.route) {
-            ViajesScreen()
+            ViajesScreen(navController = navController)
         }
 
     }

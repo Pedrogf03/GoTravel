@@ -46,4 +46,7 @@ public class AppService {
         return viajeRepository.findAllByUsuarioId(idUsuario);
     }
 
+    public Viaje findProximoViajeByUsuarioId(int idUsuario) {
+        return viajeRepository.findProximoViajeByUsuarioId(idUsuario);
+    }
 }

@@ -94,12 +94,19 @@ public class HiloCliente extends Thread {
                 String[] fromUser = data.split(";");
                 String peticion = fromUser[0];
                 int idUsuario = Integer.parseInt(fromUser[1]);
+                String json;
 
-                if(peticion.equalsIgnoreCase("viajes")) {
-                    List<Viaje> viajes = service.findViajesByUsuarioId(idUsuario);
-                    String json = gson.toJson(viajes);
-                    salida.writeUTF(json);
-                    System.out.println(json);
+                switch (peticion) {
+                    case "viajes":
+                        List<Viaje> viajes = service.findViajesByUsuarioId(idUsuario);
+                        json = gson.toJson(viajes);
+                        salida.writeUTF(json);
+                        break;
+                    case "proximoViaje":
+                        Viaje proximoViaje = service.findProximoViajeByUsuarioId(idUsuario);
+                        json = gson.toJson(proximoViaje);
+                        salida.writeUTF(json);
+                        break;
                 }
 
             }

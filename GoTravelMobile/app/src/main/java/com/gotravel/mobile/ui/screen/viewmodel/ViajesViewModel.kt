@@ -16,21 +16,21 @@ import java.io.DataOutputStream
 import java.io.IOException
 
 sealed interface ViajesUiState {
-    data class Success(val viajes: List<Viaje>) : LandingUiState
-    object Error : LandingUiState
-    object Loading : LandingUiState
+    data class Success(val viajes: List<Viaje>) : ViajesUiState
+    object Error : ViajesUiState
+    object Loading : ViajesUiState
 }
 
 class ViajesViewModel : ViewModel() {
 
-    var uiState: LandingUiState by mutableStateOf(ViajesUiState.Loading)
+    var uiState: ViajesUiState by mutableStateOf(ViajesUiState.Loading)
         private set
 
     init {
         getViajes()
     }
 
-    private fun getViajes() {
+    fun getViajes() {
         viewModelScope.launch {
             uiState = try {
                 ViajesUiState.Success(findViajesByUsuarioId())
@@ -72,6 +72,5 @@ class ViajesViewModel : ViewModel() {
             return@withContext listOf<Viaje>()
         }
     }
-
 
 }

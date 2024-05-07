@@ -24,7 +24,10 @@ fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
-            painter = painterResource(id = R.drawable.baseline_signal_wifi_connected_no_internet_4_24), contentDescription = ""
+            painter = painterResource(id = R.drawable.baseline_signal_wifi_connected_no_internet_4_24),
+            contentDescription = "",
+            modifier = Modifier
+                .size(100.dp)
         )
         Button(onClick = retryAction) {
             Text(text = "Reintentar")
