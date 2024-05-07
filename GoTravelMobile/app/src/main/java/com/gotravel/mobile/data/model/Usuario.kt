@@ -10,13 +10,13 @@ import lombok.NoArgsConstructor
 data class Usuario(
     val id: Int,
     val nombre: String,
+    val apellidos: String? = null,
     val email: String,
     val contrasena: String,
-    val roles: List<Rol>
-) {
-    val apellidos: String? = null
-    val tfno: String? = null
+    val roles: List<Rol>,
+    val tfno: String? = null,
     val foto: ByteArray? = null
+) {
     val oculto: String? = null
     val viajes: List<Viaje>? = null
     val servicios: List<Servicio>? = null

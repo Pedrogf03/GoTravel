@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.Arrays;
 
 public class HiloCliente extends Thread {
 
@@ -62,6 +61,7 @@ public class HiloCliente extends Thread {
                     if(output.equalsIgnoreCase("correcto")){
                         sesionIniciada = true;
                         String json = gson.toJson(u);
+                        System.out.println(json);
                         salida.writeUTF(json);
                     } else {
                         salida.writeUTF("");

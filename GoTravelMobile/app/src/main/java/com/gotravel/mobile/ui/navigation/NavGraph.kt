@@ -10,6 +10,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.gotravel.mobile.ui.screen.CredencialesDestination
 import com.gotravel.mobile.ui.screen.CredencialesScreen
+import com.gotravel.mobile.ui.screen.HomeDestination
+import com.gotravel.mobile.ui.screen.HomeScreen
 import com.gotravel.mobile.ui.screen.LandingDestination
 import com.gotravel.mobile.ui.screen.LandingScreen
 
@@ -35,7 +37,7 @@ fun AppNavHost(
             )
         }
 
-        // Pantalla para introducir los credenciales de inicio de sesión
+        // Pantalla para introducir los credenciales de inicio de sesión o registro
         composable(
             route = CredencialesDestination.routeWithArgs,
             arguments = listOf(
@@ -44,8 +46,16 @@ fun AppNavHost(
             CredencialesScreen(
                 navigateUp = {
                     navController.popBackStack(LandingDestination.route, inclusive = false)
+                },
+                navigateToHome = {
+                    navController.navigate(HomeDestination.route)
                 }
             )
+        }
+
+        // Pantalla home
+        composable(route = HomeDestination.route) {
+            HomeScreen()
         }
 
     }

@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.gotravel.mobile.GoTravelApplication
 import com.gotravel.mobile.ui.screen.viewmodel.CredencialesViewModel
+import com.gotravel.mobile.ui.screen.viewmodel.HomeViewModel
 import com.gotravel.mobile.ui.screen.viewmodel.LandingViewModel
 
 object AppViewModelProvider {
@@ -19,6 +20,10 @@ object AppViewModelProvider {
 
         initializer {
             CredencialesViewModel(this.createSavedStateHandle())
+        }
+
+        initializer {
+            HomeViewModel(this.createSavedStateHandle())
         }
 
     }

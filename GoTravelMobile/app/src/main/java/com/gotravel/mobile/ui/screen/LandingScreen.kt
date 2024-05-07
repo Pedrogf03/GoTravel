@@ -1,6 +1,8 @@
 package com.gotravel.mobile.ui.screen
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,19 +13,38 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gotravel.gotravel.R
 import com.gotravel.mobile.ui.AppViewModelProvider
@@ -45,29 +66,41 @@ fun LandingScreen(
 
     when (val uiState = viewModel.uiState) {
         is LandingUiState.Loading -> {
-            LoadingScreen(
-                modifier = modifier
-                    .fillMaxSize()
-            )
+            LoadingScreen()
         }
         is LandingUiState.Success -> {
-            ContentLanding(imagen = uiState.imagen, navigateToCredenciales)
+            val imagen = ImageResource.Bitmap(uiState.imagen)
+            val context = LocalContext.current
+            ContentLanding(imagen = imagen, navigateToCredenciales, cambiarIp = { viewModel.cambiarIp(context, it) })
         }
         is LandingUiState.Error -> {
-            LoadingScreen(
-                modifier = modifier
-                    .fillMaxSize()
-            )
+            val imagen = ImageResource.Res(uiState.imagen)
+            val context = LocalContext.current
+            ContentLanding(imagen = imagen, navigateToCredenciales, cambiarIp = { viewModel.cambiarIp(context, it) })
         }
     }
 
 }
 
+sealed class ImageResource {
+    data class Res(val id: Int) : ImageResource()
+    data class Bitmap(val bitmap: ImageBitmap) : ImageResource()
+}
+
 @Composable
 fun ContentLanding(
-    imagen: ImageBitmap,
-    navigateToCredenciales: (String) -> Unit
+    imagen: ImageResource,
+    navigateToCredenciales: (String) -> Unit,
+    cambiarIp: (String) -> Unit
 ) {
+
+    var dialogAbierto by remember { mutableStateOf(false) }
+
+    if (dialogAbierto) {
+        Dialog(onDismissRequest = { dialogAbierto = false }) {
+            CambiarDirIp(cambiarIp) { dialogAbierto = !dialogAbierto }
+        }
+    }
 
     Column (
         modifier = Modifier.fillMaxSize(),
@@ -84,21 +117,35 @@ fun ContentLanding(
                 modifier = Modifier
                     .fillMaxSize()
             ) {
-                // Imagen de fondo
-                Image(
-                    bitmap = imagen,
-                    contentDescription = "Imagen aleatoria de una ciudad",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
+                when (imagen) {
+                    is ImageResource.Res -> {
+                        Image(
+                            painter = painterResource(id = imagen.id),
+                            contentDescription = "",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                    is ImageResource.Bitmap -> {
+                        Image(
+                            bitmap = imagen.bitmap,
+                            contentDescription = "Imagen aleatoria de una ciudad",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                }
 
                 Image(
                     painter = painterResource(id = R.drawable.logo),
-                    contentDescription = "Imagen del medio",
+                    contentDescription = "",
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .size(150.dp) // Cambia esto para ajustar el tamaño
-                        .clip(CircleShape) // Esto hace que la imagen sea redonda
+                        .size(150.dp)
+                        .clip(CircleShape)
+                        .clickable {
+                            dialogAbierto = !dialogAbierto
+                        }
                 )
             }
         }
@@ -133,6 +180,57 @@ fun ContentLanding(
         }
 
     }
+}
 
+@Composable
+fun CambiarDirIp(
+    cambiarIp: (String) -> Unit,
+    cerrarDialogo: () -> Unit
+) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
 
+        var ip by remember { mutableStateOf("") }
+
+        Card{
+            Column(
+                modifier = Modifier.wrapContentSize()
+                    .padding(16.dp)
+            ) {
+                OutlinedTextField(
+                    value = ip,
+                    onValueChange = { ip = it },
+                    label = { Text("Direccion IP del servidor") },
+                    singleLine = true,
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = ""
+                        )
+                    },
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Done
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                )
+
+                Button(
+                    onClick = {
+                        cambiarIp(ip)
+                        cerrarDialogo()
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Cambiar")
+                }
+
+            }
+
+        }
+
+    }
 }

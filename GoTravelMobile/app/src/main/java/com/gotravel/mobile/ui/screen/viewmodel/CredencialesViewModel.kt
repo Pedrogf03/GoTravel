@@ -14,7 +14,9 @@ import kotlinx.coroutines.flow.update
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
+import java.math.BigInteger
 import java.net.Socket
+import java.security.MessageDigest
 import java.util.Properties
 
 class CredencialesViewModel(
@@ -23,135 +25,169 @@ class CredencialesViewModel(
 
     val opcion: String = checkNotNull(savedStateHandle[CredencialesDestination.opcion])
 
-    private val _uiState = MutableStateFlow(CredencialesUiState())
-    val uiState: StateFlow<CredencialesUiState> = _uiState.asStateFlow()
-
     val mensajeUi: MutableLiveData<String> = MutableLiveData()
 
+    val regexEmail = "^[A-Za-z0-9+_.-]+@(.+)$".toRegex()
+    val regexContrasena = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9\\s]).{8,}$".toRegex()
+    val regexNombre = "^[a-zA-Z0-9]*$".toRegex()
+
     private fun updateSocket(cliente: Socket) {
-        _uiState.update { currentState ->
-            currentState.copy(socket = cliente)
-        }
+        GoTravelUiState.socket = cliente
+    }
+
+    private fun updateUsuario(usuario: Usuario) {
+        GoTravelUiState.usuario = usuario
+    }
+
+    fun String.sha256(): String {
+        val md = MessageDigest.getInstance("SHA-256")
+        return BigInteger(1, md.digest(toByteArray())).toString(16).padStart(32, '0')
     }
 
     fun iniciarSesion(email: String, contrasena: String, context: Context) : Usuario? {
 
         mensajeUi.postValue("Conectando con el servidor...")
-        val gson = GsonBuilder()
-            .serializeNulls()
-            .setLenient()
-            .create()
-
-        var usuario : Usuario? = null
 
         if (!(email.isBlank() || email.isEmpty()) && !(contrasena.isBlank() || contrasena.isEmpty())) {
-            var dirIp = "192.168.1.39"
-            var puerto = 8484
 
-            val conf = Properties()
-            try {
-                val inputStream = context.assets.open("client.properties")
-                conf.load(inputStream)
-                puerto = Integer.parseInt(conf.getProperty("PUERTO"))
-                dirIp = conf.getProperty("IP")
-            } catch (e: IOException) {
-                println("No se ha podido leer el archivo de propiedades")
-            }
+                var dirIp = "192.168.1.39"
+                var puerto = 8484
 
-            try {
-                val cliente = Socket(dirIp, puerto)
-                updateSocket(cliente)
-
-                val salida = DataOutputStream(cliente.getOutputStream())
-                val entrada = DataInputStream(cliente.getInputStream())
-
-                salida.writeUTF("login;$email;$contrasena")
-                salida.flush()
-
-                val jsonFromServer = entrada.readUTF()
-                usuario = gson.fromJson(jsonFromServer, Usuario::class.java)
-
-                if (usuario != null) {
-                    mensajeUi.postValue("Sesión iniciada correctamente")
-                } else {
-                    mensajeUi.postValue("Usuario o contraseña incorrectos")
+                val conf = Properties()
+                try {
+                    val inputStream = context.openFileInput("client.properties")
+                    conf.load(inputStream)
+                    puerto = Integer.parseInt(conf.getProperty("PUERTO"))
+                    dirIp = conf.getProperty("IP")
+                } catch (e: IOException) {
+                    println("No se ha podido leer el archivo de propiedades")
                 }
 
-            } catch (e: IOException) {
-                mensajeUi.postValue("No se ha podido conectar con el servidor")
-                e.printStackTrace()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+                val gson = GsonBuilder()
+                    .serializeNulls()
+                    .setLenient()
+                    .create()
+
+                var usuario : Usuario? = null
+
+                try {
+                    val cliente = Socket(dirIp, puerto)
+                    updateSocket(cliente)
+
+                    val salida = DataOutputStream(cliente.getOutputStream())
+                    val entrada = DataInputStream(cliente.getInputStream())
+
+                    salida.writeUTF("login;$email;${contrasena.sha256()}")
+                    salida.flush()
+
+                    val jsonFromServer = entrada.readUTF()
+                    usuario = gson.fromJson(jsonFromServer, Usuario::class.java)
+
+                    if (usuario != null) {
+                        mensajeUi.postValue("Sesión iniciada correctamente")
+                    } else {
+                        mensajeUi.postValue("Usuario o contraseña incorrectos")
+                    }
+
+                } catch (e: IOException) {
+                    mensajeUi.postValue("No se ha podido conectar con el servidor")
+                    e.printStackTrace()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+                updateUsuario(usuario!!)
+                return usuario
 
         } else {
             mensajeUi.postValue("Por favor, rellena todos los campos")
         }
 
-        return usuario
+        return null
 
     }
 
-    fun registrarse(nombre: String, email: String, contrasena: String, context: Context) : Usuario? {
+    fun registrarse(email: String, contrasena: String, nombre: String,  confirmarContrasena: String, context: Context) : Usuario? {
 
         mensajeUi.postValue("Conectando con el servidor...")
-        val gson = GsonBuilder()
-            .serializeNulls()
-            .setLenient()
-            .create()
 
-        var usuario : Usuario? = null
+        if (!(nombre.isBlank() || nombre.isEmpty()) && !(email.isBlank() || email.isEmpty()) && !(contrasena.isBlank() || contrasena.isEmpty()) && !(confirmarContrasena.isBlank() || confirmarContrasena.isEmpty())) {
 
-        if (!(nombre.isBlank() || nombre.isEmpty()) && !(email.isBlank() || email.isEmpty()) && !(contrasena.isBlank() || contrasena.isEmpty())) {
-            var dirIp = "192.168.1.39"
-            var puerto = 8484
+            if (!nombre.matches(regexNombre)) {
+                mensajeUi.postValue("El nombre no es válido")
+                mensajeUi.postValue(nombre)
+            } else if (!email.matches(regexEmail)) {
+                mensajeUi.postValue("El email no es válido")
+            } else if (!contrasena.matches(regexContrasena)) {
+                mensajeUi.postValue("La contraseña no es válida")
+            } else {
 
-            val conf = Properties()
-            try {
-                val inputStream = context.assets.open("client.properties")
-                conf.load(inputStream)
-                puerto = Integer.parseInt(conf.getProperty("PUERTO"))
-                dirIp = conf.getProperty("IP")
-            } catch (e: IOException) {
-                println("No se ha podido leer el archivo de propiedades")
-            }
+                val contrasenaHash = contrasena.sha256()
+                val confirmarHash = confirmarContrasena.sha256()
 
-            try {
-                val cliente = Socket(dirIp, puerto)
-                updateSocket(cliente)
-
-                val salida = DataOutputStream(cliente.getOutputStream())
-                val entrada = DataInputStream(cliente.getInputStream())
-
-                salida.writeUTF("registro;$email;$contrasena;$nombre")
-                salida.flush()
-
-                val jsonFromServer = entrada.readUTF()
-                usuario = gson.fromJson(jsonFromServer, Usuario::class.java)
-
-                if (usuario != null) {
-                    mensajeUi.postValue("Usuario registrado correctamente")
+                if(contrasenaHash != confirmarHash) {
+                    mensajeUi.postValue("Las contraseñas no coinciden")
                 } else {
-                    mensajeUi.postValue("Ese email ya está en uso")
+
+                    var dirIp = "192.168.1.39"
+                    var puerto = 8484
+
+                    val conf = Properties()
+                    try {
+                        val inputStream = context.openFileInput("client.properties")
+                        conf.load(inputStream)
+                        puerto = Integer.parseInt(conf.getProperty("PUERTO"))
+                        dirIp = conf.getProperty("IP")
+                    } catch (e: IOException) {
+                        println("No se ha podido leer el archivo de propiedades")
+                    }
+
+                    val gson = GsonBuilder()
+                        .serializeNulls()
+                        .setLenient()
+                        .create()
+
+                    var usuario : Usuario? = null
+
+                    try {
+                        val cliente = Socket(dirIp, puerto)
+                        updateSocket(cliente)
+
+                        val salida = DataOutputStream(cliente.getOutputStream())
+                        val entrada = DataInputStream(cliente.getInputStream())
+
+                        salida.writeUTF("registro;$email;$contrasenaHash;$nombre")
+                        salida.flush()
+
+                        val jsonFromServer = entrada.readUTF()
+                        usuario = gson.fromJson(jsonFromServer, Usuario::class.java)
+
+                        if (usuario != null) {
+                            mensajeUi.postValue("Usuario registrado correctamente")
+                        } else {
+                            mensajeUi.postValue("Ese email ya está en uso")
+                        }
+
+                    } catch (e: IOException) {
+                        mensajeUi.postValue("No se ha podido conectar con el servidor")
+                        e.printStackTrace()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+
+                    updateUsuario(usuario!!)
+                    return usuario
+
                 }
 
-            } catch (e: IOException) {
-                mensajeUi.postValue("No se ha podido conectar con el servidor")
-                e.printStackTrace()
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
 
         } else {
             mensajeUi.postValue("Por favor, rellena todos los campos")
         }
 
-        return usuario
+        return null
 
     }
 
 }
-
-data class CredencialesUiState(
-    val socket: Socket? = null
-)
