@@ -52,7 +52,7 @@ import com.gotravel.mobile.ui.screen.viewmodels.ViajesViewModel
 
 object ViajesDestination : NavDestination {
     override val route = "viajes"
-    override val titleRes = R.string.tus_viajes
+    override val titleRes = R.string.app_name
     const val busqueda = "busqueda"
     val routeWithArgs = "$route/{$busqueda}"
 }

@@ -1,5 +1,6 @@
 package com.gotravel.mobile.ui.screen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,12 +18,14 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -31,13 +34,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gotravel.gotravel.R
@@ -64,13 +73,14 @@ fun CredencialesScreen(
     modifier: Modifier = Modifier,
     viewModel: CredencialesViewModel = viewModel(factory = AppViewModelProvider.Factory),
     navigateUp: () -> Unit,
-    navigateToHome: () -> Unit
+    navigateToHome: () -> Unit,
+    navigateToCredenciales: (String) -> Unit
 ) {
 
     Scaffold(
         topBar = {
             AppTopBar(
-                title = if (viewModel.opcion == "login") "Iniciar Sesión" else "Registrarse",
+                title = stringResource(id = CredencialesDestination.titleRes),
                 canNavigateBack = true,
                 navigateUp = navigateUp
             )
@@ -83,14 +93,16 @@ fun CredencialesScreen(
                 viewModel = viewModel,
                 registro = false,
                 navigateToHome = navigateToHome,
-                Modifier.padding(it)
+                navigateToCredenciales = navigateToCredenciales,
+                modifier = Modifier.padding(it)
             )
         } else {
             LoginScreen(
                 viewModel = viewModel,
                 registro = true,
                 navigateToHome = navigateToHome,
-                Modifier.padding(it)
+                navigateToCredenciales = navigateToCredenciales,
+                modifier = Modifier.padding(it)
             )
         }
 
@@ -98,12 +110,13 @@ fun CredencialesScreen(
 
 }
 
-@OptIn(DelicateCoroutinesApi::class)
+@OptIn(DelicateCoroutinesApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     viewModel: CredencialesViewModel,
     registro: Boolean,
     navigateToHome: () -> Unit,
+    navigateToCredenciales: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -116,7 +129,7 @@ fun LoginScreen(
         Column (
             modifier = Modifier
                 .fillMaxSize()
-                .weight(0.60f),
+                .weight(0.75f),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
@@ -147,6 +160,9 @@ fun LoginScreen(
                         keyboardType = KeyboardType.Text,
                         imeAction = ImeAction.Next
                     ),
+                    colors = TextFieldDefaults.textFieldColors(
+                        containerColor = Color.Transparent
+                    ),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 8.dp, start = 16.dp, end = 16.dp)
@@ -169,6 +185,9 @@ fun LoginScreen(
                 keyboardOptions = KeyboardOptions.Default.copy(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next
+                ),
+                colors = TextFieldDefaults.textFieldColors(
+                    containerColor = Color.Transparent
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -200,6 +219,9 @@ fun LoginScreen(
                 keyboardOptions = KeyboardOptions.Default.copy(
                     keyboardType = KeyboardType.Text,
                     imeAction = if(registro) ImeAction.Next else ImeAction.Done
+                ),
+                colors = TextFieldDefaults.textFieldColors(
+                    containerColor = Color.Transparent
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -233,6 +255,9 @@ fun LoginScreen(
                         keyboardType = KeyboardType.Text,
                         imeAction = ImeAction.Done
                     ),
+                    colors = TextFieldDefaults.textFieldColors(
+                        containerColor = Color.Transparent
+                    ),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 8.dp, start = 16.dp, end = 16.dp)
@@ -245,7 +270,7 @@ fun LoginScreen(
             Button(
                 onClick = {
                     GlobalScope.launch {
-                        val usuario: Usuario? = if (registro) viewModel.registrarse(email, contrasena, nombre, confirmarContrasena, context) else viewModel.iniciarSesion(email, contrasena, context)
+                        val usuario: Usuario? = if (registro) viewModel.conectarConServidor(email, contrasena, nombre, confirmarContrasena, context = context) else viewModel.conectarConServidor(email, contrasena, context = context)
                         if (usuario != null) {
                             withContext(Dispatchers.Main) {
                                 navigateToHome()
@@ -266,9 +291,46 @@ fun LoginScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.padding(8.dp))
+
+            Text(
+                text = buildAnnotatedString {
+                    withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+                        append(if(registro) "¿Ya tienes una cuenta?" else "¿Aún no estás registrado?")
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        navigateToCredenciales(if(registro) "login" else "registro")
+                    },
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.padding(8.dp))
+
+            if(!registro) {
+                Text(
+                    text = buildAnnotatedString {
+                        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+                            append("Cambiar contraseña")
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            // TODO
+                        },
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.padding(8.dp))
+            }
+
             Text(
                 text = mensajeUi.value,
-                modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
             )
             
         }
@@ -277,7 +339,7 @@ fun LoginScreen(
             Card (
                 modifier = Modifier
                     .wrapContentSize()
-                    .weight(0.40f),
+                    .weight(0.25f),
                 elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
             ){

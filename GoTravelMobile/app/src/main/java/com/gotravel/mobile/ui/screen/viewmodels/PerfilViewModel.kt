@@ -12,7 +12,6 @@ import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
-import kotlin.math.min
 
 class PerfilViewModel : ViewModel() {
 
@@ -43,7 +42,7 @@ class PerfilViewModel : ViewModel() {
             usuarioFromServer = gson.fromJson(jsonFromServer, Usuario::class.java)
 
             if (usuarioFromServer != null) {
-                AppUiState.usuario = usuarioFromServer.copy()
+                AppUiState.usuario = usuarioFromServer.copy(foto = AppUiState.usuario.foto) // Al recibir el usuario se le vuelve a poner la foto que tenía
                 return true
             } else {
                 return false
@@ -63,8 +62,7 @@ class PerfilViewModel : ViewModel() {
 
         if(!(nombre.isBlank() || nombre.isEmpty()) && nombre.matches(Regex.regexNombre)) {
 
-            val usuario = AppUiState.usuario.copy()
-            usuario.nombre = nombre
+            val usuario = AppUiState.usuario.copy(nombre = nombre.trim(), foto = null) // Siempre que se intercambien usuarios, la foto ha de estar en null
             if(updateUsuario(usuario)) {
                 mensajeUi.postValue("Nombre cambiado con éxito")
             } else {
@@ -81,8 +79,7 @@ class PerfilViewModel : ViewModel() {
 
         if((apellidos.isBlank() || apellidos.isEmpty())) {
 
-            val usuario = AppUiState.usuario.copy()
-            usuario.apellidos = null
+            val usuario = AppUiState.usuario.copy(apellidos = apellidos.trim(), foto = null) // Siempre que se intercambien usuarios, la foto ha de estar en null
             if(updateUsuario(usuario)) {
                 mensajeUi.postValue("Apellidos cambiados con éxito")
             } else {
@@ -109,8 +106,7 @@ class PerfilViewModel : ViewModel() {
 
         if(!(email.isBlank() || email.isEmpty()) && email.matches(Regex.regexEmail)) {
 
-            val usuario = AppUiState.usuario.copy()
-            usuario.email = email
+            val usuario = AppUiState.usuario.copy(email = email.trim(), foto = null) // Siempre que se intercambien usuarios, la foto ha de estar en null
             if(updateUsuario(usuario)) {
                 mensajeUi.postValue("Email cambiado con éxito")
             } else {
@@ -127,8 +123,7 @@ class PerfilViewModel : ViewModel() {
 
         if((tfno.isBlank() || tfno.isEmpty())) {
 
-            val usuario = AppUiState.usuario.copy()
-            usuario.tfno = null
+            val usuario = AppUiState.usuario.copy(tfno = tfno.trim(), foto = null) // Siempre que se intercambien usuarios, la foto ha de estar en null)
             if(updateUsuario(usuario)) {
                 mensajeUi.postValue("Teléfono cambiado con éxito")
             } else {
@@ -213,6 +208,68 @@ class PerfilViewModel : ViewModel() {
                 }
 
             }
+        }
+
+        return false
+
+    }
+
+    fun updateContrasena(contrasenaActual: String, contrasenaNueva: String, confirmarContrasena: String) : Boolean {
+
+        if((!(contrasenaActual.isBlank() || contrasenaActual.isEmpty())) && (!(contrasenaNueva.isBlank() || contrasenaNueva.isEmpty())) && (!(confirmarContrasena.isBlank() || confirmarContrasena.isEmpty()))) {
+
+            if(contrasenaNueva.matches(Regex.regexContrasena)) {
+
+                val contrasenaNuevaHash = contrasenaNueva.sha256()
+                val confirmarHash = confirmarContrasena.sha256()
+                val contrasenaActualHash = contrasenaActual.sha256()
+
+                if(contrasenaNuevaHash == contrasenaActualHash) {
+                    mensajeUi.postValue("La nueva contraseña no puede ser igual a la anterior")
+                } else if (contrasenaNuevaHash != confirmarHash) {
+                    mensajeUi.postValue("Las contraseñas no coinciden")
+                } else {
+
+                    val gson = GsonBuilder()
+                        .serializeNulls()
+                        .setLenient()
+                        .create()
+
+                    val usuarioFromServer : Usuario?
+
+                    try {
+
+                        val salida = DataOutputStream(AppUiState.socket.getOutputStream())
+                        val entrada = DataInputStream(AppUiState.socket.getInputStream())
+
+                        salida.writeUTF("updateContrasena;${AppUiState.usuario.id};${contrasenaActualHash};${contrasenaNuevaHash}")
+                        salida.flush()
+
+                        val jsonFromServer = entrada.readUTF()
+                        usuarioFromServer = gson.fromJson(jsonFromServer, Usuario::class.java)
+
+                        if (usuarioFromServer != null) {
+                            AppUiState.usuario = usuarioFromServer.copy(foto = AppUiState.usuario.foto)
+                            return true
+                        } else {
+                            mensajeUi.postValue("Contraseña incorrecta")
+                            return false
+                        }
+
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+
+                }
+
+            } else {
+                mensajeUi.postValue("La nueva contraseña no es válida")
+            }
+
+        } else {
+            mensajeUi.postValue("Por favor, rellena todos los campos")
         }
 
         return false

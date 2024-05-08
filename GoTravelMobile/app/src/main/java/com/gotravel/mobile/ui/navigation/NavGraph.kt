@@ -10,6 +10,8 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.gotravel.mobile.ui.screen.CambiarContrasenaDestination
+import com.gotravel.mobile.ui.screen.CambiarContrasenaScreen
 import com.gotravel.mobile.ui.screen.CredencialesDestination
 import com.gotravel.mobile.ui.screen.CredencialesScreen
 import com.gotravel.mobile.ui.screen.HomeDestination
@@ -52,10 +54,13 @@ fun AppNavHost(
             )) {
             CredencialesScreen(
                 navigateUp = {
-                    navController.popBackStack(LandingDestination.route, inclusive = false)
+                    navController.navigateUp()
                 },
                 navigateToHome = {
                     navController.navigate(HomeDestination.route)
+                },
+                navigateToCredenciales = {
+                    navController.navigate("${CredencialesDestination.route}/${it}")
                 }
             )
         }
@@ -102,7 +107,21 @@ fun AppNavHost(
 
         // Pantalla perfil
         composable(route = PerfilDestination.route) {
-            PerfilScreen(navController = navController)
+            PerfilScreen(
+                navController = navController,
+                navigateToCambiarContrasena = {
+                    navController.navigate(CambiarContrasenaDestination.route)
+                }
+            )
+        }
+
+        // Pantalla para cambiar la contraseña
+        composable(route = CambiarContrasenaDestination.route) {
+            CambiarContrasenaScreen(
+                navigateUp = {
+                    navController.navigateUp()
+                }
+            )
         }
 
     }

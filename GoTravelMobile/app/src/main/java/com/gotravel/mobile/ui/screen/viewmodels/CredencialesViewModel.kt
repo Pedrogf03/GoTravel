@@ -10,9 +10,7 @@ import com.gotravel.mobile.ui.screen.CredencialesDestination
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
-import java.math.BigInteger
 import java.net.Socket
-import java.security.MessageDigest
 import java.util.Properties
 
 class CredencialesViewModel(
@@ -23,86 +21,109 @@ class CredencialesViewModel(
 
     val mensajeUi: MutableLiveData<String> = MutableLiveData()
 
-    private fun String.sha256(): String {
-        val md = MessageDigest.getInstance("SHA-256")
-        return BigInteger(1, md.digest(toByteArray())).toString(16).padStart(32, '0')
-    }
-
-    fun iniciarSesion(email: String, contrasena: String, context: Context) : Usuario? {
+    fun conectarConServidor(vararg credenciales: String, context: Context) : Usuario? {
 
         mensajeUi.postValue("Conectando con el servidor...")
 
-        if (!(email.isBlank() || email.isEmpty()) && !(contrasena.isBlank() || contrasena.isEmpty())) {
+        var peticion = ""
 
-                var dirIp = "192.168.1.39"
-                var puerto = 8484
+        if(credenciales.size == 2) {
+            val email = credenciales[0]
+            val contrasena = credenciales[1]
+            peticion = iniciarSesion(email, contrasena) // Mensaje que le hace la peticion al servidor para iniciar sesion dado email y contraseña
+        } else if (credenciales.size == 4) {
+            val email = credenciales[0]
+            val contrasena = credenciales[1]
+            val nombre = credenciales[2]
+            val confirmarContrasena = credenciales[3]
+            peticion = registrarse(email, contrasena, nombre, confirmarContrasena)
+        }
 
-                val conf = Properties()
-                try {
-                    val inputStream = context.openFileInput("client.properties")
-                    conf.load(inputStream)
-                    puerto = Integer.parseInt(conf.getProperty("PUERTO"))
-                    dirIp = conf.getProperty("IP")
-                } catch (e: IOException) {
-                    println("No se ha podido leer el archivo de propiedades")
-                }
+        if(peticion != "") {
 
-                val gson = GsonBuilder()
-                    .serializeNulls()
-                    .setLenient()
-                    .create()
+            var dirIp = "localhost"
+            var puerto = 8484
 
-                var usuario : Usuario? = null
+            val conf = Properties()
+            try {
+                val inputStream = context.openFileInput("client.properties")
+                conf.load(inputStream)
+                dirIp = conf.getProperty("IP")
+                puerto = Integer.parseInt(conf.getProperty("PUERTO"))
+            } catch (e: IOException) {
+                println("No se ha podido leer el archivo de propiedades")
+            }
 
-                try {
-                    val cliente = Socket(dirIp, puerto)
-                    AppUiState.socket = cliente
+            val gson = GsonBuilder()
+                .serializeNulls()
+                .setLenient()
+                .create()
 
-                    val salida = DataOutputStream(cliente.getOutputStream())
-                    val entrada = DataInputStream(cliente.getInputStream())
+            var usuario : Usuario? = null
 
-                    salida.writeUTF("login;$email;${contrasena.sha256()}")
-                    salida.flush()
+            try {
+                val cliente = Socket(dirIp, puerto)
+                AppUiState.socket = cliente
 
-                    val jsonFromServer = entrada.readUTF()
-                    usuario = gson.fromJson(jsonFromServer, Usuario::class.java)
+                val salida = DataOutputStream(cliente.getOutputStream())
+                val entrada = DataInputStream(cliente.getInputStream())
 
-                    if (usuario != null) {
-                        mensajeUi.postValue("Sesión iniciada correctamente")
-                        AppUiState.usuario = usuario
+                salida.writeUTF(peticion) // El mensaje envíado dependerá de si se ha solicitado un inicio de sesión o un registro
+                salida.flush()
 
-                        // Si se recibe un true (es decir, el usuario tiene foto asociada en la bbdd)
-                        if(entrada.readBoolean()) {
-                            val length = entrada.readInt() // Lee la longitud del ByteArray
-                            val byteArray = ByteArray(length)
-                            entrada.readFully(byteArray) // Lee el ByteArray
-                            AppUiState.usuario.foto = byteArray
-                        }
+                val jsonFromServer = entrada.readUTF()
+                usuario = gson.fromJson(jsonFromServer, Usuario::class.java)
 
-                    } else {
-                        mensajeUi.postValue("Usuario o contraseña incorrectos")
+                if (usuario != null) {
+                    mensajeUi.postValue("Sesión iniciada correctamente")
+                    AppUiState.usuario = usuario
+
+                    // Si se recibe un true (es decir, el usuario tiene foto asociada en la bbdd)
+                    if(entrada.readBoolean()) {
+                        val length = entrada.readInt() // Lee la longitud del ByteArray
+                        val byteArray = ByteArray(length)
+                        entrada.readFully(byteArray) // Lee el ByteArray
+                        AppUiState.usuario.foto = byteArray
                     }
 
-                } catch (e: IOException) {
-                    mensajeUi.postValue("No se ha podido conectar con el servidor")
-                    e.printStackTrace()
-                } catch (e: Exception) {
-                    e.printStackTrace()
+                } else {
+                    if(peticion.contains("login")) {
+                        mensajeUi.postValue("Email o contraseña incorrectos")
+                    } else if (peticion.contains("registro")) {
+                        mensajeUi.postValue("Ese email ya está en uso")
+                    }
                 }
 
-                return usuario
+            } catch (e: IOException) {
+                mensajeUi.postValue("No se ha podido conectar con el servidor")
+                e.printStackTrace()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
 
-        } else {
-            mensajeUi.postValue("Por favor, rellena todos los campos")
+            return usuario
+
         }
 
         return null
 
     }
 
-    fun registrarse(email: String, contrasena: String, nombre: String,  confirmarContrasena: String, context: Context) : Usuario? {
+    private fun iniciarSesion(email: String, contrasena: String) : String {
 
-        mensajeUi.postValue("Conectando con el servidor...")
+        if (!(email.isBlank() || email.isEmpty()) && !(contrasena.isBlank() || contrasena.isEmpty())) {
+
+            return "login;${email.trim()};${contrasena.trim().sha256()}"
+
+        } else {
+            mensajeUi.postValue("Por favor, rellena todos los campos")
+        }
+
+        return ""
+
+    }
+
+    private fun registrarse(email: String, contrasena: String, nombre: String,  confirmarContrasena: String) : String {
 
         if (!(nombre.isBlank() || nombre.isEmpty()) && !(email.isBlank() || email.isEmpty()) && !(contrasena.isBlank() || contrasena.isEmpty()) && !(confirmarContrasena.isBlank() || confirmarContrasena.isEmpty())) {
 
@@ -115,70 +136,14 @@ class CredencialesViewModel(
                 mensajeUi.postValue("La contraseña no es válida")
             } else {
 
-                val contrasenaHash = contrasena.sha256()
-                val confirmarHash = confirmarContrasena.sha256()
+                val contrasenaHash = contrasena.trim().sha256()
+                val confirmarHash = confirmarContrasena.trim().sha256()
 
                 if(contrasenaHash != confirmarHash) {
                     mensajeUi.postValue("Las contraseñas no coinciden")
                 } else {
 
-                    var dirIp = "192.168.1.39"
-                    var puerto = 8484
-
-                    val conf = Properties()
-                    try {
-                        val inputStream = context.openFileInput("client.properties")
-                        conf.load(inputStream)
-                        puerto = Integer.parseInt(conf.getProperty("PUERTO"))
-                        dirIp = conf.getProperty("IP")
-                    } catch (e: IOException) {
-                        println("No se ha podido leer el archivo de propiedades")
-                    }
-
-                    val gson = GsonBuilder()
-                        .serializeNulls()
-                        .setLenient()
-                        .create()
-
-                    var usuario : Usuario? = null
-
-                    try {
-                        val cliente = Socket(dirIp, puerto)
-                        AppUiState.socket = cliente
-
-                        val salida = DataOutputStream(cliente.getOutputStream())
-                        val entrada = DataInputStream(cliente.getInputStream())
-
-                        salida.writeUTF("registro;$email;$contrasenaHash;$nombre")
-                        salida.flush()
-
-                        val jsonFromServer = entrada.readUTF()
-                        usuario = gson.fromJson(jsonFromServer, Usuario::class.java)
-
-                        if (usuario != null) {
-                            mensajeUi.postValue("Usuario registrado correctamente")
-                            AppUiState.usuario = usuario
-
-                            // Si se recibe un true (es decir, el usuario tiene foto asociada en la bbdd)
-                            if(entrada.readBoolean()) {
-                                val length = entrada.readInt() // Lee la longitud del ByteArray
-                                val byteArray = ByteArray(length)
-                                entrada.readFully(byteArray) // Lee el ByteArray
-                                AppUiState.usuario.foto = byteArray
-                            }
-
-                        } else {
-                            mensajeUi.postValue("Ese email ya está en uso")
-                        }
-
-                    } catch (e: IOException) {
-                        mensajeUi.postValue("No se ha podido conectar con el servidor")
-                        e.printStackTrace()
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-
-                    return usuario
+                    return "registro;${email.trim()};$contrasenaHash;${nombre.trim()}"
 
                 }
 
@@ -188,8 +153,12 @@ class CredencialesViewModel(
             mensajeUi.postValue("Por favor, rellena todos los campos")
         }
 
-        return null
+        return ""
 
     }
 
 }
+
+/*
+
+ */

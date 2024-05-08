@@ -138,19 +138,29 @@ public class HiloCliente extends Thread {
                             }
                             yield jsonFromServer;
                         }
+                        case "updateContrasena" -> {
+                            String contrasenaActual = fromUser[2];
+                            String contrasenaNueva = fromUser[3];
+                            Usuario u = service.findUsuarioById(idUsuario);
+                            if(u.getContrasena().equals(contrasenaActual)) {
+                                u.setContrasena(contrasenaNueva);
+                                service.saveUsuario(u);
+                                yield gson.toJson(u);
+                            }
+                            yield "";
+                        }
                         case "uploadFoto" -> {
                             String tabla = fromUser[2];
                             int length = entrada.readInt(); // Lee el tamaño del array de bytes
                             byte[] byteArray = new byte[length];
                             entrada.readFully(byteArray); // Lee el array de bytes
-                            String defaultResponse = "";
                             if(tabla.equalsIgnoreCase("usuario")) {
                                 Usuario u = service.findUsuarioById(idUsuario);
                                 u.setFoto(byteArray);
                                 u = service.saveUsuario(u);
                                 yield gson.toJson(u);
                             }
-                            yield defaultResponse;
+                            yield "";
 
                         }
                         default -> "";
@@ -162,7 +172,22 @@ public class HiloCliente extends Thread {
             }
 
         } catch (IOException e) {
+
             LOG.warn("Se ha desconectado un usuario");
+        } finally {
+            if (cliente != null) {
+                try {
+                    if(entrada != null) {
+                        entrada.close();
+                    }
+                    if(salida != null) {
+                        salida.close();
+                    }
+                    cliente.close();
+                } catch (IOException e) {
+                    LOG.error("Error al cerrar la conexión con un cliente: {}", e.getMessage());
+                }
+            }
         }
 
     }

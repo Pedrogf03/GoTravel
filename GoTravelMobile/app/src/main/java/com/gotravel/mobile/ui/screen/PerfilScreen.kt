@@ -16,10 +16,16 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -73,6 +79,7 @@ fun PerfilScreen(
     modifier: Modifier = Modifier,
     viewModel: PerfilViewModel = viewModel(factory = AppViewModelProvider.Factory),
     navController: NavHostController,
+    navigateToCambiarContrasena: () -> Unit
 ) {
 
     val mensajeUi = viewModel.mensajeUi.observeAsState(initial = "")
@@ -219,14 +226,72 @@ fun PerfilScreen(
                     }
                 )
 
+                Spacer(modifier = Modifier.padding(16.dp))
+
                 Text(
-                    text = mensajeUi.value,
+                    text = buildAnnotatedString {
+                        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+                            append("Cambiar contraseña")
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .clickable {
+                            navigateToCambiarContrasena()
+                        },
                     textAlign = TextAlign.Center
                 )
 
+            }
+
+            Card (
+                modifier = Modifier
+                    .wrapContentSize()
+                    .weight(0.25f),
+                elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+            ){
+                Column(
+                    modifier = Modifier
+                        .wrapContentSize(Alignment.Center)
+                        .padding(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+
+                    if(mensajeUi.value != "") {
+                        Text(
+                            text = mensajeUi.value,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            textAlign = TextAlign.Center
+                        )
+                    } else {
+                        Row (
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ){
+                            Icon(imageVector = Icons.Default.Info, contentDescription = "")
+                            Spacer(modifier = Modifier.padding(4.dp))
+                            Text(
+                                text = "¡Y recuerda!",
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Justify,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.padding(8.dp))
+
+                        Text(
+                            text = "Siempre debes llevar tu documentación a la hora de viajar.",
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Justify,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+
+                }
             }
 
         }
