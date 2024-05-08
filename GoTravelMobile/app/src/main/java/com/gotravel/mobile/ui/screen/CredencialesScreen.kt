@@ -45,7 +45,7 @@ import com.gotravel.mobile.data.model.Usuario
 import com.gotravel.mobile.ui.AppTopBar
 import com.gotravel.mobile.ui.AppViewModelProvider
 import com.gotravel.mobile.ui.navigation.NavDestination
-import com.gotravel.mobile.ui.screen.viewmodel.CredencialesViewModel
+import com.gotravel.mobile.ui.screen.viewmodels.CredencialesViewModel
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -244,7 +244,6 @@ fun LoginScreen(
             val context = LocalContext.current
             Button(
                 onClick = {
-                    println("$email $contrasena $nombre $confirmarContrasena")
                     GlobalScope.launch {
                         val usuario: Usuario? = if (registro) viewModel.registrarse(email, contrasena, nombre, confirmarContrasena, context) else viewModel.iniciarSesion(email, contrasena, context)
                         if (usuario != null) {

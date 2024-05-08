@@ -32,7 +32,6 @@ public class AppService {
     }
 
     public Usuario saveUsuario(Usuario usuario) {
-        usuario.setOculto("0");
         try {
             usuario = usuarioRepository.save(usuario);
             return findUsuarioById(usuario.getId());
@@ -48,5 +47,9 @@ public class AppService {
 
     public Viaje findProximoViajeByUsuarioId(int idUsuario) {
         return viajeRepository.findProximoViajeByUsuarioId(idUsuario);
+    }
+
+    public Viaje findViajeActualByUsuarioId(int idUsuario) {
+        return viajeRepository.findViajeActualByUsuarioId(idUsuario);
     }
 }

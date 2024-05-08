@@ -1,5 +1,7 @@
 package com.gotravel.mobile.ui.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -14,9 +16,12 @@ import com.gotravel.mobile.ui.screen.HomeDestination
 import com.gotravel.mobile.ui.screen.HomeScreen
 import com.gotravel.mobile.ui.screen.LandingDestination
 import com.gotravel.mobile.ui.screen.LandingScreen
+import com.gotravel.mobile.ui.screen.PerfilDestination
+import com.gotravel.mobile.ui.screen.PerfilScreen
 import com.gotravel.mobile.ui.screen.ViajesDestination
 import com.gotravel.mobile.ui.screen.ViajesScreen
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppNavHost(
     modifier: Modifier = Modifier,
@@ -58,13 +63,46 @@ fun AppNavHost(
         // Pantalla home
         composable(route = HomeDestination.route) {
             HomeScreen(
-                navController = navController
+                navController = navController,
+                onViajeClicked = {
+                    //TODO
+                }
             )
         }
 
-        // Pantalla viajes
+        // Pantalla viajes sin busqueda
         composable(route = ViajesDestination.route) {
-            ViajesScreen(navController = navController)
+            ViajesScreen(
+                navController = navController,
+                buscarViaje = { busqueda ->
+                    navController.navigate(ViajesDestination.route + if(busqueda.isNotBlank()) "/${busqueda}" else "")
+                },
+                onViajeClicked = {
+                    //TODO
+                }
+            )
+        }
+
+        // Pantalla viajes con busqueda
+        composable(
+            route = ViajesDestination.routeWithArgs,
+            arguments = listOf(
+                navArgument(ViajesDestination.busqueda) { type = NavType.StringType },
+            )) {
+            ViajesScreen(
+                navController = navController,
+                buscarViaje = { busqueda ->
+                    navController.navigate(ViajesDestination.route + if(busqueda.isNotBlank()) "/${busqueda}" else "")
+                },
+                onViajeClicked = {
+                    //TODO
+                }
+            )
+        }
+
+        // Pantalla perfil
+        composable(route = PerfilDestination.route) {
+            PerfilScreen(navController = navController)
         }
 
     }

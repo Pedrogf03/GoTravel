@@ -1,13 +1,15 @@
-package com.gotravel.mobile.ui.screen.viewmodel
+package com.gotravel.mobile.ui.screen.viewmodels
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import com.gotravel.mobile.data.model.Viaje
+import com.gotravel.mobile.ui.screen.ViajesDestination
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -21,7 +23,11 @@ sealed interface ViajesUiState {
     object Loading : ViajesUiState
 }
 
-class ViajesViewModel : ViewModel() {
+class ViajesViewModel(
+    savedStateHandle: SavedStateHandle
+) : ViewModel() {
+
+    private val busqueda: String? = savedStateHandle[ViajesDestination.busqueda]
 
     var uiState: ViajesUiState by mutableStateOf(ViajesUiState.Loading)
         private set
@@ -32,10 +38,21 @@ class ViajesViewModel : ViewModel() {
 
     fun getViajes() {
         viewModelScope.launch {
-            uiState = try {
-                ViajesUiState.Success(findViajesByUsuarioId())
+            try {
+                val viajes = mutableListOf<Viaje>()
+                val allViajes = findViajesByUsuarioId()
+                if(busqueda != null) {
+                    for(viaje in allViajes) {
+                        if(viaje.nombre.lowercase().contains(busqueda.lowercase())){
+                            viajes.add(viaje)
+                        }
+                    }
+                } else {
+                    viajes.addAll(allViajes)
+                }
+                uiState = ViajesUiState.Success(viajes)
             } catch (e: IOException) {
-                ViajesUiState.Error
+                uiState = ViajesUiState.Error
             }
         }
     }

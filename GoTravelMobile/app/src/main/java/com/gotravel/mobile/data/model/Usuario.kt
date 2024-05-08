@@ -12,16 +12,16 @@ import lombok.NoArgsConstructor
 @Serializable
 data class Usuario(
     val id: Int?,
-    val nombre: String,
-    val apellidos: String? = null,
-    val email: String,
+    var nombre: String,
+    var apellidos: String? = null,
+    var email: String,
     val contrasena: String,
     val roles: List<Rol>,
-    val tfno: String? = null,
-    val foto: ByteArray? = null
+    var tfno: String? = null,
+    var foto: ByteArray? = null
 ) {
     val imagen: ImageBitmap
         get() {
-            return BitmapFactory.decodeByteArray(foto!!, 0, foto.size).asImageBitmap()
+            return BitmapFactory.decodeByteArray(foto!!, 0, foto!!.size).asImageBitmap()
         }
 }

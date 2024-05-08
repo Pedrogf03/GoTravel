@@ -1,4 +1,4 @@
-package com.gotravel.mobile.ui.screen.viewmodel
+package com.gotravel.mobile.ui.screen.viewmodels
 
 import android.content.Context
 import androidx.compose.runtime.getValue
@@ -33,7 +33,7 @@ class LandingViewModel(
     private fun getImagen() {
         viewModelScope.launch {
             uiState = try {
-                LandingUiState.Success(repository.getImagen())
+                LandingUiState.Success(repository.getLandingImage())
             } catch (e: IOException) {
                 LandingUiState.Error(R.drawable.resource_default)
             }

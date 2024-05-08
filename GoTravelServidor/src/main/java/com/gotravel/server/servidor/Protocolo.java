@@ -6,26 +6,31 @@ public class Protocolo {
     Estado estado;
 
     public Protocolo() {
-        estado = Estado.CREDENCIALES;
+        estado = Estado.ESPERANDO_CREDENCIALES;
     }
 
     public String procesarMensaje(String entrada) {
 
         switch (estado) {
-            case CREDENCIALES:
+            case ESPERANDO_CREDENCIALES:
                 mensaje = "credenciales";
-                estado = Estado.COMPROBACION;
+                estado = Estado.COMPROBANDO_CREDENCIALES;
                 break;
-            case COMPROBACION:
+            case COMPROBANDO_CREDENCIALES:
                 if(entrada.equalsIgnoreCase("true")) {
-                    estado = Estado.SESION_INICIADA;
-                    mensaje = "correcto";
+                    estado = Estado.ATENDIENDO_PETICIONES;
+                    mensaje = "login";
                 } else {
-                    estado = Estado.CREDENCIALES;
-                    mensaje = "incorrecto";
+                    estado = Estado.ESPERANDO_CREDENCIALES;
+                    mensaje = "retry";
                 }
                 break;
-            case SESION_INICIADA:
+            case ATENDIENDO_PETICIONES:
+                if(entrada.equalsIgnoreCase("chatear")) {
+                    mensaje = "chatear";
+                } else {
+                    mensaje = "peticion";
+                }
                 break;
         }
 

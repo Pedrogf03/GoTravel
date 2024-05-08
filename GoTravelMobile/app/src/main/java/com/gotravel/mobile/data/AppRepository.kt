@@ -7,13 +7,23 @@ import com.gotravel.mobile.network.AppService
 import java.io.InputStream
 
 interface AppRepository {
-    suspend fun getImagen() : ImageBitmap
+    suspend fun getLandingImage() : ImageBitmap
+    suspend fun getHomeImage(): ImageBitmap
 }
 
 class NetworkRepository(private val service: AppService) : AppRepository {
-    override suspend fun getImagen(): ImageBitmap {
+    override suspend fun getLandingImage(): ImageBitmap {
 
-        val responseBody = service.getImagen()
+        val responseBody = service.getLandingImage()
+        val inputStream: InputStream = responseBody.byteStream()
+        val bitmap = BitmapFactory.decodeStream(inputStream)
+        return bitmap.asImageBitmap()
+
+    }
+
+    override suspend fun getHomeImage(): ImageBitmap {
+
+        val responseBody = service.getHomeImage()
         val inputStream: InputStream = responseBody.byteStream()
         val bitmap = BitmapFactory.decodeStream(inputStream)
         return bitmap.asImageBitmap()

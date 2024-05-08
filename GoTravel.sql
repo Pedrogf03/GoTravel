@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS `gotravel`.`usuario` (
   `contrasena` VARCHAR(300) NOT NULL,
   `tfno` CHAR(9) NULL DEFAULT NULL,
   `foto` BLOB NULL DEFAULT NULL,
-  `oculto` ENUM('0', '1') NOT NULL,
+  `oculto` ENUM('0', '1') NOT NULL DEFAULT '0',
   PRIMARY KEY (`id_usuario`),
   UNIQUE INDEX `Email_UNIQUE` (`email` ASC) VISIBLE,
   UNIQUE INDEX `Tfno_UNIQUE` (`tfno` ASC) VISIBLE)
@@ -145,7 +145,7 @@ CREATE TABLE IF NOT EXISTS `gotravel`.`servicio` (
   `tipo_servicio` VARCHAR(100) NOT NULL,
   `id_localizacion` INT NOT NULL,
   `id_usuario` INT NOT NULL,
-  `oculto` ENUM('0', '1') NOT NULL,
+  `oculto` ENUM('0', '1') NOT NULL DEFAULT '0',
   PRIMARY KEY (`id_servicio`),
   INDEX `fk_Servicio_TipoServicio1_idx` (`tipo_servicio` ASC) VISIBLE,
   INDEX `fk_Servicio_Localizacion1_idx` (`id_localizacion` ASC) VISIBLE,
@@ -171,7 +171,7 @@ CREATE TABLE IF NOT EXISTS `gotravel`.`contratacion` (
   `id_servicio` INT NOT NULL,
   `id_usuario` INT NOT NULL,
   `fecha` DATE NOT NULL,
-  `id_etapa` INT NULL DEFAULT NULL,
+  `id_etapa` INT NOT NULL,
   `id_pago` INT NOT NULL,
   PRIMARY KEY (`id_contratacion`),
   INDEX `fk_Contratacion_Servicio1_idx` (`id_servicio` ASC) VISIBLE,
@@ -271,7 +271,7 @@ CREATE TABLE IF NOT EXISTS `gotravel`.`resena` (
   `id_contratacion` INT NOT NULL,
   `puntuacion` INT NOT NULL,
   `contenido` VARCHAR(200) NOT NULL,
-  `oculto` ENUM('0', '1') NOT NULL,
+  `oculto` ENUM('0', '1') NOT NULL DEFAULT '0',
   PRIMARY KEY (`id_usuario`, `id_contratacion`),
   INDEX `fk_Usuario_has_Contratacion_Contratacion1_idx` (`id_contratacion` ASC) VISIBLE,
   INDEX `fk_Usuario_has_Contratacion_Usuario1_idx` (`id_usuario` ASC) VISIBLE,
@@ -382,7 +382,7 @@ INSERT INTO tiposervicio (nombre) VALUES ('Transporte'), ('Alojamiento'), ('Visi
 
 
 -- -----------------------------------------------------
--- Triggers de roles
+-- Triggers
 -- -----------------------------------------------------
 
 DELIMITER //
@@ -412,6 +412,93 @@ BEGIN
 
     INSERT INTO usuariorol (rol, id_usuario)
     VALUES ('Profesional', id_usuario);
+
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER tr_actualizar_costetotal_viaje_insert
+AFTER INSERT ON Etapa
+FOR EACH ROW
+BEGIN
+
+    DECLARE e_id_viaje INT;
+    SET e_id_viaje = NEW.id_viaje;
+
+    UPDATE viaje 
+    SET coste_total = (
+        SELECT SUM(coste_total) 
+        FROM Etapa 
+        WHERE id_viaje = e_id_viaje
+    )
+    WHERE id_viaje = e_id_viaje;
+
+END;
+//
+DELIMITER ;
+
+
+DELIMITER //
+CREATE TRIGGER tr_actualizar_costetotal_viaje_update
+AFTER UPDATE ON Etapa
+FOR EACH ROW
+BEGIN
+
+    DECLARE e_id_viaje INT;
+    SET e_id_viaje = NEW.id_viaje;
+
+    UPDATE viaje 
+    SET coste_total = (
+        SELECT SUM(coste_total) 
+        FROM Etapa 
+        WHERE id_viaje = e_id_viaje
+    )
+    WHERE id_viaje = e_id_viaje;
+
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER tr_actualizar_costetotal_etapa_insert
+AFTER INSERT ON Contratacion
+FOR EACH ROW
+BEGIN
+
+    DECLARE e_id_etapa INT;
+    SET e_id_etapa = NEW.id_etapa;
+
+    UPDATE etapa
+    SET coste_total = (
+        SELECT SUM(pago.coste) 
+        FROM Contratacion 
+        INNER JOIN pago ON Contratacion.id_pago = pago.id
+        WHERE Contratacion.id_etapa = e_id_etapa
+    )
+    WHERE id_etapa = e_id_etapa;
+
+END;
+//
+DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER tr_actualizar_costetotal_etapa_update
+AFTER UPDATE ON Contratacion
+FOR EACH ROW
+BEGIN
+
+    DECLARE e_id_etapa INT;
+    SET e_id_etapa = NEW.id_etapa;
+
+    UPDATE etapa
+    SET coste_total = (
+        SELECT SUM(pago.coste) 
+        FROM Contratacion 
+        INNER JOIN pago ON Contratacion.id_pago = pago.id
+        WHERE Contratacion.id_etapa = e_id_etapa
+    )
+    WHERE id_etapa = e_id_etapa;
 
 END;
 //

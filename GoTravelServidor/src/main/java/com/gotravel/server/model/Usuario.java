@@ -25,6 +25,17 @@ public class Usuario implements Serializable {
         this.contrasena = contrasena;
     }
 
+    public Usuario(Integer id, String nombre, String apellidos, String email, String contrasena, String tfno, byte[] foto, List<Rol> roles) {
+        this.id = id;
+        this.nombre = nombre;
+        this.apellidos = apellidos;
+        this.email = email;
+        this.contrasena = contrasena;
+        this.tfno = tfno;
+        this.foto = foto;
+        this.roles = roles;
+    }
+
     @Id
     @Column(name = "id_usuario", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -52,12 +63,11 @@ public class Usuario implements Serializable {
     private String tfno;
 
     @Column(name = "foto")
-    @Expose
     private byte[] foto;
 
     @Lob
     @Column(name = "oculto", nullable = false, columnDefinition = "ENUM('0', '1')")
-    private String oculto;
+    private String oculto = "0";
 
     @OneToMany(mappedBy = "usuario")
     private List<Viaje> viajes;

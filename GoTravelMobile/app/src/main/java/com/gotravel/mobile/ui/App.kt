@@ -19,6 +19,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.gotravel.gotravel.R
 import com.gotravel.mobile.ui.navigation.AppNavHost
+import com.gotravel.mobile.ui.screen.HomeDestination
+import com.gotravel.mobile.ui.screen.ViajesDestination
 
 
 @Composable
@@ -69,19 +71,19 @@ fun AppTopBar (
 }
 
 sealed class Screen(val route: String, val label: String, val icon: Int, val iconSelected: Int) {
-    object Inicio : Screen("home", "Inicio",
+    object Inicio : Screen(HomeDestination.route, "Inicio",
         R.drawable.outline_home_24,
         R.drawable.baseline_home_24
     )
-    object Viajes : Screen("viajes", "Viajes",
+    object Viajes : Screen(ViajesDestination.route, "Viajes",
         R.drawable.outline_location_on_24,
         R.drawable.baseline_location_on_24
     )
     object Servicios : Screen("servicios", "Servicios",
-        R.drawable.baseline_add_circle_outline_24,
-        R.drawable.baseline_add_circle_24
+        R.drawable.outline_door_back_24,
+        R.drawable.baseline_door_back_24
     )
-    object Chats : Screen("chats", "Chats", R.drawable.outline_send_24, R.drawable.baseline_send_24)
+    object Chats : Screen("chats", "Chats", R.drawable.outline_chat_24, R.drawable.baseline_chat_24)
     object Perfil : Screen("perfil", "Perfil",
         R.drawable.outline_person_24,
         R.drawable.baseline_person_24

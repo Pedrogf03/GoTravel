@@ -6,10 +6,11 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.gotravel.mobile.GoTravelApplication
-import com.gotravel.mobile.ui.screen.viewmodel.CredencialesViewModel
-import com.gotravel.mobile.ui.screen.viewmodel.HomeViewModel
-import com.gotravel.mobile.ui.screen.viewmodel.LandingViewModel
-import com.gotravel.mobile.ui.screen.viewmodel.ViajesViewModel
+import com.gotravel.mobile.ui.screen.viewmodels.CredencialesViewModel
+import com.gotravel.mobile.ui.screen.viewmodels.HomeViewModel
+import com.gotravel.mobile.ui.screen.viewmodels.LandingViewModel
+import com.gotravel.mobile.ui.screen.viewmodels.PerfilViewModel
+import com.gotravel.mobile.ui.screen.viewmodels.ViajesViewModel
 
 object AppViewModelProvider {
 
@@ -24,11 +25,17 @@ object AppViewModelProvider {
         }
 
         initializer {
-            HomeViewModel()
+            HomeViewModel(goTravelApplication().container.ApiRepository)
         }
 
         initializer {
-            ViajesViewModel()
+            ViajesViewModel(
+                this.createSavedStateHandle()
+            )
+        }
+
+        initializer {
+            PerfilViewModel()
         }
 
     }

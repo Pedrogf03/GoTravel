@@ -1,4 +1,4 @@
-package com.gotravel.mobile.ui.screen.viewmodel
+package com.gotravel.mobile.ui.screen.viewmodels
 
 import android.content.Context
 import androidx.lifecycle.MutableLiveData
@@ -23,19 +23,7 @@ class CredencialesViewModel(
 
     val mensajeUi: MutableLiveData<String> = MutableLiveData()
 
-    val regexEmail = "^[A-Za-z0-9+_.-]+@(.+)$".toRegex()
-    val regexContrasena = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9\\s]).{8,}$".toRegex()
-    val regexNombre = "^[a-zA-Z0-9]*$".toRegex()
-
-    private fun updateSocket(cliente: Socket) {
-        AppUiState.socket = cliente
-    }
-
-    private fun updateUsuario(usuario: Usuario) {
-        AppUiState.usuario = usuario
-    }
-
-    fun String.sha256(): String {
+    private fun String.sha256(): String {
         val md = MessageDigest.getInstance("SHA-256")
         return BigInteger(1, md.digest(toByteArray())).toString(16).padStart(32, '0')
     }
@@ -68,7 +56,7 @@ class CredencialesViewModel(
 
                 try {
                     val cliente = Socket(dirIp, puerto)
-                    updateSocket(cliente)
+                    AppUiState.socket = cliente
 
                     val salida = DataOutputStream(cliente.getOutputStream())
                     val entrada = DataInputStream(cliente.getInputStream())
@@ -81,7 +69,16 @@ class CredencialesViewModel(
 
                     if (usuario != null) {
                         mensajeUi.postValue("Sesión iniciada correctamente")
-                        updateUsuario(usuario)
+                        AppUiState.usuario = usuario
+
+                        // Si se recibe un true (es decir, el usuario tiene foto asociada en la bbdd)
+                        if(entrada.readBoolean()) {
+                            val length = entrada.readInt() // Lee la longitud del ByteArray
+                            val byteArray = ByteArray(length)
+                            entrada.readFully(byteArray) // Lee el ByteArray
+                            AppUiState.usuario.foto = byteArray
+                        }
+
                     } else {
                         mensajeUi.postValue("Usuario o contraseña incorrectos")
                     }
@@ -109,12 +106,12 @@ class CredencialesViewModel(
 
         if (!(nombre.isBlank() || nombre.isEmpty()) && !(email.isBlank() || email.isEmpty()) && !(contrasena.isBlank() || contrasena.isEmpty()) && !(confirmarContrasena.isBlank() || confirmarContrasena.isEmpty())) {
 
-            if (!nombre.matches(regexNombre)) {
+            if (!nombre.matches(Regex.regexNombre)) {
                 mensajeUi.postValue("El nombre no es válido")
                 mensajeUi.postValue(nombre)
-            } else if (!email.matches(regexEmail)) {
+            } else if (!email.matches(Regex.regexEmail)) {
                 mensajeUi.postValue("El email no es válido")
-            } else if (!contrasena.matches(regexContrasena)) {
+            } else if (!contrasena.matches(Regex.regexContrasena)) {
                 mensajeUi.postValue("La contraseña no es válida")
             } else {
 
@@ -147,7 +144,7 @@ class CredencialesViewModel(
 
                     try {
                         val cliente = Socket(dirIp, puerto)
-                        updateSocket(cliente)
+                        AppUiState.socket = cliente
 
                         val salida = DataOutputStream(cliente.getOutputStream())
                         val entrada = DataInputStream(cliente.getInputStream())
@@ -160,7 +157,16 @@ class CredencialesViewModel(
 
                         if (usuario != null) {
                             mensajeUi.postValue("Usuario registrado correctamente")
-                            updateUsuario(usuario)
+                            AppUiState.usuario = usuario
+
+                            // Si se recibe un true (es decir, el usuario tiene foto asociada en la bbdd)
+                            if(entrada.readBoolean()) {
+                                val length = entrada.readInt() // Lee la longitud del ByteArray
+                                val byteArray = ByteArray(length)
+                                entrada.readFully(byteArray) // Lee el ByteArray
+                                AppUiState.usuario.foto = byteArray
+                            }
+
                         } else {
                             mensajeUi.postValue("Ese email ya está en uso")
                         }

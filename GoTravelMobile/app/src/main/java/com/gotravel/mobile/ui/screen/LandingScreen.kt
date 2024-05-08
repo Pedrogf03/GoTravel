@@ -44,8 +44,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gotravel.gotravel.R
 import com.gotravel.mobile.ui.AppViewModelProvider
 import com.gotravel.mobile.ui.navigation.NavDestination
-import com.gotravel.mobile.ui.screen.viewmodel.LandingUiState
-import com.gotravel.mobile.ui.screen.viewmodel.LandingViewModel
+import com.gotravel.mobile.ui.screen.viewmodels.LandingUiState
+import com.gotravel.mobile.ui.screen.viewmodels.LandingViewModel
 
 object LandingDestination : NavDestination {
     override val route = "landing"
@@ -60,7 +60,7 @@ fun LandingScreen(
 
     when (val uiState = viewModel.uiState) {
         is LandingUiState.Loading -> {
-            LoadingScreen()
+            LandingLoadingScreen()
         }
         is LandingUiState.Success -> {
             val imagen = ImageResource.Bitmap(uiState.imagen)
