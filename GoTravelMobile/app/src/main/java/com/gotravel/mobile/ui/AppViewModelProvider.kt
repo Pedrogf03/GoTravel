@@ -6,6 +6,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.gotravel.mobile.GoTravelApplication
+import com.gotravel.mobile.ui.screen.viewmodels.CrearViajeViewModel
 import com.gotravel.mobile.ui.screen.viewmodels.CredencialesViewModel
 import com.gotravel.mobile.ui.screen.viewmodels.HomeViewModel
 import com.gotravel.mobile.ui.screen.viewmodels.LandingViewModel
@@ -36,6 +37,10 @@ object AppViewModelProvider {
 
         initializer {
             PerfilViewModel()
+        }
+
+        initializer {
+            CrearViajeViewModel()
         }
 
     }

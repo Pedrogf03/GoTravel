@@ -47,9 +47,9 @@ import com.gotravel.mobile.ui.AppBottomBar
 import com.gotravel.mobile.ui.AppTopBar
 import com.gotravel.mobile.ui.AppViewModelProvider
 import com.gotravel.mobile.ui.navigation.NavDestination
-import com.gotravel.mobile.ui.screen.viewmodels.AppUiState
 import com.gotravel.mobile.ui.screen.viewmodels.HomeUiState
 import com.gotravel.mobile.ui.screen.viewmodels.HomeViewModel
+import com.gotravel.mobile.ui.utils.AppUiState
 
 object HomeDestination : NavDestination {
     override val route = "home"
@@ -62,7 +62,8 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory),
     navController: NavHostController,
-    onViajeClicked: (Int) -> Unit
+    onViajeClicked: (Int) -> Unit,
+    navigateToCrearViaje: () -> Unit
 ) {
 
     val retryAction = viewModel::getContent
@@ -110,7 +111,8 @@ fun HomeScreen(
                         proximoViaje = uiState.proximoViaje,
                         viajeActual = uiState.viajeActual,
                         imagen = uiState.imagen1,
-                        onViajeClicked = onViajeClicked
+                        onViajeClicked = onViajeClicked,
+                        navigateToCrearViaje = navigateToCrearViaje
                     )
 
 
@@ -230,7 +232,8 @@ fun HomeScreenContent(
     proximoViaje: Viaje?,
     viajeActual: Viaje?,
     imagen: ImageBitmap,
-    onViajeClicked: (Int) -> Unit
+    onViajeClicked: (Int) -> Unit,
+    navigateToCrearViaje: () -> Unit
 ) {
     Card (
         modifier = modifier,
@@ -247,7 +250,7 @@ fun HomeScreenContent(
                 horizontalArrangement = Arrangement.Center
             ){
                 Button(
-                    onClick = { TODO() },
+                    onClick = { navigateToCrearViaje() },
                 ) {
                     Text(text = "NUEVO VIAJE", style = MaterialTheme.typography.titleMedium)
                 }

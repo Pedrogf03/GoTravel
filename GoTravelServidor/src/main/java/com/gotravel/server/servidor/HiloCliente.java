@@ -130,7 +130,6 @@ public class HiloCliente extends Thread {
                             String tabla = fromUser[2];
                             String jsonFromUser = entrada.readUTF();
                             String jsonFromServer = "";
-                            System.out.println(jsonFromUser);
                             if(tabla.equalsIgnoreCase("usuario")) {
                                 Usuario usuarioFromUser = gson.fromJson(jsonFromUser, Usuario.class);
                                 usuarioFromUser = service.saveUsuario(usuarioFromUser);
@@ -161,7 +160,18 @@ public class HiloCliente extends Thread {
                                 yield gson.toJson(u);
                             }
                             yield "";
-
+                        }
+                        case "save" -> {
+                            String tabla = fromUser[2];
+                            String jsonFromUser = entrada.readUTF();
+                            System.out.println(jsonFromUser);
+                            if(tabla.equalsIgnoreCase("viaje")) {
+                                Viaje viajeFromUser = gson.fromJson(jsonFromUser, Viaje.class);
+                                viajeFromUser.setUsuario(service.findUsuarioById(idUsuario));
+                                Viaje v = service.saveViaje(viajeFromUser);
+                                yield gson.toJson(v);
+                            }
+                            yield "";
                         }
                         default -> "";
                     };

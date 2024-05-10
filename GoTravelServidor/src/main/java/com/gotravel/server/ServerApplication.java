@@ -80,7 +80,7 @@ public class ServerApplication implements Runnable {
 			while(!pararServidor) {
 				Socket cliente = socketServidor.accept();
 				clientesConectados.add(cliente);
-				LOG.info("Se ha conectado un usuario");
+				LOG.warn("Se ha conectado un usuario");
 				HiloCliente hilo = new HiloCliente(cliente, service);
 				hilo.start();
 			}

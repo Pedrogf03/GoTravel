@@ -8,6 +8,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.gson.GsonBuilder
 import com.gotravel.mobile.data.model.Usuario
+import com.gotravel.mobile.ui.utils.AppUiState
+import com.gotravel.mobile.ui.utils.Regex
+import com.gotravel.mobile.ui.utils.sha256
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
@@ -86,7 +89,7 @@ class PerfilViewModel : ViewModel() {
                 mensajeUi.postValue("No se ha podido cambiar los apellidos")
             }
 
-        } else if (apellidos.matches(Regex.regexNombre)) {
+        } else if (apellidos.matches(Regex.regexCamposGrandes)) {
 
             val usuario = AppUiState.usuario.copy()
             usuario.apellidos = apellidos

@@ -307,13 +307,13 @@ fun LoginScreen(
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.padding(8.dp))
+            Spacer(modifier = Modifier.padding(4.dp))
 
             if(!registro) {
                 Text(
                     text = buildAnnotatedString {
                         withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-                            append("Cambiar contraseña")
+                            append("¿Has olvidado tu contraseña?")
                         }
                     },
                     modifier = Modifier

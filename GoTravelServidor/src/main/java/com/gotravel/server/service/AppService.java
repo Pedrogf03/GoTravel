@@ -20,9 +20,6 @@ public class AppService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    @Autowired
-    private ViajeRepository viajeRepository;
-
     public Usuario findUsuarioById(Integer id) {
         return usuarioRepository.findById(id).orElse(null);
     }
@@ -41,6 +38,13 @@ public class AppService {
         }
     }
 
+    @Autowired
+    private ViajeRepository viajeRepository;
+
+    public Viaje findViajeById(Integer id) {
+        return viajeRepository.findById(id).orElse(null);
+    }
+
     public List<Viaje> findViajesByUsuarioId(int idUsuario) {
         return viajeRepository.findAllByUsuarioId(idUsuario);
     }
@@ -51,5 +55,15 @@ public class AppService {
 
     public Viaje findViajeActualByUsuarioId(int idUsuario) {
         return viajeRepository.findViajeActualByUsuarioId(idUsuario);
+    }
+
+    public Viaje saveViaje(Viaje viaje) {
+        try {
+            viaje = viajeRepository.save(viaje);
+            return findViajeById(viaje.getId());
+        } catch (Exception e) {
+            LOG.error("Error: {}", e.getMessage());
+            return null;
+        }
     }
 }

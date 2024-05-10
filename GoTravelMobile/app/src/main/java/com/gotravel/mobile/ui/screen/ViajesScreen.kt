@@ -5,13 +5,15 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -20,6 +22,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CardElevation
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -116,7 +119,7 @@ fun ViajesContent(
                 color = MaterialTheme.colorScheme.onSurface
             )
         } else {
-            ListaViajes(
+            GridViajes(
                 viajes = viajes,
                 buscarViaje = buscarViaje,
                 modifier = Modifier.padding(it),
@@ -130,15 +133,17 @@ fun ViajesContent(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ListaViajes(
+fun GridViajes(
     viajes: List<Viaje>,
     buscarViaje: (String) -> Unit,
     onViajeClicked: (Int) -> Unit,
-    modifier: Modifier
+    modifier: Modifier = Modifier
 ) {
 
     Column (
-        modifier = modifier.fillMaxSize().padding(8.dp),
+        modifier = modifier
+            .fillMaxSize()
+            .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ){
@@ -158,13 +163,22 @@ fun ListaViajes(
             buscarViaje = buscarViaje
         )
 
-        LazyColumn(
-            Modifier.fillMaxSize()
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            contentPadding = PaddingValues(4.dp)
         ) {
+            var numViajes = 0
             items(items = viajes) {viaje ->
+                numViajes++
+                if(numViajes > 3) {
+                    numViajes = 1
+                }
                 ViajeCard(
                     viaje = viaje,
-                    onViajeClicked = onViajeClicked
+                    onViajeClicked = onViajeClicked,
+                    modifier = Modifier.padding(4.dp),
+                    color = if(numViajes != 1) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                 )
             }
         }
@@ -228,19 +242,22 @@ fun SearchEngine(
 @Composable
 fun ViajeCard(
     viaje: Viaje,
-    onViajeClicked: (Int) -> Unit
+    onViajeClicked: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.primary,
+    elevation: CardElevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
 ) {
     Card (
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary)
+        modifier = modifier.clickable {
+            onViajeClicked(viaje.id!!)
+        },
+        colors = CardDefaults.cardColors(containerColor = color),
+        elevation = elevation
     ){
         Row (
             modifier = Modifier
-                .fillMaxWidth()
                 .padding(8.dp)
-                .clickable { onViajeClicked(viaje.id!!) },
+                ,
             verticalAlignment = Alignment.CenterVertically
         ){
 

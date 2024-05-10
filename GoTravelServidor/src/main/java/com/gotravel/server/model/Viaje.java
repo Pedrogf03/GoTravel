@@ -3,6 +3,7 @@ package com.gotravel.server.model;
 import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
@@ -15,6 +16,7 @@ public class Viaje {
 
     @Id
     @Column(name = "id_viaje", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Expose
     private Integer id;
 
@@ -30,7 +32,7 @@ public class Viaje {
     @Expose
     private String fechaInicio;
 
-    @Column(name = "fecha_fin", columnDefinition = "DATE")
+    @Column(name = "fecha_fin", nullable = false, columnDefinition = "DATE")
     @Expose
     private String fechaFin;
 

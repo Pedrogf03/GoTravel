@@ -12,6 +12,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.gotravel.mobile.ui.screen.CambiarContrasenaDestination
 import com.gotravel.mobile.ui.screen.CambiarContrasenaScreen
+import com.gotravel.mobile.ui.screen.CrearViajeDestination
+import com.gotravel.mobile.ui.screen.CrearViajeScreen
 import com.gotravel.mobile.ui.screen.CredencialesDestination
 import com.gotravel.mobile.ui.screen.CredencialesScreen
 import com.gotravel.mobile.ui.screen.HomeDestination
@@ -71,6 +73,9 @@ fun AppNavHost(
                 navController = navController,
                 onViajeClicked = {
                     //TODO
+                },
+                navigateToCrearViaje = {
+                    navController.navigate(CrearViajeDestination.route)
                 }
             )
         }
@@ -121,6 +126,14 @@ fun AppNavHost(
                 navigateUp = {
                     navController.navigateUp()
                 }
+            )
+        }
+
+        // Pantalla para crear un nuevo viaje
+        composable(route = CrearViajeDestination.route) {
+            CrearViajeScreen(
+                navigateToViaje = { },
+                navController = navController
             )
         }
 

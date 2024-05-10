@@ -59,8 +59,8 @@ import com.gotravel.mobile.ui.AppBottomBar
 import com.gotravel.mobile.ui.AppTopBar
 import com.gotravel.mobile.ui.AppViewModelProvider
 import com.gotravel.mobile.ui.navigation.NavDestination
-import com.gotravel.mobile.ui.screen.viewmodels.AppUiState
 import com.gotravel.mobile.ui.screen.viewmodels.PerfilViewModel
+import com.gotravel.mobile.ui.utils.AppUiState
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope

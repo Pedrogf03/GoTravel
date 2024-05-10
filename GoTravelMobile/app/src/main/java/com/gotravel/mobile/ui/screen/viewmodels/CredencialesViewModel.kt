@@ -7,9 +7,13 @@ import androidx.lifecycle.ViewModel
 import com.google.gson.GsonBuilder
 import com.gotravel.mobile.data.model.Usuario
 import com.gotravel.mobile.ui.screen.CredencialesDestination
+import com.gotravel.mobile.ui.utils.AppUiState
+import com.gotravel.mobile.ui.utils.Regex
+import com.gotravel.mobile.ui.utils.sha256
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
+import java.net.InetSocketAddress
 import java.net.Socket
 import java.util.Properties
 
@@ -62,7 +66,11 @@ class CredencialesViewModel(
             var usuario : Usuario? = null
 
             try {
-                val cliente = Socket(dirIp, puerto)
+                val socketAddress = InetSocketAddress(dirIp, puerto)
+                val cliente = Socket()
+                val tiempoDeEspera = 1000 // Tiempo de espera en milisegundos
+
+                cliente.connect(socketAddress, tiempoDeEspera)
                 AppUiState.socket = cliente
 
                 val salida = DataOutputStream(cliente.getOutputStream())

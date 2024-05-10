@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.gson.GsonBuilder
 import com.gotravel.mobile.data.AppRepository
 import com.gotravel.mobile.data.model.Viaje
+import com.gotravel.mobile.ui.utils.AppUiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
