@@ -41,20 +41,16 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.gotravel.gotravel.R
-import com.gotravel.mobile.data.model.Viaje
 import com.gotravel.mobile.ui.AppTopBar
 import com.gotravel.mobile.ui.AppViewModelProvider
 import com.gotravel.mobile.ui.navigation.NavDestination
 import com.gotravel.mobile.ui.screen.viewmodels.CrearViajeViewModel
-import com.gotravel.mobile.ui.utils.formatoFinal
-import com.gotravel.mobile.ui.utils.formatoFromDb
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
-import java.time.LocalDate
 import java.util.Date
 
 
@@ -210,23 +206,13 @@ fun CrearViajeScreen(
             Button(
                 onClick = {
 
-                    if(fechaInicio.isNotBlank() && fechaFinal.isNotBlank()) {
-                        fechaInicio = LocalDate.parse(fechaInicio, formatoFinal).format(formatoFromDb)
-                        fechaFinal = LocalDate.parse(fechaFinal, formatoFinal).format(formatoFromDb)
-                    }
-
                     GlobalScope.launch {
-                        val viaje = viewModel.crearViaje(Viaje(nombre = nombre, descripcion = descripcion.ifBlank { null }, fechaInicio = fechaInicio, fechaFin = fechaFinal, costeTotal = 0.0))
+                        val viaje = viewModel.crearViaje(nombre = nombre, descripcion = descripcion, fechaInicio = fechaInicio, fechaFin = fechaFinal)
                         if(viaje != null) {
                             withContext(Dispatchers.Main) {
                                 // TODO navigateToViaje(viaje.id)
                             }
                         }
-                    }
-
-                    if(fechaInicio.isNotBlank() && fechaFinal.isNotBlank()) {
-                        fechaInicio = LocalDate.parse(fechaInicio, formatoFromDb).format(formatoFinal)
-                        fechaFinal = LocalDate.parse(fechaFinal, formatoFromDb).format(formatoFinal)
                     }
 
                 },

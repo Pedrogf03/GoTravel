@@ -20,8 +20,8 @@ data class Viaje (
     val id: Int? = null,
     val nombre: String,
     val descripcion: String?,
-    private val fechaInicio: String,
-    private val fechaFin: String,
+    val fechaInicio: String,
+    val fechaFin: String,
     val costeTotal: Double,
 ) {
     val inicio: String

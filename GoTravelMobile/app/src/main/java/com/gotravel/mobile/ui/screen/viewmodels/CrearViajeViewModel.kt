@@ -9,6 +9,7 @@ import com.gotravel.mobile.data.model.Viaje
 import com.gotravel.mobile.ui.utils.AppUiState
 import com.gotravel.mobile.ui.utils.Regex
 import com.gotravel.mobile.ui.utils.formatoFinal
+import com.gotravel.mobile.ui.utils.formatoFromDb
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
@@ -20,21 +21,28 @@ class CrearViajeViewModel : ViewModel() {
     val mensajeUi: MutableLiveData<String> = MutableLiveData()
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun crearViaje(viaje: Viaje) : Viaje? {
+    fun crearViaje(
+        nombre: String,
+        descripcion: String,
+        fechaInicio: String,
+        fechaFin: String,
+    ) : Viaje? {
 
-        if(viaje.nombre.isBlank() || viaje.final.isBlank() || viaje.inicio.isBlank()) {
+        if(nombre.isBlank() || fechaInicio.isBlank() || fechaFin.isBlank()) {
             mensajeUi.postValue("Por favor rellena todos los campos obligatorios")
         } else {
-            val fechaInicio: LocalDate = LocalDate.parse(viaje.inicio, formatoFinal)
-            val fechaFinal: LocalDate = LocalDate.parse(viaje.final, formatoFinal)
 
-            if(!viaje.nombre.matches(Regex.regexNombre)) {
+            val inicio = LocalDate.parse(fechaInicio, formatoFinal)
+            val fin = LocalDate.parse(fechaFin, formatoFinal)
+
+            if(!nombre.matches(Regex.regexNombre)) {
                 mensajeUi.postValue("El nombre no es válido")
-            } else if(!viaje.descripcion.isNullOrBlank() && !viaje.descripcion.matches(Regex.regexNombre)) {
+            } else if(descripcion.isNotBlank() && !descripcion.matches(Regex.regexNombre)) {
                 mensajeUi.postValue("La descripción no es válida")
-            } else if (fechaFinal.isBefore(fechaInicio)) {
+            } else if (fin.isBefore(inicio)) {
                 mensajeUi.postValue("La fecha de final no puede ser antes que la fecha de inicio")
             } else {
+                val viaje = Viaje(nombre = nombre, descripcion = descripcion.ifBlank { null }, fechaInicio = inicio.format(formatoFromDb), fechaFin = fin.format(formatoFromDb), costeTotal = 0.0)
                 return guardarViaje(viaje)
             }
         }

@@ -24,4 +24,14 @@ data class Usuario(
         get() {
             return BitmapFactory.decodeByteArray(foto!!, 0, foto!!.size).asImageBitmap()
         }
+
+    val getApellidos : String
+        get() {
+            return if(apellidos == null) "" else apellidos!!
+        }
+
+    val getTfno : String
+        get() {
+            return if(tfno == null) "" else tfno!!
+        }
 }
