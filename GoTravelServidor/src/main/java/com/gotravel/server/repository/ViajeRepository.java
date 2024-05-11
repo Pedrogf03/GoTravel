@@ -12,9 +12,9 @@ import java.util.List;
 public interface ViajeRepository extends JpaRepository<Viaje, Integer> {
     List<Viaje> findAllByUsuarioId(int id);
 
-    @Query(value = "SELECT * FROM Viaje WHERE id_usuario = :id AND fecha_inicio >= CURRENT_DATE ORDER BY fecha_inicio ASC", nativeQuery = true)
+    @Query(value = "SELECT * FROM Viaje WHERE id_usuario = :id AND fecha_inicio >= CURRENT_DATE ORDER BY fecha_inicio ASC LIMIT 1", nativeQuery = true)
     Viaje findProximoViajeByUsuarioId(@Param("id") int id);
 
-    @Query(value = "SELECT * FROM Viaje WHERE id_usuario = :id AND fecha_inicio <= CURRENT_DATE AND (fecha_fin >= CURRENT_DATE OR fecha_fin IS NULL) ORDER BY fecha_inicio ASC", nativeQuery = true)
+    @Query(value = "SELECT * FROM Viaje WHERE id_usuario = :id AND fecha_inicio <= CURRENT_DATE AND (fecha_fin >= CURRENT_DATE OR fecha_fin IS NULL) ORDER BY fecha_inicio ASC LIMIT 1", nativeQuery = true)
     Viaje findViajeActualByUsuarioId(@Param("id") int idUsuario);
 }

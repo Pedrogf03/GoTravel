@@ -7,7 +7,10 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,14 +20,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -55,6 +62,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.gotravel.gotravel.R
+import com.gotravel.mobile.data.model.Rol
+import com.gotravel.mobile.data.model.Usuario
 import com.gotravel.mobile.ui.AppBottomBar
 import com.gotravel.mobile.ui.AppTopBar
 import com.gotravel.mobile.ui.AppViewModelProvider
@@ -122,72 +131,83 @@ fun PerfilScreen(
 
             Column (modifier = Modifier
                 .fillMaxSize()
-                .weight(0.25f),
-                horizontalAlignment = Alignment.CenterHorizontally
+                .weight(0.25f)
             ){
 
-                if(AppUiState.usuario.foto != null) {
-                    Image(
-                        bitmap = AppUiState.usuario.imagen,
-                        contentDescription = "",
+                Row (
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(80f),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ){
+
+                    if(AppUiState.usuario.foto != null) {
+                        Image(
+                            bitmap = AppUiState.usuario.imagen,
+                            contentDescription = "",
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .aspectRatio(1f),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Image(
+                            painterResource(id = R.drawable.usernofoto),
+                            contentDescription = "",
+                            modifier = Modifier
+                                .clip(CircleShape)
+                        )
+                    }
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(20f)
+                ) {
+                    Text(
+                        text = buildAnnotatedString {
+                            withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+                                append("Cambiar")
+                            }
+                        },
                         modifier = Modifier
-                            .clip(CircleShape)
-                            .aspectRatio(1f),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Image(
-                        painterResource(id = R.drawable.usernofoto),
-                        contentDescription = "",
-                        modifier = Modifier
-                            .clip(CircleShape)
+                            .fillMaxWidth()
+                            .clickable {
+                                photoPickerLauncher.launch(
+                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                )
+                            },
+                        textAlign = TextAlign.Center
                     )
                 }
 
             }
 
-            Text(
-                text = buildAnnotatedString {
-                    withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-                        append("Cambiar")
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        photoPickerLauncher.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                        )
-                    },
-                textAlign = TextAlign.Center
-            )
-
-
-            Column(modifier = Modifier
+            Column (modifier = Modifier
                 .fillMaxSize()
                 .weight(0.75f)
-                .padding(top = 32.dp)
-            ) {
+                .padding(horizontal = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ){
 
                 var nombre by remember { mutableStateOf(AppUiState.usuario.nombre) }
-                var apellidos by remember { mutableStateOf("") }
-                if(AppUiState.usuario.apellidos != null) {
-                    apellidos = AppUiState.usuario.apellidos!!
-                }
+                var apellidos by remember { mutableStateOf(AppUiState.usuario.getApellidos) }
                 var email by remember { mutableStateOf(AppUiState.usuario.email) }
-                var tfno by remember { mutableStateOf("") }
-                if(AppUiState.usuario.tfno != null) {
-                    tfno = AppUiState.usuario.tfno!!
+                var tfno by remember { mutableStateOf(AppUiState.usuario.getTfno) }
+
+                var campoEditado by remember { mutableStateOf(false) }
+
+                if(AppUiState.usuario.nombre != nombre || AppUiState.usuario.email != email || AppUiState.usuario.getApellidos != apellidos || AppUiState.usuario.getTfno != tfno) {
+                    campoEditado = true
+                } else {
+                    campoEditado = false
                 }
 
                 nombre = profileTextField(
                     text = nombre,
                     label = "Nombre",
-                    updateUsuario = {
-                        GlobalScope.launch {
-                            viewModel.updateNombre(nombre)
-                        }
-                    }
+                    keyboardType = KeyboardType.Text
                 )
 
                 Spacer(modifier = Modifier.padding(8.dp))
@@ -195,11 +215,7 @@ fun PerfilScreen(
                 apellidos = profileTextField(
                     text = apellidos,
                     label = "Apellidos",
-                    updateUsuario = {
-                        GlobalScope.launch {
-                            viewModel.updateApellidos(apellidos)
-                        }
-                    }
+                    keyboardType = KeyboardType.Text
                 )
 
                 Spacer(modifier = Modifier.padding(8.dp))
@@ -207,11 +223,7 @@ fun PerfilScreen(
                 email = profileTextField(
                     text = email,
                     label = "Email",
-                    updateUsuario = {
-                        GlobalScope.launch {
-                            viewModel.updateEmail(email)
-                        }
-                    }
+                    keyboardType = KeyboardType.Text
                 )
 
                 Spacer(modifier = Modifier.padding(8.dp))
@@ -219,14 +231,30 @@ fun PerfilScreen(
                 tfno = profileTextField(
                     text = tfno,
                     label = "Telefono",
-                    updateUsuario = {
-                        GlobalScope.launch {
-                            viewModel.updateTfno(tfno)
-                        }
-                    }
+                    keyboardType = KeyboardType.Number
                 )
 
-                Spacer(modifier = Modifier.padding(16.dp))
+                Spacer(modifier = Modifier.padding(8.dp))
+
+                Button(
+                    onClick = {
+                        GlobalScope.launch {
+                            if (viewModel.updateUsuario(AppUiState.usuario.copy(nombre = nombre, apellidos = apellidos.ifBlank { null }, email = email, tfno = tfno.ifBlank { null }, foto = null))) {
+                                withContext(Dispatchers.Main) {
+                                    navController.navigate(PerfilDestination.route)
+                                }
+                            }
+                        }
+                    },
+                    enabled = campoEditado
+                ) {
+                    Text(
+                        text = "Actualizar datos",
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+                Spacer(modifier = Modifier.padding(4.dp))
 
                 Text(
                     text = buildAnnotatedString {
@@ -242,56 +270,31 @@ fun PerfilScreen(
                     textAlign = TextAlign.Center
                 )
 
-            }
+                Spacer(modifier = Modifier.padding(4.dp))
 
-            Card (
-                modifier = Modifier
-                    .wrapContentSize()
-                    .weight(0.25f),
-                elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-            ){
-                Column(
+                Text(
+                    text = mensajeUi.value,
                     modifier = Modifier
-                        .wrapContentSize(Alignment.Center)
-                        .padding(8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    textAlign = TextAlign.Center
+                )
 
-                    if(mensajeUi.value != "") {
+                if(!AppUiState.usuario.roles.contains(Rol("Profesional"))) {
+                    Spacer(modifier = Modifier.padding(8.dp))
+
+                    Button(
+                        onClick = {
+                            // TODO
+                        },
+                    ) {
                         Text(
-                            text = mensajeUi.value,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
+                            text = "Programa de profesionales",
                             textAlign = TextAlign.Center
                         )
-                    } else {
-                        Row (
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center
-                        ){
-                            Icon(imageVector = Icons.Default.Info, contentDescription = "")
-                            Spacer(modifier = Modifier.padding(4.dp))
-                            Text(
-                                text = "¡Y recuerda!",
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.Justify,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.padding(8.dp))
-
-                        Text(
-                            text = "Siempre debes llevar tu documentación a la hora de viajar.",
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Justify,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
                     }
-
                 }
+
             }
 
         }
@@ -305,45 +308,49 @@ fun PerfilScreen(
 private fun profileTextField(
     text: String,
     label: String,
-    updateUsuario: (String) -> Unit
+    keyboardType: KeyboardType
 ) : String {
 
     var value by remember { mutableStateOf(text) }
+    var soloLectura by remember { mutableStateOf(true) }
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        TextField(
-            value = value,
-            onValueChange = { value = it },
-            label = { Text(label) },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions.Default.copy(
-                keyboardType = KeyboardType.Text,
-                imeAction = ImeAction.Next
-            ),
-            colors = TextFieldDefaults.textFieldColors(
-                containerColor = Color.Transparent
-            )
-        )
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        Text(
-            text = buildAnnotatedString {
-                withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-                    append("Cambiar")
-                }
-            },
-            modifier = Modifier
-                .padding(top = 32.dp)
-                .clickable { updateUsuario(value) }
-        )
-
-
-    }
+    TextField(
+        value = value,
+        onValueChange = { value = it },
+        label = { Text(label) },
+        singleLine = true,
+        readOnly = soloLectura,
+        trailingIcon = {
+            IconButton(onClick = {
+                soloLectura = false
+            }) {
+                Icon(imageVector = Icons.Default.Edit, contentDescription = "")
+            }
+        },
+        keyboardOptions = KeyboardOptions.Default.copy(
+            keyboardType = keyboardType,
+            imeAction = ImeAction.Done
+        ),
+        colors = TextFieldDefaults.textFieldColors(
+            containerColor = Color.Transparent
+        ),
+        modifier = Modifier.fillMaxWidth()
+    )
 
     return value
 
 }
+
+/*
+Column(modifier = Modifier
+                .fillMaxSize()
+                .weight(0.75f)
+                .padding(top = 32.dp)
+            ) {
+
+
+
+            }
+
+
+ */
