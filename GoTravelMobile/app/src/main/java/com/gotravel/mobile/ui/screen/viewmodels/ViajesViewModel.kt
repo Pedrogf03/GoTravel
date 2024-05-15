@@ -69,7 +69,7 @@ class ViajesViewModel(
                 val salida = DataOutputStream(AppUiState.socket.getOutputStream())
                 val entrada = DataInputStream(AppUiState.socket.getInputStream())
 
-                salida.writeUTF("viajes;${AppUiState.usuario.id}")
+                salida.writeUTF("consultarViajes;${AppUiState.usuario.id}")
                 salida.flush()
 
                 val jsonFromServer = entrada.readUTF()

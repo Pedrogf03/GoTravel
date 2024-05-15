@@ -17,25 +17,26 @@ import java.util.List;
 
 public class HiloCliente extends Thread {
 
-    private final Socket cliente;
     private final Protocolo protocolo;
     private final AppService service;
+    private Sesion sesion;
     private final Logger LOG = LoggerFactory.getLogger(ServerApplication.class);
 
     private boolean sesionIniciada;
+    private boolean terminar;
 
     public HiloCliente(Socket cliente, AppService service) {
-        this.cliente = cliente;
         this.service = service;
-        this.protocolo = new Protocolo();
+        this.protocolo = new Protocolo(service);
         this.sesionIniciada = false;
+        this.terminar = false;
+
+        sesion = new Sesion(cliente);
+
     }
 
     @Override
     public void run() {
-
-        DataOutputStream salida = null;
-        DataInputStream entrada = null;
 
         Gson gson = new GsonBuilder()
                 .excludeFieldsWithoutExposeAnnotation()
@@ -45,16 +46,12 @@ public class HiloCliente extends Thread {
 
         try {
 
-            salida = new DataOutputStream(cliente.getOutputStream());
-            entrada = new DataInputStream(cliente.getInputStream());
+            sesion.setSalida(new DataOutputStream(sesion.getCliente().getOutputStream()));
+            sesion.setEntrada(new DataInputStream(sesion.getCliente().getInputStream()));
 
             while (!sesionIniciada) {
 
-                // ESPERANDO_CREDENCIALES -> COMPROBANDO_CREDENCIALES
-                protocolo.procesarMensaje(null);
-
-                String output = "";
-                String[] fromCliente = entrada.readUTF().split(";");
+                String[] fromCliente = sesion.getEntrada().readUTF().split(";");
 
                 String opcion = fromCliente[0];
                 String email = fromCliente[1];
@@ -62,59 +59,54 @@ public class HiloCliente extends Thread {
 
                 Usuario u = null;
 
-                if(opcion.equalsIgnoreCase("login")) {
-
+                if(opcion.equals("login")){
                     u = service.findUsuarioByEmail(email);
-
-                    // COMPROBANDO_CREDENCIALES -> if(entrada) ATENDIENDO_PETICIONES else (ESPERANDO_CREDENCIALES)
-                    output = protocolo.procesarMensaje("" + (u != null && u.getContrasena().equals(contrasena)));
-
-                } else if (opcion.equalsIgnoreCase("registro")) {
-
+                } else if (opcion.equals("registro")) {
                     String nombre = fromCliente[3];
-
                     u = service.saveUsuario(new Usuario(nombre, email, contrasena));
-
-                    // COMPROBANDO_CREDENCIALES -> if(entrada) ATENDIENDO_PETICIONES else (ESPERANDO_CREDENCIALES)
-                    output = protocolo.procesarMensaje("" + (u != null));
-
                 }
 
-                if(output.equalsIgnoreCase("login")){
+                String output = protocolo.procesarMensaje(gson.toJson(u) +  ";" + contrasena);
+
+                // Si ha iniciado sesion, se manda un json que contiene al usuario
+                // Si no ha iniciado sesion, se manda un mensaje de reintentar
+                sesion.getSalida().writeUTF(output);
+
+                // Si ha iniciado sesion, se pone la flag en true y se le pregunta al usuario por la foto
+                if(u != null){
                     sesionIniciada = true;
-                    String json = gson.toJson(u);
-                    salida.writeUTF(json);
+
+                    sesion.setUsuario(u);
+
+                    boolean tieneFoto = u.getFoto() != null;
 
                     // Primero envío al usuario una confirmación de si tiene foto asociada o no
-                    salida.writeBoolean(u.getFoto() != null);
-                    salida.flush();
+                    sesion.getSalida().writeBoolean(tieneFoto);
+                    sesion.getSalida().flush();
 
                     // Si la tiene, envía la foto
-                    if(u.getFoto() != null) {
-                        salida.writeInt(u.getFoto().length); // Envía la longitud del ByteArray
-                        salida.write(u.getFoto()); // Envía el ByteArray
-                        salida.flush();
+                    if(tieneFoto) {
+                        sesion.getSalida().writeInt(u.getFoto().length); // Envía la longitud del ByteArray
+                        sesion.getSalida().write(u.getFoto()); // Envía el ByteArray
+                        sesion.getSalida().flush();
                     }
 
-                } else {
-                    salida.writeUTF("");
                 }
 
             }
 
-            String data;
-            while((data = entrada.readUTF()) != null) {
+            while(!terminar) {
 
-                String[] fromUser = data.split(";");
-                String opcion = fromUser[0];
-                int idUsuario = Integer.parseInt(fromUser[1]);
+                String[] fromCliente = sesion.getEntrada().readUTF().split(";");
+                String opcion = fromCliente[0];
 
-                // ATENDIENDO_PETICIONES -> if(entrada == chatear) CHATEANDO else ATENDIENDO_PETICIONES
                 String output = protocolo.procesarMensaje(opcion);
 
                 if(output.equalsIgnoreCase("peticion")){
+                    int idUsuario = Integer.parseInt(fromCliente[1]);
+
                     String json = switch (opcion) {
-                        case "viajes" -> {
+                        case "consultarViajes" -> {
                             List<Viaje> viajes = service.findViajesByUsuarioId(idUsuario);
                             yield gson.toJson(viajes);
                         }
@@ -127,8 +119,8 @@ public class HiloCliente extends Thread {
                             yield gson.toJson(viajeActual);
                         }
                         case "update" -> {
-                            String tabla = fromUser[2];
-                            String jsonFromUser = entrada.readUTF();
+                            String tabla = fromCliente[2];
+                            String jsonFromUser = sesion.getEntrada().readUTF();
                             String jsonFromServer = "";
                             if(tabla.equalsIgnoreCase("usuario")) {
                                 Usuario usuarioFromUser = gson.fromJson(jsonFromUser, Usuario.class);
@@ -138,8 +130,8 @@ public class HiloCliente extends Thread {
                             yield jsonFromServer;
                         }
                         case "updateContrasena" -> {
-                            String contrasenaActual = fromUser[2];
-                            String contrasenaNueva = fromUser[3];
+                            String contrasenaActual = fromCliente[2];
+                            String contrasenaNueva = fromCliente[3];
                             Usuario u = service.findUsuarioById(idUsuario);
                             if(u.getContrasena().equals(contrasenaActual)) {
                                 u.setContrasena(contrasenaNueva);
@@ -149,10 +141,10 @@ public class HiloCliente extends Thread {
                             yield "";
                         }
                         case "uploadFoto" -> {
-                            String tabla = fromUser[2];
-                            int length = entrada.readInt(); // Lee el tamaño del array de bytes
+                            String tabla = fromCliente[2];
+                            int length = sesion.getEntrada().readInt(); // Lee el tamaño del array de bytes
                             byte[] byteArray = new byte[length];
-                            entrada.readFully(byteArray); // Lee el array de bytes
+                            sesion.getEntrada().readFully(byteArray); // Lee el array de bytes
                             if(tabla.equalsIgnoreCase("usuario")) {
                                 Usuario u = service.findUsuarioById(idUsuario);
                                 u.setFoto(byteArray);
@@ -162,8 +154,8 @@ public class HiloCliente extends Thread {
                             yield "";
                         }
                         case "save" -> {
-                            String tabla = fromUser[2];
-                            String jsonFromUser = entrada.readUTF();
+                            String tabla = fromCliente[2];
+                            String jsonFromUser = sesion.getEntrada().readUTF();
                             System.out.println(jsonFromUser);
                             if(tabla.equalsIgnoreCase("viaje")) {
                                 Viaje viajeFromUser = gson.fromJson(jsonFromUser, Viaje.class);
@@ -176,24 +168,23 @@ public class HiloCliente extends Thread {
                         default -> "";
                     };
 
-                    salida.writeUTF(json);
+                    sesion.getSalida().writeUTF(json);
                 }
 
             }
 
         } catch (IOException e) {
-
-            LOG.warn("Se ha desconectado un usuario");
+            LOG.warn("Se ha interrumpido la conexión con un usuario");
         } finally {
-            if (cliente != null) {
+            if (sesion.getCliente() != null) {
                 try {
-                    if(entrada != null) {
-                        entrada.close();
+                    if(sesion.getEntrada() != null) {
+                        sesion.getEntrada().close();
                     }
-                    if(salida != null) {
-                        salida.close();
+                    if(sesion.getSalida() != null) {
+                        sesion.getSalida().close();
                     }
-                    cliente.close();
+                    sesion.getCliente().close();
                 } catch (IOException e) {
                     LOG.error("Error al cerrar la conexión con un cliente: {}", e.getMessage());
                 }

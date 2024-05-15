@@ -21,7 +21,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,13 +38,11 @@ import com.gotravel.mobile.ui.screen.ViajesDestination
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun App(
-    navController: NavHostController = rememberNavController(),
-    windowSize: WindowWidthSizeClass,
+    navController: NavHostController = rememberNavController()
 ) {
 
     AppNavHost(
-        navController = navController,
-        windowSize = windowSize
+        navController = navController
     )
 
 }

@@ -2,8 +2,9 @@ package com.gotravel.mobile.ui.utils
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import com.gotravel.mobile.data.model.Rol
 import com.gotravel.mobile.data.model.Usuario
+import java.io.DataInputStream
+import java.io.DataOutputStream
 import java.math.BigInteger
 import java.net.Socket
 import java.security.MessageDigest
@@ -11,8 +12,10 @@ import java.time.format.DateTimeFormatter
 
 // Valores por defecto que se cambian al iniciar sesion
 object AppUiState {
-    var socket: Socket = Socket()
-    var usuario: Usuario = Usuario(0, "", null, "", "", listOf(Rol("")))
+    lateinit var socket: Socket
+    lateinit var usuario: Usuario
+    lateinit var entrada: DataInputStream
+    lateinit var salida: DataOutputStream
 }
 
 object Regex {

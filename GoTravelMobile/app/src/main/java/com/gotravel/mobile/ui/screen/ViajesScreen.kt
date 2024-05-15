@@ -11,9 +11,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -163,14 +162,13 @@ fun GridViajes(
             buscarViaje = buscarViaje
         )
 
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
+        LazyColumn(
             contentPadding = PaddingValues(4.dp)
         ) {
             var numViajes = 0
             items(items = viajes) {viaje ->
                 numViajes++
-                if(numViajes > 3) {
+                if(numViajes > 2) {
                     numViajes = 1
                 }
                 ViajeCard(

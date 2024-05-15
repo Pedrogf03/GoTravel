@@ -2,7 +2,6 @@ package com.gotravel.mobile.ui.navigation
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -29,8 +28,7 @@ import com.gotravel.mobile.ui.screen.ViajesScreen
 @Composable
 fun AppNavHost(
     modifier: Modifier = Modifier,
-    navController: NavHostController,
-    windowSize: WindowWidthSizeClass
+    navController: NavHostController
 ) {
 
     NavHost (

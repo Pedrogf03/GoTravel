@@ -50,7 +50,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gotravel.gotravel.R
-import com.gotravel.mobile.data.model.Usuario
 import com.gotravel.mobile.ui.AppTopBar
 import com.gotravel.mobile.ui.AppViewModelProvider
 import com.gotravel.mobile.ui.navigation.NavDestination
@@ -270,8 +269,8 @@ fun LoginScreen(
             Button(
                 onClick = {
                     GlobalScope.launch {
-                        val usuario: Usuario? = if (registro) viewModel.conectarConServidor(email, contrasena, nombre, confirmarContrasena, context = context) else viewModel.conectarConServidor(email, contrasena, context = context)
-                        if (usuario != null) {
+                        val sesionIniciada = if (registro) viewModel.conectarConServidor(email, contrasena, nombre, confirmarContrasena, context = context) else viewModel.conectarConServidor(email, contrasena, context = context)
+                        if (sesionIniciada) {
                             withContext(Dispatchers.Main) {
                                 navigateToHome()
                             }

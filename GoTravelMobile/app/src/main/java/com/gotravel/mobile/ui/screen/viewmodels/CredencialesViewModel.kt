@@ -25,7 +25,7 @@ class CredencialesViewModel(
 
     val mensajeUi: MutableLiveData<String> = MutableLiveData()
 
-    fun conectarConServidor(vararg credenciales: String, context: Context) : Usuario? {
+    fun conectarConServidor(vararg credenciales: String, context: Context) : Boolean {
 
         mensajeUi.postValue("Conectando con el servidor...")
 
@@ -63,7 +63,7 @@ class CredencialesViewModel(
                 .setLenient()
                 .create()
 
-            var usuario : Usuario? = null
+            val usuario : Usuario
 
             try {
                 val socketAddress = InetSocketAddress(dirIp, puerto)
@@ -73,33 +73,36 @@ class CredencialesViewModel(
                 cliente.connect(socketAddress, tiempoDeEspera)
                 AppUiState.socket = cliente
 
-                val salida = DataOutputStream(cliente.getOutputStream())
-                val entrada = DataInputStream(cliente.getInputStream())
+                AppUiState.salida = DataOutputStream(AppUiState.socket!!.getOutputStream())
+                AppUiState.entrada = DataInputStream(AppUiState.socket!!.getInputStream())
 
-                salida.writeUTF(peticion) // El mensaje envíado dependerá de si se ha solicitado un inicio de sesión o un registro
-                salida.flush()
+                AppUiState.salida.writeUTF(peticion) // El mensaje envíado dependerá de si se ha solicitado un inicio de sesión o un registro
+                AppUiState.salida.flush()
 
-                val jsonFromServer = entrada.readUTF()
-                usuario = gson.fromJson(jsonFromServer, Usuario::class.java)
-
-                if (usuario != null) {
-                    mensajeUi.postValue("Sesión iniciada correctamente")
-                    AppUiState.usuario = usuario
-
-                    // Si se recibe un true (es decir, el usuario tiene foto asociada en la bbdd)
-                    if(entrada.readBoolean()) {
-                        val length = entrada.readInt() // Lee la longitud del ByteArray
-                        val byteArray = ByteArray(length)
-                        entrada.readFully(byteArray) // Lee el ByteArray
-                        AppUiState.usuario.foto = byteArray
-                    }
-
-                } else {
+                val fromServer = AppUiState.entrada.readUTF()
+                if(fromServer.equals("reintentar")) {
                     if(peticion.contains("login")) {
                         mensajeUi.postValue("Email o contraseña incorrectos")
                     } else if (peticion.contains("registro")) {
                         mensajeUi.postValue("Ese email ya está en uso")
                     }
+
+                    return false
+                } else {
+                    usuario = gson.fromJson(fromServer, Usuario::class.java)
+
+                    mensajeUi.postValue("Sesión iniciada correctamente")
+                    AppUiState.usuario = usuario
+
+                    // Si se recibe un true (es decir, el usuario tiene foto asociada en la bbdd)
+                    if(AppUiState.entrada.readBoolean()) {
+                        val length = AppUiState.entrada.readInt() // Lee la longitud del ByteArray
+                        val byteArray = ByteArray(length)
+                        AppUiState.entrada.readFully(byteArray) // Lee el ByteArray
+                        AppUiState.usuario.foto = byteArray
+                    }
+
+                    return true
                 }
 
             } catch (e: IOException) {
@@ -109,11 +112,9 @@ class CredencialesViewModel(
                 e.printStackTrace()
             }
 
-            return usuario
-
         }
 
-        return null
+        return false
 
     }
 

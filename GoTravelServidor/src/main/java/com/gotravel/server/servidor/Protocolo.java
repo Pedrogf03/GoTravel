@@ -1,36 +1,52 @@
 package com.gotravel.server.servidor;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.gotravel.server.model.Usuario;
+import com.gotravel.server.service.AppService;
+
 public class Protocolo {
 
     String mensaje;
     Estado estado;
 
-    public Protocolo() {
-        estado = Estado.ESPERANDO_CREDENCIALES;
+    public Protocolo(AppService service) {
+        this.estado = Estado.INICIANDO_SESION;
     }
 
     public String procesarMensaje(String entrada) {
 
+        Gson gson = new GsonBuilder()
+                .excludeFieldsWithoutExposeAnnotation()
+                .serializeNulls()
+                .setLenient()
+                .create();
+
+        String[] fromCliente;
+
         switch (estado) {
-            case ESPERANDO_CREDENCIALES:
-                mensaje = "credenciales";
-                estado = Estado.COMPROBANDO_CREDENCIALES;
-                break;
-            case COMPROBANDO_CREDENCIALES:
-                if(entrada.equalsIgnoreCase("true")) {
+            case INICIANDO_SESION:
+
+                fromCliente = entrada.split(";");
+
+                Usuario u = gson.fromJson(fromCliente[0], Usuario.class);
+
+                if(u != null && u.getContrasena().equals(fromCliente[1])) {
+                    mensaje = gson.toJson(u);
                     estado = Estado.ATENDIENDO_PETICIONES;
-                    mensaje = "login";
                 } else {
-                    estado = Estado.ESPERANDO_CREDENCIALES;
-                    mensaje = "retry";
+                    mensaje = "reintentar";
                 }
+
                 break;
             case ATENDIENDO_PETICIONES:
-                if(entrada.equalsIgnoreCase("chatear")) {
-                    mensaje = "chatear";
+
+                if(entrada.equals("chat")) {
+                    //TODO
                 } else {
                     mensaje = "peticion";
                 }
+
                 break;
         }
 

@@ -10,8 +10,6 @@ import com.gotravel.mobile.ui.utils.AppUiState
 import com.gotravel.mobile.ui.utils.Regex
 import com.gotravel.mobile.ui.utils.formatoFinal
 import com.gotravel.mobile.ui.utils.formatoFromDb
-import java.io.DataInputStream
-import java.io.DataOutputStream
 import java.io.IOException
 import java.time.LocalDate
 
@@ -60,17 +58,14 @@ class CrearViajeViewModel : ViewModel() {
 
         try {
 
-            val salida = DataOutputStream(AppUiState.socket.getOutputStream())
-            val entrada = DataInputStream(AppUiState.socket.getInputStream())
-
-            salida.writeUTF("save;${AppUiState.usuario.id};viaje")
-            salida.flush()
+            AppUiState.salida.writeUTF("save;${AppUiState.usuario.id};viaje")
+            AppUiState.salida.flush()
 
             val json = gson.toJson(viaje)
-            salida.writeUTF(json)
-            salida.flush()
+            AppUiState.salida.writeUTF(json)
+            AppUiState.salida.flush()
 
-            val jsonFromServer = entrada.readUTF()
+            val jsonFromServer = AppUiState.entrada.readUTF()
             val viajeFromServer = gson.fromJson(jsonFromServer, Viaje::class.java)
 
             if (viajeFromServer != null) {

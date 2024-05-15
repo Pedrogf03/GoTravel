@@ -12,8 +12,6 @@ import com.gotravel.mobile.ui.utils.AppUiState
 import com.gotravel.mobile.ui.utils.Regex
 import com.gotravel.mobile.ui.utils.sha256
 import java.io.ByteArrayOutputStream
-import java.io.DataInputStream
-import java.io.DataOutputStream
 import java.io.IOException
 
 class PerfilViewModel : ViewModel() {
@@ -39,17 +37,14 @@ class PerfilViewModel : ViewModel() {
 
                         try {
 
-                            val salida = DataOutputStream(AppUiState.socket.getOutputStream())
-                            val entrada = DataInputStream(AppUiState.socket.getInputStream())
-
-                            salida.writeUTF("update;${AppUiState.usuario.id};usuario")
-                            salida.flush()
+                            AppUiState.salida.writeUTF("update;${AppUiState.usuario.id};usuario")
+                            AppUiState.salida.flush()
 
                             val json = gson.toJson(usuario)
-                            salida.writeUTF(json)
-                            salida.flush()
+                            AppUiState.salida.writeUTF(json)
+                            AppUiState.salida.flush()
 
-                            val jsonFromServer = entrada.readUTF()
+                            val jsonFromServer = AppUiState.entrada.readUTF()
                             usuarioFromServer = gson.fromJson(jsonFromServer, Usuario::class.java)
 
                             if (usuarioFromServer != null) {
@@ -116,22 +111,19 @@ class PerfilViewModel : ViewModel() {
 
                 try {
 
-                    val salida = DataOutputStream(AppUiState.socket.getOutputStream())
-                    val entrada = DataInputStream(AppUiState.socket.getInputStream())
+                    AppUiState.salida.writeUTF("uploadFoto;${AppUiState.usuario.id};usuario")
+                    AppUiState.salida.flush()
 
-                    salida.writeUTF("uploadFoto;${AppUiState.usuario.id};usuario")
-                    salida.flush()
-
-                    salida.writeInt(byteArray.size) // Envía el tamaño del array de bytes
-                    salida.write(byteArray) // Envía el array de bytes
-                    salida.flush()
+                    AppUiState.salida.writeInt(byteArray.size) // Envía el tamaño del array de bytes
+                    AppUiState.salida.write(byteArray) // Envía el array de bytes
+                    AppUiState.salida.flush()
 
                     val gson = GsonBuilder()
                         .serializeNulls()
                         .setLenient()
                         .create()
 
-                    val jsonFromServer = entrada.readUTF()
+                    val jsonFromServer = AppUiState.entrada.readUTF()
                     val usuario = gson.fromJson(jsonFromServer, Usuario::class.java)
 
                     if (usuario != null) {
@@ -180,13 +172,10 @@ class PerfilViewModel : ViewModel() {
 
                     try {
 
-                        val salida = DataOutputStream(AppUiState.socket.getOutputStream())
-                        val entrada = DataInputStream(AppUiState.socket.getInputStream())
+                        AppUiState.salida.writeUTF("updateContrasena;${AppUiState.usuario.id};${contrasenaActualHash};${contrasenaNuevaHash}")
+                        AppUiState.salida.flush()
 
-                        salida.writeUTF("updateContrasena;${AppUiState.usuario.id};${contrasenaActualHash};${contrasenaNuevaHash}")
-                        salida.flush()
-
-                        val jsonFromServer = entrada.readUTF()
+                        val jsonFromServer = AppUiState.entrada.readUTF()
                         usuarioFromServer = gson.fromJson(jsonFromServer, Usuario::class.java)
 
                         if (usuarioFromServer != null) {

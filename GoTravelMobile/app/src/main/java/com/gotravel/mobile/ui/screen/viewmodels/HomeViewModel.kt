@@ -51,13 +51,11 @@ class HomeViewModel(
                 .create()
 
             try {
-                val salida = DataOutputStream(AppUiState.socket.getOutputStream())
-                val entrada = DataInputStream(AppUiState.socket.getInputStream())
 
-                salida.writeUTF("proximoViaje;${AppUiState.usuario.id}")
-                salida.flush()
+                AppUiState.salida.writeUTF("proximoViaje;${AppUiState.usuario.id}")
+                AppUiState.salida.flush()
 
-                val jsonFromServer = entrada.readUTF()
+                val jsonFromServer = AppUiState.entrada.readUTF()
                 val viaje : Viaje? = gson.fromJson(jsonFromServer, Viaje::class.java)
                 if (viaje != null) {
                     return@withContext viaje
