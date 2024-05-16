@@ -28,7 +28,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.gotravel.gotravel.R
 import com.gotravel.mobile.ui.navigation.AppNavHost
 import com.gotravel.mobile.ui.screen.HomeDestination
@@ -115,12 +114,11 @@ sealed class Screen(val route: String, val label: String, val icon: Int, val ico
     )
 }
 
-val items = listOf(Screen.Inicio, Screen.Viajes, Screen.Servicios, Screen.Chats, Screen.Perfil)
-
 @Composable
 fun AppBottomBar(
     currentRoute: String,
-    navController: NavHostController
+    navController: NavHostController,
+    items: List<Screen>
 ) {
     BottomNavigation (
         backgroundColor = MaterialTheme.colorScheme.primary

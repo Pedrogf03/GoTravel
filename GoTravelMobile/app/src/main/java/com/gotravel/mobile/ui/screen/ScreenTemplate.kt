@@ -21,6 +21,7 @@ import androidx.navigation.NavHostController
 import com.gotravel.gotravel.R
 import com.gotravel.mobile.ui.AppBottomBar
 import com.gotravel.mobile.ui.AppTopBar
+import com.gotravel.mobile.ui.Screen
 
 @Composable
 fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) {
@@ -69,7 +70,11 @@ fun LandingLoadingScreen(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun AppLoadingScreen(modifier: Modifier = Modifier, navController: NavHostController) {
+fun AppLoadingScreen(
+    modifier: Modifier = Modifier,
+    navController: NavHostController,
+    elementosDeNavegacion: List<Screen>
+) {
 
     Scaffold (
         topBar = {
@@ -81,7 +86,8 @@ fun AppLoadingScreen(modifier: Modifier = Modifier, navController: NavHostContro
         bottomBar = {
             AppBottomBar(
                 currentRoute = HomeDestination.route,
-                navController = navController
+                navController = navController,
+                items = elementosDeNavegacion
             )
         },
         modifier = modifier

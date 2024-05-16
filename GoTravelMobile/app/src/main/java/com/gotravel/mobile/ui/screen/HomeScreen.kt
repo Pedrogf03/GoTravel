@@ -3,6 +3,7 @@ package com.gotravel.mobile.ui.screen
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -46,6 +47,7 @@ import com.gotravel.mobile.data.model.Viaje
 import com.gotravel.mobile.ui.AppBottomBar
 import com.gotravel.mobile.ui.AppTopBar
 import com.gotravel.mobile.ui.AppViewModelProvider
+import com.gotravel.mobile.ui.Screen
 import com.gotravel.mobile.ui.navigation.NavDestination
 import com.gotravel.mobile.ui.screen.viewmodels.HomeUiState
 import com.gotravel.mobile.ui.screen.viewmodels.HomeViewModel
@@ -63,14 +65,18 @@ fun HomeScreen(
     viewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory),
     navController: NavHostController,
     onViajeClicked: (Int) -> Unit,
-    navigateToCrearViaje: () -> Unit
+    navigateToCrearViaje: () -> Unit,
+    elementosDeNavegacion: List<Screen>
 ) {
 
     val retryAction = viewModel::getContent
 
     when (val uiState = viewModel.uiState) {
         is HomeUiState.Loading -> {
-            AppLoadingScreen(navController = navController)
+            AppLoadingScreen(
+                navController = navController,
+                elementosDeNavegacion = elementosDeNavegacion
+            )
         }
         is HomeUiState.Success -> {
 
@@ -86,7 +92,8 @@ fun HomeScreen(
                 bottomBar = {
                     AppBottomBar(
                         currentRoute = HomeDestination.route,
-                        navController = navController
+                        navController = navController,
+                        items = elementosDeNavegacion
                     )
                 },
                 modifier = modifier
@@ -205,7 +212,8 @@ fun InformacionUsuario(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(CircleShape)
-                            .aspectRatio(1f),
+                            .aspectRatio(1f)
+                            .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape),
                         contentScale = ContentScale.Crop
                     )
                 } else {
@@ -215,6 +223,7 @@ fun InformacionUsuario(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(CircleShape)
+                            .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
                     )
                 }
 

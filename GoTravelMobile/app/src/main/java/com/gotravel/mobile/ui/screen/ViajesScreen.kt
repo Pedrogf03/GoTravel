@@ -48,6 +48,7 @@ import com.gotravel.mobile.data.model.Viaje
 import com.gotravel.mobile.ui.AppBottomBar
 import com.gotravel.mobile.ui.AppTopBar
 import com.gotravel.mobile.ui.AppViewModelProvider
+import com.gotravel.mobile.ui.Screen
 import com.gotravel.mobile.ui.navigation.NavDestination
 import com.gotravel.mobile.ui.screen.viewmodels.ViajesUiState
 import com.gotravel.mobile.ui.screen.viewmodels.ViajesViewModel
@@ -64,21 +65,26 @@ fun ViajesScreen(
     viewModel: ViajesViewModel = viewModel(factory = AppViewModelProvider.Factory),
     navController: NavHostController,
     onViajeClicked: (Int) -> Unit,
-    buscarViaje: (String) -> Unit
+    buscarViaje: (String) -> Unit,
+    elementosDeNavegacion: List<Screen>
 ) {
 
     val retryAction = viewModel::getViajes
 
     when (val uiState = viewModel.uiState) {
         is ViajesUiState.Loading -> {
-            AppLoadingScreen(navController = navController)
+            AppLoadingScreen(
+                navController = navController,
+                elementosDeNavegacion = elementosDeNavegacion
+            )
         }
         is ViajesUiState.Success -> {
             ViajesContent(
                 navController,
                 uiState.viajes,
                 buscarViaje = buscarViaje,
-                onViajeClicked = onViajeClicked
+                onViajeClicked = onViajeClicked,
+                elementosDeNavegacion = elementosDeNavegacion
             )
         }
         else -> ErrorScreen(retryAction = retryAction)
@@ -93,7 +99,8 @@ fun ViajesContent(
     viajes: List<Viaje>,
     buscarViaje: (String) -> Unit,
     onViajeClicked: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    elementosDeNavegacion: List<Screen>
 ) {
 
     Scaffold(
@@ -106,7 +113,8 @@ fun ViajesContent(
         bottomBar = {
             AppBottomBar(
                 currentRoute = ViajesDestination.route,
-                navController = navController
+                navController = navController,
+                elementosDeNavegacion
             )
         },
         modifier = modifier

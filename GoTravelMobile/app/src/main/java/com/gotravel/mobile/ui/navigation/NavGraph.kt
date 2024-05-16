@@ -9,12 +9,16 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.gotravel.mobile.data.model.Rol
+import com.gotravel.mobile.ui.Screen
 import com.gotravel.mobile.ui.screen.CambiarContrasenaDestination
 import com.gotravel.mobile.ui.screen.CambiarContrasenaScreen
 import com.gotravel.mobile.ui.screen.CrearViajeDestination
 import com.gotravel.mobile.ui.screen.CrearViajeScreen
 import com.gotravel.mobile.ui.screen.CredencialesDestination
 import com.gotravel.mobile.ui.screen.CredencialesScreen
+import com.gotravel.mobile.ui.screen.EditarPerfilDestination
+import com.gotravel.mobile.ui.screen.EditarPerfilScreen
 import com.gotravel.mobile.ui.screen.HomeDestination
 import com.gotravel.mobile.ui.screen.HomeScreen
 import com.gotravel.mobile.ui.screen.LandingDestination
@@ -23,6 +27,7 @@ import com.gotravel.mobile.ui.screen.PerfilDestination
 import com.gotravel.mobile.ui.screen.PerfilScreen
 import com.gotravel.mobile.ui.screen.ViajesDestination
 import com.gotravel.mobile.ui.screen.ViajesScreen
+import com.gotravel.mobile.ui.utils.AppUiState
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -67,6 +72,7 @@ fun AppNavHost(
 
         // Pantalla home
         composable(route = HomeDestination.route) {
+            val items = listOfNotNull(Screen.Inicio, Screen.Viajes, if(AppUiState.usuario.roles.contains(Rol("Profesional"))) Screen.Servicios else null, Screen.Chats, Screen.Perfil)
             HomeScreen(
                 navController = navController,
                 onViajeClicked = {
@@ -74,12 +80,14 @@ fun AppNavHost(
                 },
                 navigateToCrearViaje = {
                     navController.navigate(CrearViajeDestination.route)
-                }
+                },
+                elementosDeNavegacion = items
             )
         }
 
         // Pantalla viajes sin busqueda
         composable(route = ViajesDestination.route) {
+            val items = listOfNotNull(Screen.Inicio, Screen.Viajes, if(AppUiState.usuario.roles.contains(Rol("Profesional"))) Screen.Servicios else null, Screen.Chats, Screen.Perfil)
             ViajesScreen(
                 navController = navController,
                 buscarViaje = { busqueda ->
@@ -87,7 +95,8 @@ fun AppNavHost(
                 },
                 onViajeClicked = {
                     //TODO
-                }
+                },
+                elementosDeNavegacion = items
             )
         }
 
@@ -97,6 +106,7 @@ fun AppNavHost(
             arguments = listOf(
                 navArgument(ViajesDestination.busqueda) { type = NavType.StringType },
             )) {
+            val items = listOfNotNull(Screen.Inicio, Screen.Viajes, if(AppUiState.usuario.roles.contains(Rol("Profesional"))) Screen.Servicios else null, Screen.Chats, Screen.Perfil)
             ViajesScreen(
                 navController = navController,
                 buscarViaje = { busqueda ->
@@ -104,17 +114,42 @@ fun AppNavHost(
                 },
                 onViajeClicked = {
                     //TODO
-                }
+                },
+                elementosDeNavegacion = items
             )
         }
 
         // Pantalla perfil
         composable(route = PerfilDestination.route) {
+            val items = listOfNotNull(Screen.Inicio, Screen.Viajes, if(AppUiState.usuario.roles.contains(Rol("Profesional"))) Screen.Servicios else null, Screen.Chats, Screen.Perfil)
             PerfilScreen(
                 navController = navController,
+                navigateToEditarPerfil = {
+                    navController.navigate(EditarPerfilDestination.route)
+                },
+                navigateToContrataciones = {
+
+                },
+                navigateToMetodosPago = {
+
+                },
+                navigateToPagos = {
+
+                },
+                navigateToSuscripcion = {
+
+                },
+                elementosDeNavegacion = items
+            )
+        }
+
+        // Pantalla para editar perfil
+        composable(route = EditarPerfilDestination.route) {
+            EditarPerfilScreen(
                 navigateToCambiarContrasena = {
                     navController.navigate(CambiarContrasenaDestination.route)
-                }
+                },
+                navController = navController
             )
         }
 

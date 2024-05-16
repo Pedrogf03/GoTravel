@@ -14,8 +14,6 @@ import com.gotravel.mobile.ui.utils.AppUiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.DataInputStream
-import java.io.DataOutputStream
 import java.io.IOException
 
 sealed interface ViajesUiState {
