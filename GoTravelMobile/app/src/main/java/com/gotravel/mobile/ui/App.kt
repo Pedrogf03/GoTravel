@@ -38,7 +38,7 @@ import com.gotravel.mobile.ui.screen.ViajesDestination
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun App(
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController
 ) {
 
     AppNavHost(

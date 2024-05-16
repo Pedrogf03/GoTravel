@@ -12,7 +12,7 @@ import java.time.format.DateTimeFormatter
 
 // Valores por defecto que se cambian al iniciar sesion
 object AppUiState {
-    lateinit var socket: Socket
+    var socket: Socket? = null
     lateinit var usuario: Usuario
     lateinit var entrada: DataInputStream
     lateinit var salida: DataOutputStream

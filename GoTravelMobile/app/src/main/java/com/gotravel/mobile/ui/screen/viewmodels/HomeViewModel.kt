@@ -81,8 +81,8 @@ class HomeViewModel(
                 .create()
 
             try {
-                val salida = DataOutputStream(AppUiState.socket.getOutputStream())
-                val entrada = DataInputStream(AppUiState.socket.getInputStream())
+                val salida = DataOutputStream(AppUiState.socket!!.getOutputStream())
+                val entrada = DataInputStream(AppUiState.socket!!.getInputStream())
 
                 salida.writeUTF("viajeActual;${AppUiState.usuario.id}")
                 salida.flush()

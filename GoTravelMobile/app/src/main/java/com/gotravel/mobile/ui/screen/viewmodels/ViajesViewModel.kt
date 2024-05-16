@@ -66,13 +66,11 @@ class ViajesViewModel(
                 .create()
 
             try {
-                val salida = DataOutputStream(AppUiState.socket.getOutputStream())
-                val entrada = DataInputStream(AppUiState.socket.getInputStream())
 
-                salida.writeUTF("consultarViajes;${AppUiState.usuario.id}")
-                salida.flush()
+                AppUiState.salida.writeUTF("consultarViajes;${AppUiState.usuario.id}")
+                AppUiState.salida.flush()
 
-                val jsonFromServer = entrada.readUTF()
+                val jsonFromServer = AppUiState.entrada.readUTF()
                 val type = object : TypeToken<List<Viaje>>() {}.type
                 val viajes : List<Viaje>  = gson.fromJson(jsonFromServer, type)
                 if (viajes.isNotEmpty()) {

@@ -102,7 +102,7 @@ public class HiloCliente extends Thread {
 
                 String output = protocolo.procesarMensaje(opcion);
 
-                if(output.equalsIgnoreCase("peticion")){
+                if(output.equals("peticion")){
                     int idUsuario = Integer.parseInt(fromCliente[1]);
 
                     String json = switch (opcion) {
@@ -169,6 +169,9 @@ public class HiloCliente extends Thread {
                     };
 
                     sesion.getSalida().writeUTF(json);
+                } else if (output.equals("cerrarApp")) {
+                    terminar = true;
+                    LOG.info("Se ha desconectado un usuario");
                 }
 
             }
