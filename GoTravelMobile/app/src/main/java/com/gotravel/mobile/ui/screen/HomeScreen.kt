@@ -266,7 +266,7 @@ fun HomeScreenContent(
                 if(esProfesional) {
                     Spacer(modifier = Modifier.padding(8.dp))
                     Button(
-                        onClick = { TODO() },
+                        onClick = { /*TODO*/ },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimary)
                     ) {
                         Text(

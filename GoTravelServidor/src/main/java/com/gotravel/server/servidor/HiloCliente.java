@@ -3,6 +3,7 @@ package com.gotravel.server.servidor;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.gotravel.server.ServerApplication;
+import com.gotravel.server.model.Etapa;
 import com.gotravel.server.model.Usuario;
 import com.gotravel.server.model.Viaje;
 import com.gotravel.server.service.AppService;
@@ -164,6 +165,16 @@ public class HiloCliente extends Thread {
                                 yield gson.toJson(v);
                             }
                             yield "";
+                        }
+                        case "findViajeById" -> {
+                            int idViaje = Integer.parseInt(fromCliente[2]);
+                            Viaje v = service.findViajeById(idViaje);
+                            yield gson.toJson(v);
+                        }
+                        case "findEtapasFromViajeId" -> {
+                            int idViaje = Integer.parseInt(fromCliente[2]);
+                            List<Etapa> etapas = service.findEtapasByViajeId(idViaje);
+                            yield gson.toJson(etapas);
                         }
                         default -> "";
                     };

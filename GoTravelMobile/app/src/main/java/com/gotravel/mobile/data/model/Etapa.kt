@@ -17,8 +17,7 @@ data class Etapa(
     val fechaInicio: String,
     val fechaFinal: String,
     val costeTotal: Double,
-    val tipo: String,
-    val viaje: Viaje
+    val tipo: String
 ) {
     val contrataciones: List<Contratacion>? = null
 }

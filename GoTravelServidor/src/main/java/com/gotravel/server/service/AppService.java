@@ -1,8 +1,10 @@
 package com.gotravel.server.service;
 
 import com.gotravel.server.ServerApplication;
+import com.gotravel.server.model.Etapa;
 import com.gotravel.server.model.Usuario;
 import com.gotravel.server.model.Viaje;
+import com.gotravel.server.repository.EtapaRepository;
 import com.gotravel.server.repository.UsuarioRepository;
 import com.gotravel.server.repository.ViajeRepository;
 import org.slf4j.Logger;
@@ -66,4 +68,12 @@ public class AppService {
             return null;
         }
     }
+
+    @Autowired
+    private EtapaRepository etapaRepository;
+
+    public List<Etapa> findEtapasByViajeId(int idViaje) {
+        return etapaRepository.findAllByViajeId(idViaje);
+    }
+
 }

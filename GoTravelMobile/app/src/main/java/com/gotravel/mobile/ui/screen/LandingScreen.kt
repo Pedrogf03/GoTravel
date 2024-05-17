@@ -72,7 +72,6 @@ fun LandingScreen(
             val context = LocalContext.current
             ContentLanding(imagen = imagen, navigateToCredenciales, cambiarIp = { viewModel.cambiarIp(context, it) })
         }
-        else -> TODO()
     }
 
 }

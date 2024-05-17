@@ -25,6 +25,10 @@ import com.gotravel.mobile.ui.screen.LandingDestination
 import com.gotravel.mobile.ui.screen.LandingScreen
 import com.gotravel.mobile.ui.screen.PerfilDestination
 import com.gotravel.mobile.ui.screen.PerfilScreen
+import com.gotravel.mobile.ui.screen.SuscripcionDestination
+import com.gotravel.mobile.ui.screen.SuscripcionScreen
+import com.gotravel.mobile.ui.screen.ViajeDestination
+import com.gotravel.mobile.ui.screen.ViajeScreen
 import com.gotravel.mobile.ui.screen.ViajesDestination
 import com.gotravel.mobile.ui.screen.ViajesScreen
 import com.gotravel.mobile.ui.utils.AppUiState
@@ -94,7 +98,7 @@ fun AppNavHost(
                     navController.navigate(ViajesDestination.route + if(busqueda.isNotBlank()) "/${busqueda}" else "")
                 },
                 onViajeClicked = {
-                    //TODO
+                    navController.navigate("${ViajeDestination.route}/${it}")
                 },
                 elementosDeNavegacion = items
             )
@@ -113,10 +117,19 @@ fun AppNavHost(
                     navController.navigate(ViajesDestination.route + if(busqueda.isNotBlank()) "/${busqueda}" else "")
                 },
                 onViajeClicked = {
-                    //TODO
+                    navController.navigate("${ViajeDestination.route}/${it}")
                 },
                 elementosDeNavegacion = items
             )
+        }
+
+        // Pantalla de un viaje
+        composable(
+            route = ViajeDestination.routeWithArgs,
+            arguments = listOf(
+                navArgument(ViajeDestination.idViaje) { type = NavType.IntType },
+            )) {
+            ViajeScreen()
         }
 
         // Pantalla perfil
@@ -137,7 +150,7 @@ fun AppNavHost(
 
                 },
                 navigateToSuscripcion = {
-
+                    navController.navigate("${SuscripcionDestination.route}/${it}")
                 },
                 elementosDeNavegacion = items
             )
@@ -166,6 +179,17 @@ fun AppNavHost(
         composable(route = CrearViajeDestination.route) {
             CrearViajeScreen(
                 navigateToViaje = { },
+                navController = navController
+            )
+        }
+
+        // Pantalla para ver informacion de la suscripcion
+        composable(
+            route = SuscripcionDestination.routeWithArgs,
+            arguments = listOf(
+                navArgument(SuscripcionDestination.esProfesional) { type = NavType.BoolType },
+            )) {
+            SuscripcionScreen(
                 navController = navController
             )
         }
