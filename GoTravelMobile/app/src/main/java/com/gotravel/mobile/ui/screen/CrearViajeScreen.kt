@@ -21,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -51,6 +52,8 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.util.Calendar
 import java.util.Date
 
 
@@ -115,8 +118,10 @@ fun CrearViajeScreen(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next
                 ),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = Color.Transparent,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
                 ),
                 modifier = modifier.fillMaxWidth()
             )
@@ -132,8 +137,10 @@ fun CrearViajeScreen(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next
                 ),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = Color.Transparent,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
                 ),
                 modifier = modifier.fillMaxWidth()
             )
@@ -154,8 +161,10 @@ fun CrearViajeScreen(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next
                 ),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = Color.Transparent,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
                 ),
                 readOnly = true,
                 modifier = Modifier
@@ -185,8 +194,10 @@ fun CrearViajeScreen(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next
                 ),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = Color.Transparent,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
                 ),
                 readOnly = true,
                 modifier = Modifier
@@ -210,7 +221,7 @@ fun CrearViajeScreen(
                         val viaje = viewModel.crearViaje(nombre = nombre, descripcion = descripcion, fechaInicio = fechaInicio, fechaFin = fechaFinal)
                         if(viaje != null) {
                             withContext(Dispatchers.Main) {
-                                // TODO navigateToViaje(viaje.id)
+                                navigateToViaje(viaje.id!!)
                             }
                         }
                     }
@@ -241,12 +252,32 @@ fun CrearViajeScreen(
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
+object FechasDisponibles: SelectableDates {
+    @ExperimentalMaterial3Api
+    override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        return utcTimeMillis >= calendar.timeInMillis
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    @ExperimentalMaterial3Api
+    override fun isSelectableYear(year: Int): Boolean {
+        return year >= LocalDate.now().year
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyDatePickerDialog(
     onDateSelected: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val datePickerState = rememberDatePickerState()
+
+    val datePickerState = rememberDatePickerState(selectableDates = FechasDisponibles)
 
     val selectedDate = datePickerState.selectedDateMillis?.let {
         convertMillisToDate(it)
@@ -258,9 +289,7 @@ fun MyDatePickerDialog(
             Button(onClick = {
                 onDateSelected(selectedDate)
                 onDismiss()
-            }
-
-            ) {
+            }) {
                 Text(text = "Aceptar")
             }
         },
@@ -276,8 +305,9 @@ fun MyDatePickerDialog(
             state = datePickerState
         )
     }
-
 }
+
+
 
 private fun convertMillisToDate(millis: Long): String {
     val formatter = SimpleDateFormat("dd/MM/yyyy")

@@ -130,7 +130,10 @@ fun AppNavHost(
                 navArgument(ViajeDestination.idViaje) { type = NavType.IntType },
             )) {
             ViajeScreen(
-                navigateUp = {navController.navigateUp()}
+                navigateUp = {navController.navigateUp()},
+                actualizarPagina = {
+                    navController.navigate("${ViajeDestination.route}/${it}")
+                }
             )
         }
 
