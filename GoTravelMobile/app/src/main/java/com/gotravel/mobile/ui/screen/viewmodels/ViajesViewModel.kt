@@ -35,7 +35,7 @@ class ViajesViewModel(
         getViajes()
     }
 
-    fun getViajes() {
+    private fun getViajes() {
         viewModelScope.launch {
             try {
                 val viajes = mutableListOf<Viaje>()
@@ -70,8 +70,7 @@ class ViajesViewModel(
 
                 val jsonFromServer = AppUiState.entrada.readUTF()
                 val type = object : TypeToken<List<Viaje>>() {}.type
-                val viajes : List<Viaje>  = gson.fromJson(jsonFromServer, type)
-                return@withContext viajes
+                return@withContext gson.fromJson<List<Viaje>?>(jsonFromServer, type)
 
             } catch (e: IOException) {
                 e.printStackTrace()

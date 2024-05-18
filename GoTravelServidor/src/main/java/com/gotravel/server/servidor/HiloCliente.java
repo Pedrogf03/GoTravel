@@ -127,6 +127,10 @@ public class HiloCliente extends Thread {
                                 Usuario usuarioFromUser = gson.fromJson(jsonFromUser, Usuario.class);
                                 usuarioFromUser = service.saveUsuario(usuarioFromUser);
                                 jsonFromServer = gson.toJson(usuarioFromUser);
+                            } else if(tabla.equalsIgnoreCase("etapa")) {
+                                Etapa etapaFromUser = gson.fromJson(jsonFromUser, Etapa.class);
+                                etapaFromUser = service.saveEtapa(etapaFromUser);
+                                jsonFromServer = gson.toJson(etapaFromUser);
                             }
                             yield jsonFromServer;
                         }
@@ -157,14 +161,21 @@ public class HiloCliente extends Thread {
                         case "save" -> {
                             String tabla = fromCliente[2];
                             String jsonFromUser = sesion.getEntrada().readUTF();
-                            System.out.println(jsonFromUser);
+                            String jsonFromServer = "";
                             if(tabla.equalsIgnoreCase("viaje")) {
                                 Viaje viajeFromUser = gson.fromJson(jsonFromUser, Viaje.class);
                                 viajeFromUser.setUsuario(service.findUsuarioById(idUsuario));
                                 Viaje v = service.saveViaje(viajeFromUser);
-                                yield gson.toJson(v);
+                                jsonFromServer = gson.toJson(v);
+                            } else if(tabla.equalsIgnoreCase("etapa")) {
+                                int idViaje = Integer.parseInt(fromCliente[3]);
+                                Viaje v = service.findViajeById(idViaje);
+                                Etapa etapaFromUser = gson.fromJson(jsonFromUser, Etapa.class);
+                                etapaFromUser.setViaje(v);
+                                etapaFromUser = service.saveEtapa(etapaFromUser);
+                                jsonFromServer = gson.toJson(etapaFromUser);
                             }
-                            yield "";
+                            yield jsonFromServer;
                         }
                         case "findViajeById" -> {
                             int idViaje = Integer.parseInt(fromCliente[2]);

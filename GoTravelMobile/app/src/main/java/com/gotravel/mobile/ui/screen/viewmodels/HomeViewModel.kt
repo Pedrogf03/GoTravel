@@ -33,7 +33,7 @@ class HomeViewModel(
         getContent()
     }
 
-    fun getContent() {
+    private fun getContent() {
         viewModelScope.launch {
             uiState = try {
                 HomeUiState.Success(findProximoViajeByUsuarioId(), findViajeActualByUsuarioId(), repository.getHomeImage())
@@ -44,6 +44,7 @@ class HomeViewModel(
     }
 
     private suspend fun findProximoViajeByUsuarioId() : Viaje? {
+
         return withContext(Dispatchers.IO) {
             val gson = GsonBuilder()
                 .serializeNulls()
@@ -71,38 +72,45 @@ class HomeViewModel(
 
             return@withContext null
         }
+
     }
 
     private suspend fun findViajeActualByUsuarioId() : Viaje? {
+
         return withContext(Dispatchers.IO) {
-            val gson = GsonBuilder()
-                .serializeNulls()
-                .setLenient()
-                .create()
 
-            try {
-                val salida = DataOutputStream(AppUiState.socket!!.getOutputStream())
-                val entrada = DataInputStream(AppUiState.socket!!.getInputStream())
+            if(!AppUiState.socket!!.isClosed) {
+                val gson = GsonBuilder()
+                    .serializeNulls()
+                    .setLenient()
+                    .create()
 
-                salida.writeUTF("viajeActual;${AppUiState.usuario.id}")
-                salida.flush()
+                try {
+                    val salida = DataOutputStream(AppUiState.socket!!.getOutputStream())
+                    val entrada = DataInputStream(AppUiState.socket!!.getInputStream())
 
-                val jsonFromServer = entrada.readUTF()
-                val viaje : Viaje? = gson.fromJson(jsonFromServer, Viaje::class.java)
-                if (viaje != null) {
-                    return@withContext viaje
-                } else {
-                    return@withContext null
+                    salida.writeUTF("viajeActual;${AppUiState.usuario.id}")
+                    salida.flush()
+
+                    val jsonFromServer = entrada.readUTF()
+                    val viaje : Viaje? = gson.fromJson(jsonFromServer, Viaje::class.java)
+                    if (viaje != null) {
+                        return@withContext viaje
+                    } else {
+                        return@withContext null
+                    }
+
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
-
-            } catch (e: IOException) {
-                e.printStackTrace()
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
 
             return@withContext null
         }
+
     }
+
 
 }

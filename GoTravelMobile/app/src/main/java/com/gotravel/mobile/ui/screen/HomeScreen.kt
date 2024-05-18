@@ -66,10 +66,9 @@ fun HomeScreen(
     navController: NavHostController,
     onViajeClicked: (Int) -> Unit,
     navigateToCrearViaje: () -> Unit,
-    elementosDeNavegacion: List<Screen>
+    elementosDeNavegacion: List<Screen>,
+    navigateToStart: () -> Unit
 ) {
-
-    val retryAction = viewModel::getContent
 
     when (val uiState = viewModel.uiState) {
         is HomeUiState.Loading -> {
@@ -128,7 +127,7 @@ fun HomeScreen(
             }
 
         }
-        else -> ErrorScreen(retryAction = retryAction)
+        else -> ErrorScreen(navigateToStart = navigateToStart)
     }
 
 }

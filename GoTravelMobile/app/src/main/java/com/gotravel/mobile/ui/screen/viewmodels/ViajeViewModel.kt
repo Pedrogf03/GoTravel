@@ -45,7 +45,7 @@ class ViajeViewModel(
         getAllFromViaje()
     }
 
-    fun getAllFromViaje() {
+    private fun getAllFromViaje() {
         viewModelScope.launch {
             try {
                 val viaje = findViajeById(idViaje)
@@ -118,7 +118,7 @@ class ViajeViewModel(
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun actualizarEtapa(etapa: Etapa, nombre: String, fechaInicio: String, fechaFinal: String, tipo: String) : Boolean {
+    suspend fun actualizarEtapa(etapa: Etapa, nombre: String, fechaInicio: String, fechaFinal: String, tipo: String) : Boolean {
 
         if(nombre.isBlank() || fechaInicio.isBlank() || fechaFinal.isBlank() || tipo.isBlank()) {
             mensajeUi.postValue("Por favor rellena todos los campos")
@@ -133,34 +133,48 @@ class ViajeViewModel(
 
                 if(!final.isBefore(inicio)) {
 
-                    val gson = GsonBuilder()
-                        .serializeNulls()
-                        .setLenient()
-                        .create()
+                    val viaje = findViajeById(idViaje)
 
-                    val etapaFromServer : Etapa?
+                    if(!inicio.isBefore(LocalDate.parse(viaje!!.inicio, formatoFinal))) {
 
-                    try {
+                        if(!final.isAfter(LocalDate.parse(viaje.final, formatoFinal))) {
 
-                        AppUiState.salida.writeUTF("save;${AppUiState.usuario.id};etapa;${idViaje}")
-                        AppUiState.salida.flush()
+                            val gson = GsonBuilder()
+                                .serializeNulls()
+                                .setLenient()
+                                .create()
 
-                        val json = gson.toJson(etapaActualizada)
-                        AppUiState.salida.writeUTF(json)
-                        AppUiState.salida.flush()
+                            val etapaFromServer : Etapa?
 
-                        val jsonFromServer = AppUiState.entrada.readUTF()
-                        etapaFromServer = gson.fromJson(jsonFromServer, Etapa::class.java)
+                            try {
 
-                        return etapaFromServer != null
+                                AppUiState.salida.writeUTF("save;${AppUiState.usuario.id};etapa;${idViaje}")
+                                AppUiState.salida.flush()
 
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                    } catch (e: Exception) {
-                        e.printStackTrace()
+                                val json = gson.toJson(etapaActualizada)
+                                AppUiState.salida.writeUTF(json)
+                                AppUiState.salida.flush()
+
+                                val jsonFromServer = AppUiState.entrada.readUTF()
+                                etapaFromServer = gson.fromJson(jsonFromServer, Etapa::class.java)
+
+                                return etapaFromServer != null
+
+                            } catch (e: IOException) {
+                                e.printStackTrace()
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+
+                            return false
+
+                        } else {
+                            mensajeUi.postValue("El final no puede ser posterior a la fecha de final del viaje")
+                        }
+
+                    } else {
+                        mensajeUi.postValue("El inicio de la etapa no puede ser antes que la fecha de inicio del viaje")
                     }
-
-                    return false
 
                 } else {
                     mensajeUi.postValue("La fecha de final no puede ser anterior a la inicial")
@@ -179,7 +193,7 @@ class ViajeViewModel(
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun crearEtapa(nombre: String, fechaInicio: String, fechaFinal: String, tipo: String): Boolean {
+    suspend fun crearEtapa(nombre: String, fechaInicio: String, fechaFinal: String, tipo: String): Boolean {
 
         if(nombre.isBlank() || fechaInicio.isBlank() || fechaFinal.isBlank() || tipo.isBlank()) {
             mensajeUi.postValue("Por favor rellena todos los campos")
@@ -194,34 +208,48 @@ class ViajeViewModel(
 
                 if(!final.isBefore(inicio)) {
 
-                    val gson = GsonBuilder()
-                        .serializeNulls()
-                        .setLenient()
-                        .create()
+                    val viaje = findViajeById(idViaje)
 
-                    val etapaFromServer : Etapa?
+                    if(!inicio.isBefore(LocalDate.parse(viaje!!.inicio, formatoFinal))) {
 
-                    try {
+                        if(!final.isAfter(LocalDate.parse(viaje.final, formatoFinal))) {
 
-                        AppUiState.salida.writeUTF("save;${AppUiState.usuario.id};etapa;${idViaje}")
-                        AppUiState.salida.flush()
+                            val gson = GsonBuilder()
+                                .serializeNulls()
+                                .setLenient()
+                                .create()
 
-                        val json = gson.toJson(etapa)
-                        AppUiState.salida.writeUTF(json)
-                        AppUiState.salida.flush()
+                            val etapaFromServer : Etapa?
 
-                        val jsonFromServer = AppUiState.entrada.readUTF()
-                        etapaFromServer = gson.fromJson(jsonFromServer, Etapa::class.java)
+                            try {
 
-                        return etapaFromServer != null
+                                AppUiState.salida.writeUTF("save;${AppUiState.usuario.id};etapa;${idViaje}")
+                                AppUiState.salida.flush()
 
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                    } catch (e: Exception) {
-                        e.printStackTrace()
+                                val json = gson.toJson(etapa)
+                                AppUiState.salida.writeUTF(json)
+                                AppUiState.salida.flush()
+
+                                val jsonFromServer = AppUiState.entrada.readUTF()
+                                etapaFromServer = gson.fromJson(jsonFromServer, Etapa::class.java)
+
+                                return etapaFromServer != null
+
+                            } catch (e: IOException) {
+                                e.printStackTrace()
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+
+                            return false
+
+                        } else {
+                            mensajeUi.postValue("El final no puede ser posterior a la fecha de final del viaje")
+                        }
+
+                    } else {
+                        mensajeUi.postValue("El inicio de la etapa no puede ser antes que la fecha de inicio del viaje")
                     }
-
-                    return false
 
                 } else {
                     mensajeUi.postValue("La fecha de final no puede ser anterior a la inicial")

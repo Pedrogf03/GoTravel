@@ -66,10 +66,9 @@ fun ViajesScreen(
     navController: NavHostController,
     onViajeClicked: (Int) -> Unit,
     buscarViaje: (String) -> Unit,
-    elementosDeNavegacion: List<Screen>
+    elementosDeNavegacion: List<Screen>,
+    navigateToStart: () -> Unit
 ) {
-
-    val retryAction = viewModel::getViajes
 
     when (val uiState = viewModel.uiState) {
         is ViajesUiState.Loading -> {
@@ -87,7 +86,7 @@ fun ViajesScreen(
                 elementosDeNavegacion = elementosDeNavegacion
             )
         }
-        else -> ErrorScreen(retryAction = retryAction)
+        else -> ErrorScreen(navigateToStart = navigateToStart)
     }
 
 }
@@ -269,7 +268,7 @@ fun ViajeCard(
 
             Column {
                 Text(text = viaje.nombre)
-                Text(text = viaje.inicio + if(viaje.final != null) " - " + viaje.final else "", fontSize = 8.sp)
+                Text(text = viaje.inicio + (" - " + viaje.final), fontSize = 8.sp)
             }
             Spacer(modifier = Modifier.weight(1f))
             Icon(imageVector = Icons.Default.ArrowForward, contentDescription = "ver viaje")

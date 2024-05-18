@@ -206,5 +206,4 @@ class PerfilViewModel : ViewModel() {
 
     }
 
-
 }

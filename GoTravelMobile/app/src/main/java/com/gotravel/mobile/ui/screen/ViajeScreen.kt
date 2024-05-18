@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -77,10 +78,9 @@ object ViajeDestination : NavDestination {
 fun ViajeScreen(
     viewModel: ViajeViewModel = viewModel(factory = AppViewModelProvider.Factory),
     navigateUp: () -> Unit,
-    actualizarPagina: (Int) -> Unit
+    actualizarPagina: (Int) -> Unit,
+    navigateToStart: () -> Unit
 ) {
-
-    val retryAction = viewModel::getAllFromViaje
 
     when (val uiState = viewModel.uiState) {
         is ViajeUiState.Loading -> {
@@ -125,7 +125,7 @@ fun ViajeScreen(
             }
 
         }
-        else -> ErrorScreen(retryAction = retryAction)
+        else -> ErrorScreen(navigateToStart = navigateToStart)
     }
 
 }
@@ -421,7 +421,11 @@ fun CrearEtapa(
 
                 Spacer(modifier = Modifier.padding(8.dp))
 
-                Text(text = mensajeUi.value)
+                Text(
+                    text = mensajeUi.value,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
 
                 Button(
                     onClick = {

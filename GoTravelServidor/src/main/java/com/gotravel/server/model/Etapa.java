@@ -15,6 +15,7 @@ public class Etapa {
 
     @Id
     @Column(name = "id_etapa", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Expose
     private Integer id;
 
@@ -43,7 +44,7 @@ public class Etapa {
     @JoinColumn(name = "id_viaje", nullable = false)
     private Viaje viaje;
 
-    @OneToMany(mappedBy = "etapa")
+    @OneToMany(mappedBy = "etapa", fetch = FetchType.EAGER)
     @Expose
     private List<Contratacion> contrataciones;
 

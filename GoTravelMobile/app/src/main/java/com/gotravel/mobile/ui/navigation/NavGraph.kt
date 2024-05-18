@@ -85,7 +85,10 @@ fun AppNavHost(
                 navigateToCrearViaje = {
                     navController.navigate(CrearViajeDestination.route)
                 },
-                elementosDeNavegacion = items
+                elementosDeNavegacion = items,
+                navigateToStart = {
+                    navController.navigate(LandingDestination.route)
+                }
             )
         }
 
@@ -100,7 +103,10 @@ fun AppNavHost(
                 onViajeClicked = {
                     navController.navigate("${ViajeDestination.route}/${it}")
                 },
-                elementosDeNavegacion = items
+                elementosDeNavegacion = items,
+                navigateToStart = {
+                    navController.navigate(LandingDestination.route)
+                }
             )
         }
 
@@ -119,7 +125,10 @@ fun AppNavHost(
                 onViajeClicked = {
                     navController.navigate("${ViajeDestination.route}/${it}")
                 },
-                elementosDeNavegacion = items
+                elementosDeNavegacion = items,
+                navigateToStart = {
+                    navController.navigate(LandingDestination.route)
+                }
             )
         }
 
@@ -133,6 +142,9 @@ fun AppNavHost(
                 navigateUp = {navController.navigateUp()},
                 actualizarPagina = {
                     navController.navigate("${ViajeDestination.route}/${it}")
+                },
+                navigateToStart = {
+                    navController.navigate(LandingDestination.route)
                 }
             )
         }

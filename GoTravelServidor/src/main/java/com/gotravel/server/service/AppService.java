@@ -76,4 +76,18 @@ public class AppService {
         return etapaRepository.findAllByViajeId(idViaje);
     }
 
+    private Etapa findEtapaById(int id) {
+        return etapaRepository.findById(id).orElse(null);
+    }
+
+    public Etapa saveEtapa(Etapa etapa) {
+        try {
+            etapa = etapaRepository.save(etapa);
+            return findEtapaById(etapa.getId());
+        } catch (Exception e) {
+            LOG.error("Error: {}", e.getMessage());
+            return null;
+        }
+    }
+
 }

@@ -24,7 +24,10 @@ import com.gotravel.mobile.ui.AppTopBar
 import com.gotravel.mobile.ui.Screen
 
 @Composable
-fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) {
+fun ErrorScreen(
+    modifier: Modifier = Modifier,
+    navigateToStart: () -> Unit
+) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.Center,
@@ -36,7 +39,7 @@ fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) {
             modifier = Modifier
                 .size(100.dp)
         )
-        Button(onClick = retryAction) {
+        Button(onClick = navigateToStart) {
             Text(text = "Reintentar")
         }
     }

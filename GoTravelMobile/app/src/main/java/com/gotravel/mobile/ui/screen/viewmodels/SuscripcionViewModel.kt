@@ -10,7 +10,4 @@ class SuscripcionViewModel(
 
     val esProfesional: Boolean = checkNotNull(savedStateHandle[SuscripcionDestination.esProfesional])
 
-
-
-
 }

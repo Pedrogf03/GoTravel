@@ -19,12 +19,7 @@ class CrearViajeViewModel : ViewModel() {
     val mensajeUi: MutableLiveData<String> = MutableLiveData()
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun crearViaje(
-        nombre: String,
-        descripcion: String,
-        fechaInicio: String,
-        fechaFin: String,
-    ) : Viaje? {
+    fun crearViaje(nombre: String, descripcion: String, fechaInicio: String, fechaFin: String, ) : Viaje? {
 
         if(nombre.isBlank() || fechaInicio.isBlank() || fechaFin.isBlank()) {
             mensajeUi.postValue("Por favor rellena todos los campos obligatorios")
