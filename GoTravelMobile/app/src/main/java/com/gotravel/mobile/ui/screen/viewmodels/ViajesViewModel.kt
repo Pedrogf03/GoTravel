@@ -71,11 +71,7 @@ class ViajesViewModel(
                 val jsonFromServer = AppUiState.entrada.readUTF()
                 val type = object : TypeToken<List<Viaje>>() {}.type
                 val viajes : List<Viaje>  = gson.fromJson(jsonFromServer, type)
-                if (viajes.isNotEmpty()) {
-                    return@withContext viajes
-                } else {
-                    return@withContext listOf()
-                }
+                return@withContext viajes
 
             } catch (e: IOException) {
                 e.printStackTrace()

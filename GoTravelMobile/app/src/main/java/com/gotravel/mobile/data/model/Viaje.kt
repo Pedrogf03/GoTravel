@@ -24,6 +24,8 @@ data class Viaje (
     val fechaFin: String,
     val costeTotal: Double,
 ) {
+
+    lateinit var etapas: List<Etapa>
     val inicio: String
         @RequiresApi(Build.VERSION_CODES.O)
         get() {

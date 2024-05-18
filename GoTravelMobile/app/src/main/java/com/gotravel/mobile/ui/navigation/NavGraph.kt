@@ -80,7 +80,7 @@ fun AppNavHost(
             HomeScreen(
                 navController = navController,
                 onViajeClicked = {
-                    //TODO
+                    navController.navigate("${ViajeDestination.route}/${it}")
                 },
                 navigateToCrearViaje = {
                     navController.navigate(CrearViajeDestination.route)
@@ -129,7 +129,9 @@ fun AppNavHost(
             arguments = listOf(
                 navArgument(ViajeDestination.idViaje) { type = NavType.IntType },
             )) {
-            ViajeScreen()
+            ViajeScreen(
+                navigateUp = {navController.navigateUp()}
+            )
         }
 
         // Pantalla perfil
@@ -141,13 +143,13 @@ fun AppNavHost(
                     navController.navigate(EditarPerfilDestination.route)
                 },
                 navigateToContrataciones = {
-
+                    //TODO
                 },
                 navigateToMetodosPago = {
-
+                    //TODO
                 },
                 navigateToPagos = {
-
+                    //TODO
                 },
                 navigateToSuscripcion = {
                     navController.navigate("${SuscripcionDestination.route}/${it}")

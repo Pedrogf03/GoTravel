@@ -53,7 +53,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.gotravel.gotravel.R
-import com.gotravel.mobile.data.model.Rol
 import com.gotravel.mobile.ui.AppTopBar
 import com.gotravel.mobile.ui.AppViewModelProvider
 import com.gotravel.mobile.ui.navigation.NavDestination
@@ -300,8 +299,10 @@ private fun profileTextField(
             keyboardType = keyboardType,
             imeAction = ImeAction.Done
         ),
-        colors = TextFieldDefaults.textFieldColors(
-            containerColor = Color.Transparent
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
+            disabledContainerColor = Color.Transparent,
         ),
         modifier = Modifier.fillMaxWidth()
     )

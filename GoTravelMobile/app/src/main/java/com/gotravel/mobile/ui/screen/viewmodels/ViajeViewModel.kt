@@ -18,7 +18,7 @@ import kotlinx.coroutines.withContext
 import java.io.IOException
 
 sealed interface ViajeUiState {
-    data class Success(val viaje: Viaje, val etapas: List<Etapa>) : ViajeUiState
+    data class Success(val viaje: Viaje) : ViajeUiState
     object Error : ViajeUiState
     object Loading : ViajeUiState
 }
@@ -42,7 +42,8 @@ class ViajeViewModel(
                 val viaje = findViajeById(idViaje)
                 if(viaje != null) {
                     val etapasFromViaje = findEtapasFromViajeId(viaje.id!!)
-                    uiState = ViajeUiState.Success(viaje, etapasFromViaje)
+                    viaje.etapas = etapasFromViaje
+                    uiState = ViajeUiState.Success(viaje)
                 } else {
                     uiState = ViajeUiState.Error
                 }
