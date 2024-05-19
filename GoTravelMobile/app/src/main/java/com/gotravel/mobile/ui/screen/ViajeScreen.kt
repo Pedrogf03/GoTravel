@@ -5,7 +5,6 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -51,6 +50,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gotravel.gotravel.R
@@ -277,19 +277,60 @@ fun MostrarEtapas(
                     Text(text = "Este viaje aún no tiene etapas", color = MaterialTheme.colorScheme.onSurface)
                 }
             } else {
-                LazyColumn (
-                    contentPadding = PaddingValues(4.dp)
-                ){
+                LazyColumn {
                     var numEtapas = 0
                     items(items = etapas) {etapa ->
                         numEtapas++
                         if(numEtapas > 2) {
                             numEtapas = 1
                         }
-                        Text(text = etapa.nombre)
+
+                        EtapaCard(
+                            etapa = etapa,
+                            color = if(numEtapas != 1) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+
                     }
                 }
             }
+
+        }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun EtapaCard(
+    etapa: Etapa,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Card (
+        colors = CardDefaults.cardColors(containerColor = color),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        modifier = modifier
+    ){
+        Row (
+            modifier = Modifier
+                .padding(8.dp)
+            ,
+            verticalAlignment = Alignment.CenterVertically
+        ){
+
+            var textColor = MaterialTheme.colorScheme.onPrimary
+
+            if(color == MaterialTheme.colorScheme.onPrimary) {
+                textColor = MaterialTheme.colorScheme.primary
+            }
+
+            Column {
+                Text(text = etapa.nombre, color = textColor)
+                Text(text = "Tipo " + etapa.tipo, color = textColor, fontSize = 12.sp)
+                Text(text = etapa.inicio + " - " + etapa.final, fontSize = 8.sp, color = textColor)
+            }
+            Spacer(modifier = Modifier.weight(1f))
+            Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = "", tint = textColor)
 
         }
     }

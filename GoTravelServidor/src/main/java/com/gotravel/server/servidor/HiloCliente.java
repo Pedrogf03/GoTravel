@@ -96,7 +96,7 @@ public class HiloCliente extends Thread {
 
             }
 
-            while(!terminar) {
+            while(true) {
 
                 String[] fromCliente = sesion.getEntrada().readUTF().split(";");
                 String opcion = fromCliente[0];
@@ -104,8 +104,7 @@ public class HiloCliente extends Thread {
                 String output = protocolo.procesarMensaje(opcion);
 
                 if(output.equals("peticion")){
-                    int idUsuario = Integer.parseInt(fromCliente[1]);
-
+                    int idUsuario = sesion.getUsuario().getId();
                     String json = switch (opcion) {
                         case "consultarViajes" -> {
                             List<Viaje> viajes = service.findViajesByUsuarioId(idUsuario);
@@ -120,33 +119,42 @@ public class HiloCliente extends Thread {
                             yield gson.toJson(viajeActual);
                         }
                         case "update" -> {
-                            String tabla = fromCliente[2];
+                            String tabla = fromCliente[1];
                             String jsonFromUser = sesion.getEntrada().readUTF();
                             String jsonFromServer = "";
-                            if(tabla.equalsIgnoreCase("usuario")) {
+                            if (tabla.equalsIgnoreCase("usuario")) {
                                 Usuario usuarioFromUser = gson.fromJson(jsonFromUser, Usuario.class);
                                 usuarioFromUser = service.saveUsuario(usuarioFromUser);
+                                sesion.setUsuario(usuarioFromUser);
                                 jsonFromServer = gson.toJson(usuarioFromUser);
-                            } else if(tabla.equalsIgnoreCase("etapa")) {
+                            } else if (tabla.equalsIgnoreCase("viaje")) {
+                                Viaje viajeFromUser = gson.fromJson(jsonFromUser, Viaje.class);
+                                viajeFromUser.setUsuario(sesion.getUsuario());
+                                viajeFromUser = service.saveViaje(viajeFromUser);
+                                jsonFromServer = gson.toJson(viajeFromUser);
+                            } else if (tabla.equalsIgnoreCase("etapa")) {
+                                int idViaje = Integer.parseInt(fromCliente[2]);
                                 Etapa etapaFromUser = gson.fromJson(jsonFromUser, Etapa.class);
+                                etapaFromUser.setViaje(service.findViajeById(idViaje));
                                 etapaFromUser = service.saveEtapa(etapaFromUser);
                                 jsonFromServer = gson.toJson(etapaFromUser);
                             }
                             yield jsonFromServer;
                         }
                         case "updateContrasena" -> {
-                            String contrasenaActual = fromCliente[2];
-                            String contrasenaNueva = fromCliente[3];
+                            String contrasenaActual = fromCliente[1];
+                            String contrasenaNueva = fromCliente[2];
                             Usuario u = service.findUsuarioById(idUsuario);
                             if(u.getContrasena().equals(contrasenaActual)) {
                                 u.setContrasena(contrasenaNueva);
                                 service.saveUsuario(u);
+                                sesion.setUsuario(u);
                                 yield gson.toJson(u);
                             }
                             yield "";
                         }
                         case "uploadFoto" -> {
-                            String tabla = fromCliente[2];
+                            String tabla = fromCliente[1];
                             int length = sesion.getEntrada().readInt(); // Lee el tamaño del array de bytes
                             byte[] byteArray = new byte[length];
                             sesion.getEntrada().readFully(byteArray); // Lee el array de bytes
@@ -154,12 +162,13 @@ public class HiloCliente extends Thread {
                                 Usuario u = service.findUsuarioById(idUsuario);
                                 u.setFoto(byteArray);
                                 u = service.saveUsuario(u);
+                                sesion.setUsuario(u);
                                 yield gson.toJson(u);
                             }
                             yield "";
                         }
                         case "save" -> {
-                            String tabla = fromCliente[2];
+                            String tabla = fromCliente[1];
                             String jsonFromUser = sesion.getEntrada().readUTF();
                             String jsonFromServer = "";
                             if(tabla.equalsIgnoreCase("viaje")) {
@@ -168,7 +177,7 @@ public class HiloCliente extends Thread {
                                 Viaje v = service.saveViaje(viajeFromUser);
                                 jsonFromServer = gson.toJson(v);
                             } else if(tabla.equalsIgnoreCase("etapa")) {
-                                int idViaje = Integer.parseInt(fromCliente[3]);
+                                int idViaje = Integer.parseInt(fromCliente[2]);
                                 Viaje v = service.findViajeById(idViaje);
                                 Etapa etapaFromUser = gson.fromJson(jsonFromUser, Etapa.class);
                                 etapaFromUser.setViaje(v);
@@ -177,29 +186,26 @@ public class HiloCliente extends Thread {
                             }
                             yield jsonFromServer;
                         }
-                        case "findViajeById" -> {
-                            int idViaje = Integer.parseInt(fromCliente[2]);
-                            Viaje v = service.findViajeById(idViaje);
-                            yield gson.toJson(v);
-                        }
-                        case "findEtapasFromViajeId" -> {
-                            int idViaje = Integer.parseInt(fromCliente[2]);
-                            List<Etapa> etapas = service.findEtapasByViajeId(idViaje);
-                            yield gson.toJson(etapas);
+                        case "findById" -> {
+                            String tabla = fromCliente[1];
+                            String jsonFromServer = "";
+                            if(tabla.equalsIgnoreCase("viaje")) {
+                                int idViaje = Integer.parseInt(fromCliente[2]);
+                                Viaje v = service.findViajeById(idViaje);
+                                jsonFromServer = gson.toJson(v);
+                            }
+                            yield jsonFromServer;
                         }
                         default -> "";
                     };
 
                     sesion.getSalida().writeUTF(json);
-                } else if (output.equals("cerrarApp")) {
-                    terminar = true;
-                    LOG.info("Se ha desconectado un usuario");
                 }
 
             }
 
         } catch (IOException e) {
-            LOG.warn("Se ha interrumpido la conexión con un usuario");
+            LOG.info("Se ha desconectado un usuario");
         } finally {
             if (sesion.getCliente() != null) {
                 try {

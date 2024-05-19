@@ -44,7 +44,8 @@ public class Viaje {
     @JoinColumn(name = "id_usuario", nullable = false)
     private Usuario usuario;
 
-    @OneToMany(mappedBy = "viaje")
+    @OneToMany(mappedBy = "viaje", fetch = FetchType.EAGER)
+    @Expose
     private List<Etapa> etapas;
 
 }
