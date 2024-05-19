@@ -83,6 +83,9 @@ fun AppNavHost(
                 },
                 navigateToCredenciales = {
                     navController.navigate("${CredencialesDestination.route}/${it}")
+                },
+                borrarNavegacion = {
+                    navController.popBackStack(navController.graph.startDestinationRoute!!, true)
                 }
             )
 

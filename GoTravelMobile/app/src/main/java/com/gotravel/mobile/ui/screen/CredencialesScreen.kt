@@ -80,7 +80,8 @@ fun CredencialesScreen(
     viewModel: CredencialesViewModel = viewModel(factory = AppViewModelProvider.Factory),
     navigateUp: () -> Unit,
     navigateToHome: () -> Unit,
-    navigateToCredenciales: (String) -> Unit
+    navigateToCredenciales: (String) -> Unit,
+    borrarNavegacion: () -> Unit
 ) {
     val context = LocalContext.current
     val sharedPref = context.getSharedPreferences("credenciales", Context.MODE_PRIVATE)
@@ -96,6 +97,7 @@ fun CredencialesScreen(
                     val sesion = viewModel.conectarConServidor(email, contrasena, context = context)
                     if (sesion) {
                         withContext(Dispatchers.Main) {
+                            borrarNavegacion()
                             navigateToHome()
                         }
                     } else {
@@ -114,7 +116,8 @@ fun CredencialesScreen(
             modifier,
             viewModel,
             navigateToHome,
-            navigateToCredenciales
+            navigateToCredenciales,
+            borrarNavegacion
         )
     }
 }
@@ -126,7 +129,8 @@ private fun Pantalla(
     modifier: Modifier,
     viewModel: CredencialesViewModel,
     navigateToHome: () -> Unit,
-    navigateToCredenciales: (String) -> Unit
+    navigateToCredenciales: (String) -> Unit,
+    borrarNavegacion: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -145,7 +149,8 @@ private fun Pantalla(
                 registro = false,
                 navigateToHome = navigateToHome,
                 navigateToCredenciales = navigateToCredenciales,
-                modifier = Modifier.padding(it)
+                modifier = Modifier.padding(it),
+                borrarNavegacion = borrarNavegacion
             )
         } else {
             LoginScreen(
@@ -153,7 +158,8 @@ private fun Pantalla(
                 registro = true,
                 navigateToHome = navigateToHome,
                 navigateToCredenciales = navigateToCredenciales,
-                modifier = Modifier.padding(it)
+                modifier = Modifier.padding(it),
+                borrarNavegacion = borrarNavegacion
             )
         }
 
@@ -167,6 +173,7 @@ fun LoginScreen(
     registro: Boolean,
     navigateToHome: () -> Unit,
     navigateToCredenciales: (String) -> Unit,
+    borrarNavegacion: () -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -337,6 +344,7 @@ fun LoginScreen(
                                     putString("contraseña", contrasena)
                                     apply()
                                 }
+                                borrarNavegacion()
                                 navigateToHome()
                             }
                         }
