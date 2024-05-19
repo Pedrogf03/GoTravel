@@ -1,5 +1,7 @@
 package com.gotravel.mobile.ui
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.CreationExtras
@@ -17,6 +19,7 @@ import com.gotravel.mobile.ui.screen.viewmodels.ViajesViewModel
 
 object AppViewModelProvider {
 
+    @RequiresApi(Build.VERSION_CODES.O)
     val Factory = viewModelFactory {
 
         initializer {

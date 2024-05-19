@@ -53,7 +53,7 @@ class CrearViajeViewModel : ViewModel() {
 
         try {
 
-            AppUiState.salida.writeUTF("save;${AppUiState.usuario.id};viaje")
+            AppUiState.salida.writeUTF("save;viaje")
             AppUiState.salida.flush()
 
             val json = gson.toJson(viaje)

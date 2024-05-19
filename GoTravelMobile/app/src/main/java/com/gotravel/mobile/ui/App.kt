@@ -28,6 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.gotravel.gotravel.R
 import com.gotravel.mobile.ui.navigation.AppNavHost
 import com.gotravel.mobile.ui.screen.HomeDestination
@@ -37,11 +38,10 @@ import com.gotravel.mobile.ui.screen.ViajesDestination
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun App(
-    navController: NavHostController
 ) {
 
     AppNavHost(
-        navController = navController
+        navController = rememberNavController()
     )
 
 }

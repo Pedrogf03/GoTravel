@@ -1,5 +1,7 @@
 package com.gotravel.mobile.ui.screen.viewmodels
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -11,17 +13,20 @@ import com.google.gson.reflect.TypeToken
 import com.gotravel.mobile.data.model.Viaje
 import com.gotravel.mobile.ui.screen.ViajesDestination
 import com.gotravel.mobile.ui.utils.AppUiState
+import com.gotravel.mobile.ui.utils.formatoFinal
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
+import java.time.LocalDate
 
 sealed interface ViajesUiState {
-    data class Success(val viajes: List<Viaje>) : ViajesUiState
+    data class Success(val viajesPasados: List<Viaje>, val viajes: List<Viaje>) : ViajesUiState
     object Error : ViajesUiState
     object Loading : ViajesUiState
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 class ViajesViewModel(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -35,21 +40,33 @@ class ViajesViewModel(
         getViajes()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun getViajes() {
         viewModelScope.launch {
             try {
-                val viajes = mutableListOf<Viaje>()
                 val allViajes = findViajesByUsuarioId()
+                val viajesPasados = mutableListOf<Viaje>()
+                val viajes = mutableListOf<Viaje>()
                 if(busqueda != null) {
                     for(viaje in allViajes) {
                         if(viaje.nombre.lowercase().contains(busqueda.lowercase())){
-                            viajes.add(viaje)
+                            if(LocalDate.parse(viaje.final, formatoFinal).isBefore(LocalDate.now())) { // Si el final del viaje es antes del dia de hoy
+                                viajesPasados.add(viaje)
+                            } else {
+                                viajes.add(viaje)
+                            }
                         }
                     }
                 } else {
-                    viajes.addAll(allViajes)
+                    for(viaje in allViajes) {
+                        if(LocalDate.parse(viaje.final, formatoFinal).isBefore(LocalDate.now())) { // Si el final del viaje es antes del dia de hoy
+                            viajesPasados.add(viaje)
+                        } else {
+                            viajes.add(viaje)
+                        }
+                    }
                 }
-                uiState = ViajesUiState.Success(viajes)
+                uiState = ViajesUiState.Success(viajesPasados = viajesPasados, viajes = viajes)
             } catch (e: IOException) {
                 uiState = ViajesUiState.Error
             }
@@ -65,7 +82,7 @@ class ViajesViewModel(
 
             try {
 
-                AppUiState.salida.writeUTF("consultarViajes;${AppUiState.usuario.id}")
+                AppUiState.salida.writeUTF("consultarViajes")
                 AppUiState.salida.flush()
 
                 val jsonFromServer = AppUiState.entrada.readUTF()

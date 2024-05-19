@@ -1,9 +1,11 @@
 package com.gotravel.mobile.ui.navigation
 
+import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -46,14 +48,24 @@ fun AppNavHost(
         modifier = modifier
     ) {
 
-        // Pantalla landing
         composable(route = LandingDestination.route) {
-            LandingScreen(
-                navigateToCredenciales = {
-                    navController.navigate("${CredencialesDestination.route}/${it}")
-                }
-            )
+
+            val context = LocalContext.current
+            val sharedPref = context.getSharedPreferences("credenciales", Context.MODE_PRIVATE)
+            val email = sharedPref.getString("email", "")
+            val contrasena = sharedPref.getString("contraseña", "")
+
+            if (!email.isNullOrBlank() && !contrasena.isNullOrBlank()) {
+                navController.navigate("${CredencialesDestination.route}/login")
+            } else {
+                LandingScreen(
+                    navigateToCredenciales = {
+                        navController.navigate("${CredencialesDestination.route}/${it}")
+                    }
+                )
+            }
         }
+
 
         // Pantalla para introducir los credenciales de inicio de sesión o registro
         composable(
@@ -61,6 +73,7 @@ fun AppNavHost(
             arguments = listOf(
                 navArgument(CredencialesDestination.opcion) { type = NavType.StringType },
             )) {
+
             CredencialesScreen(
                 navigateUp = {
                     navController.navigateUp()
@@ -72,6 +85,7 @@ fun AppNavHost(
                     navController.navigate("${CredencialesDestination.route}/${it}")
                 }
             )
+
         }
 
         // Pantalla home
@@ -139,7 +153,7 @@ fun AppNavHost(
                 navArgument(ViajeDestination.idViaje) { type = NavType.IntType },
             )) {
             ViajeScreen(
-                navigateUp = {navController.navigateUp()},
+                navigateUp = { navController.popBackStack(ViajesDestination.route, inclusive = false) },
                 actualizarPagina = {
                     navController.navigate("${ViajeDestination.route}/${it}")
                 },
@@ -169,6 +183,9 @@ fun AppNavHost(
                 navigateToSuscripcion = {
                     navController.navigate("${SuscripcionDestination.route}/${it}")
                 },
+                navigateToStart = {
+                    navController.navigate(LandingDestination.route)
+                },
                 elementosDeNavegacion = items
             )
         }
@@ -195,7 +212,9 @@ fun AppNavHost(
         // Pantalla para crear un nuevo viaje
         composable(route = CrearViajeDestination.route) {
             CrearViajeScreen(
-                navigateToViaje = { },
+                navigateToViaje = {
+                                  navController.navigate(("${ViajeDestination.route}/${it}"))
+                },
                 navController = navController
             )
         }

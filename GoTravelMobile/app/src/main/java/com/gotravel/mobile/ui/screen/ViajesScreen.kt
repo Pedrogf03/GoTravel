@@ -13,12 +13,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CardElevation
@@ -79,8 +82,9 @@ fun ViajesScreen(
         }
         is ViajesUiState.Success -> {
             ViajesContent(
-                navController,
-                uiState.viajes,
+                navController = navController,
+                viajes = uiState.viajes,
+                viajesPasados = uiState.viajesPasados,
                 buscarViaje = buscarViaje,
                 onViajeClicked = onViajeClicked,
                 elementosDeNavegacion = elementosDeNavegacion
@@ -96,6 +100,7 @@ fun ViajesScreen(
 fun ViajesContent(
     navController: NavHostController,
     viajes: List<Viaje>,
+    viajesPasados: List<Viaje>,
     buscarViaje: (String) -> Unit,
     onViajeClicked: (Int) -> Unit,
     modifier: Modifier = Modifier,
@@ -119,7 +124,7 @@ fun ViajesContent(
         modifier = modifier
     ) {
 
-        if(viajes.isEmpty()) {
+        if(viajesPasados.isEmpty() && viajes.isEmpty()) {
             SinViajes(
                 modifier = Modifier.padding(it),
                 color = MaterialTheme.colorScheme.onSurface
@@ -127,6 +132,7 @@ fun ViajesContent(
         } else {
             GridViajes(
                 viajes = viajes,
+                viajesPasados = viajesPasados,
                 buscarViaje = buscarViaje,
                 modifier = Modifier.padding(it),
                 onViajeClicked = onViajeClicked
@@ -141,6 +147,7 @@ fun ViajesContent(
 @Composable
 fun GridViajes(
     viajes: List<Viaje>,
+    viajesPasados: List<Viaje>,
     buscarViaje: (String) -> Unit,
     onViajeClicked: (Int) -> Unit,
     modifier: Modifier = Modifier
@@ -148,8 +155,7 @@ fun GridViajes(
 
     Column (
         modifier = modifier
-            .fillMaxSize()
-            .padding(8.dp),
+            .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ){
@@ -166,28 +172,67 @@ fun GridViajes(
             keyboardActions = KeyboardActions(onSearch = {
                 buscarViaje(nombreViaje)
             }),
-            buscarViaje = buscarViaje
+            buscarViaje = buscarViaje,
+            modifier = Modifier
+                .padding(8.dp)
         )
+        
+        val opciones = listOf("finalizados", "actuales")
+        
+        var eleccion by remember { mutableStateOf(opciones[1]) }
 
-        LazyColumn(
-            contentPadding = PaddingValues(4.dp)
-        ) {
-            var numViajes = 0
-            items(items = viajes) {viaje ->
-                numViajes++
-                if(numViajes > 2) {
-                    numViajes = 1
+        Card (
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 8.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
+            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp, bottomEnd = 0.dp, bottomStart = 0.dp),
+            colors = CardDefaults.cardColors(containerColor = if(eleccion == opciones[0]) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimary)
+        ){
+            Row (
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ){
+                Button(
+                    onClick = { eleccion = opciones[0] },
+                ) {
+                    Text(text = "FINALIZADOS", style = MaterialTheme.typography.titleMedium)
                 }
-                ViajeCard(
-                    viaje = viaje,
-                    onViajeClicked = onViajeClicked,
-                    modifier = Modifier.padding(4.dp),
-                    color = if(numViajes != 1) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
-                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-                )
+                Spacer(modifier = Modifier.padding(8.dp))
+                Button(
+                    onClick = { eleccion = opciones[1] },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimary)
+                ) {
+                    Text(
+                        text = "ACTUALES",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
-        }
+            
+            Spacer(modifier = Modifier.padding(8.dp))
 
+            LazyColumn(
+                contentPadding = PaddingValues(4.dp)
+            ) {
+                var numViajes = 0
+                items(items = if(eleccion == opciones[0]) viajesPasados else viajes) {viaje ->
+                    numViajes++
+                    if(numViajes > 2) {
+                        numViajes = 1
+                    }
+                    ViajeCard(
+                        viaje = viaje,
+                        onViajeClicked = onViajeClicked,
+                        modifier = Modifier.padding(4.dp),
+                        color = if(numViajes != 1) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
+                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                    )
+                }
+            }
+            
+        }
 
     }
 
@@ -266,12 +311,18 @@ fun ViajeCard(
             verticalAlignment = Alignment.CenterVertically
         ){
 
+            var textColor = MaterialTheme.colorScheme.onPrimary
+
+            if(color == MaterialTheme.colorScheme.onPrimary) {
+                textColor = MaterialTheme.colorScheme.primary
+            }
+
             Column {
-                Text(text = viaje.nombre)
-                Text(text = viaje.inicio + (" - " + viaje.final), fontSize = 8.sp)
+                Text(text = viaje.nombre, color = textColor)
+                Text(text = viaje.inicio + " - " + viaje.final, fontSize = 8.sp, color = textColor)
             }
             Spacer(modifier = Modifier.weight(1f))
-            Icon(imageVector = Icons.Default.ArrowForward, contentDescription = "ver viaje")
+            Icon(imageVector = Icons.Default.ArrowForward, contentDescription = "ver viaje", tint = textColor)
 
         }
     }

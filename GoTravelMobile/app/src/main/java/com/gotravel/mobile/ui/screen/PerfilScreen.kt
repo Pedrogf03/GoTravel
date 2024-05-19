@@ -1,5 +1,6 @@
 package com.gotravel.mobile.ui.screen
 
+import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
@@ -22,18 +23,24 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.gotravel.gotravel.R
 import com.gotravel.mobile.data.model.Rol
 import com.gotravel.mobile.ui.AppBottomBar
 import com.gotravel.mobile.ui.AppTopBar
+import com.gotravel.mobile.ui.AppViewModelProvider
 import com.gotravel.mobile.ui.Screen
 import com.gotravel.mobile.ui.navigation.NavDestination
+import com.gotravel.mobile.ui.screen.viewmodels.PerfilViewModel
 import com.gotravel.mobile.ui.utils.AppUiState
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 object PerfilDestination : NavDestination {
     override val route = "perfil"
@@ -51,7 +58,9 @@ fun PerfilScreen(
     navigateToMetodosPago: () -> Unit,
     navigateToContrataciones: () -> Unit,
     navigateToSuscripcion: (Boolean) -> Unit,
-    elementosDeNavegacion: List<Screen>
+    navigateToStart: () -> Unit,
+    elementosDeNavegacion: List<Screen>,
+    viewModel: PerfilViewModel = viewModel(factory = AppViewModelProvider.Factory),
 ) {
 
     Scaffold(
@@ -91,7 +100,13 @@ fun PerfilScreen(
                 navigateToPagos = navigateToPagos,
                 navigateToMetodosPago = navigateToMetodosPago,
                 navigateToContrataciones = navigateToContrataciones,
-                navigateToSuscripcion = navigateToSuscripcion
+                navigateToSuscripcion = navigateToSuscripcion,
+                cerrarSesion = {
+                    GlobalScope.launch() {
+                        viewModel.cerrarSesion()
+                    }
+                },
+                navigateToStart = navigateToStart
             )
 
         }
@@ -108,7 +123,9 @@ fun PerfilScreenContent(
     navigateToPagos: () -> Unit,
     navigateToMetodosPago: () -> Unit,
     navigateToContrataciones: () -> Unit,
-    navigateToSuscripcion: (Boolean) -> Unit
+    navigateToSuscripcion: (Boolean) -> Unit,
+    cerrarSesion: () -> Unit,
+    navigateToStart: () -> Unit
 ) {
     Card (
         modifier = modifier,
@@ -187,6 +204,30 @@ fun PerfilScreenContent(
                     text = if(esProfesional) "MI SUSCRIPCIÓN" else "PROGRAMA DE PROFESIONALES",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+
+            Spacer(modifier = Modifier.padding(8.dp))
+
+            val context = LocalContext.current
+            Button(
+                onClick = {
+                    cerrarSesion()
+                    val sharedPref = context.getSharedPreferences("credenciales", Context.MODE_PRIVATE)
+                    with (sharedPref.edit()) {
+                        putString("email", "")
+                        putString("contraseña", "")
+                        apply()
+                    }
+                    navigateToStart()
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.onPrimary)
+            ) {
+                Text(
+                    text = "CERRAR SESIÓN",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
 

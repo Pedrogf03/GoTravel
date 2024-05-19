@@ -216,7 +216,6 @@ fun CrearViajeScreen(
 
             Button(
                 onClick = {
-
                     GlobalScope.launch {
                         val viaje = viewModel.crearViaje(nombre = nombre, descripcion = descripcion, fechaInicio = fechaInicio, fechaFin = fechaFinal)
                         if(viaje != null) {

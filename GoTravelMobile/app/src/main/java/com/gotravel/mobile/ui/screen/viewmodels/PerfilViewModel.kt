@@ -37,7 +37,7 @@ class PerfilViewModel : ViewModel() {
 
                         try {
 
-                            AppUiState.salida.writeUTF("update;${AppUiState.usuario.id};usuario")
+                            AppUiState.salida.writeUTF("update;usuario")
                             AppUiState.salida.flush()
 
                             val json = gson.toJson(usuario)
@@ -111,7 +111,7 @@ class PerfilViewModel : ViewModel() {
 
                 try {
 
-                    AppUiState.salida.writeUTF("uploadFoto;${AppUiState.usuario.id};usuario")
+                    AppUiState.salida.writeUTF("uploadFoto;usuario")
                     AppUiState.salida.flush()
 
                     AppUiState.salida.writeInt(byteArray.size) // Envía el tamaño del array de bytes
@@ -172,7 +172,7 @@ class PerfilViewModel : ViewModel() {
 
                     try {
 
-                        AppUiState.salida.writeUTF("updateContrasena;${AppUiState.usuario.id};${contrasenaActualHash};${contrasenaNuevaHash}")
+                        AppUiState.salida.writeUTF("updateContrasena;${contrasenaActualHash};${contrasenaNuevaHash}")
                         AppUiState.salida.flush()
 
                         val jsonFromServer = AppUiState.entrada.readUTF()
@@ -203,6 +203,14 @@ class PerfilViewModel : ViewModel() {
         }
 
         return false
+
+    }
+
+    fun cerrarSesion() {
+
+        AppUiState.salida.close()
+        AppUiState.entrada.close()
+        AppUiState.socket!!.close()
 
     }
 

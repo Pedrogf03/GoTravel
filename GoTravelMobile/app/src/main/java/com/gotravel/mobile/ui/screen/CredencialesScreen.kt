@@ -1,5 +1,8 @@
 package com.gotravel.mobile.ui.screen
 
+import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -54,6 +58,7 @@ import com.gotravel.mobile.ui.AppTopBar
 import com.gotravel.mobile.ui.AppViewModelProvider
 import com.gotravel.mobile.ui.navigation.NavDestination
 import com.gotravel.mobile.ui.screen.viewmodels.CredencialesViewModel
+import com.gotravel.mobile.ui.utils.AppUiState
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -67,6 +72,8 @@ object CredencialesDestination : NavDestination {
     val routeWithArgs = "$route/{$opcion}"
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(DelicateCoroutinesApi::class)
 @Composable
 fun CredencialesScreen(
     modifier: Modifier = Modifier,
@@ -75,7 +82,52 @@ fun CredencialesScreen(
     navigateToHome: () -> Unit,
     navigateToCredenciales: (String) -> Unit
 ) {
+    val context = LocalContext.current
+    val sharedPref = context.getSharedPreferences("credenciales", Context.MODE_PRIVATE)
+    val email = sharedPref.getString("email", "")
+    val contrasena = sharedPref.getString("contraseña", "")
 
+    val sesionIniciada = remember { mutableStateOf(false) }
+
+    if (!AppUiState.segundoPlano && !sesionIniciada.value) {
+        if (!email.isNullOrBlank() && !contrasena.isNullOrBlank()) {
+            LaunchedEffect(Unit) {
+                GlobalScope.launch {
+                    val sesion = viewModel.conectarConServidor(email, contrasena, context = context)
+                    if (sesion) {
+                        withContext(Dispatchers.Main) {
+                            navigateToHome()
+                        }
+                    } else {
+                        sesionIniciada.value = true
+                    }
+                }
+            }
+        } else {
+            sesionIniciada.value = true
+        }
+    }
+
+    if (sesionIniciada.value) {
+        Pantalla(
+            navigateUp,
+            modifier,
+            viewModel,
+            navigateToHome,
+            navigateToCredenciales
+        )
+    }
+}
+
+
+@Composable
+private fun Pantalla(
+    navigateUp: () -> Unit,
+    modifier: Modifier,
+    viewModel: CredencialesViewModel,
+    navigateToHome: () -> Unit,
+    navigateToCredenciales: (String) -> Unit
+) {
     Scaffold(
         topBar = {
             AppTopBar(
@@ -87,7 +139,7 @@ fun CredencialesScreen(
         modifier = modifier
     ) {
 
-        if(viewModel.opcion == "login") {
+        if (viewModel.opcion == "login") {
             LoginScreen(
                 viewModel = viewModel,
                 registro = false,
@@ -106,7 +158,6 @@ fun CredencialesScreen(
         }
 
     }
-
 }
 
 @OptIn(DelicateCoroutinesApi::class, ExperimentalMaterial3Api::class)
@@ -159,8 +210,10 @@ fun LoginScreen(
                         keyboardType = KeyboardType.Text,
                         imeAction = ImeAction.Next
                     ),
-                    colors = TextFieldDefaults.textFieldColors(
-                        containerColor = Color.Transparent
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -185,8 +238,10 @@ fun LoginScreen(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next
                 ),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = Color.Transparent
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -219,8 +274,10 @@ fun LoginScreen(
                     keyboardType = KeyboardType.Text,
                     imeAction = if(registro) ImeAction.Next else ImeAction.Done
                 ),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = Color.Transparent
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -254,8 +311,10 @@ fun LoginScreen(
                         keyboardType = KeyboardType.Text,
                         imeAction = ImeAction.Done
                     ),
-                    colors = TextFieldDefaults.textFieldColors(
-                        containerColor = Color.Transparent
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -272,6 +331,12 @@ fun LoginScreen(
                         val sesionIniciada = if (registro) viewModel.conectarConServidor(email, contrasena, nombre, confirmarContrasena, context = context) else viewModel.conectarConServidor(email, contrasena, context = context)
                         if (sesionIniciada) {
                             withContext(Dispatchers.Main) {
+                                val sharedPref = context.getSharedPreferences("credenciales", Context.MODE_PRIVATE)
+                                with (sharedPref.edit()) {
+                                    putString("email", email)
+                                    putString("contraseña", contrasena)
+                                    apply()
+                                }
                                 navigateToHome()
                             }
                         }
@@ -301,7 +366,7 @@ fun LoginScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
-                        navigateToCredenciales(if(registro) "login" else "registro")
+                        navigateToCredenciales(if (registro) "login" else "registro")
                     },
                 textAlign = TextAlign.Center
             )

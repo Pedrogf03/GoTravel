@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
@@ -60,11 +61,13 @@ import com.gotravel.mobile.ui.AppViewModelProvider
 import com.gotravel.mobile.ui.navigation.NavDestination
 import com.gotravel.mobile.ui.screen.viewmodels.ViajeUiState
 import com.gotravel.mobile.ui.screen.viewmodels.ViajeViewModel
+import com.gotravel.mobile.ui.utils.formatoFinal
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
 
 object ViajeDestination : NavDestination {
     override val route = "viaje"
@@ -88,6 +91,10 @@ fun ViajeScreen(
         }
         is ViajeUiState.Success -> {
 
+            var finalizado = false
+
+            if(LocalDate.parse(uiState.viaje.final, formatoFinal).isBefore(LocalDate.now())) finalizado = true
+
             Scaffold (
                 topBar = {
                     AppTopBar(
@@ -105,6 +112,11 @@ fun ViajeScreen(
                 ) {
                     InformacionViaje(
                         viaje = uiState.viaje,
+                        actualizarPagina = {
+                            actualizarPagina(uiState.viaje.id!!)
+                        },
+                        finalizado = finalizado,
+                        viewModel = viewModel,
                         modifier = Modifier
                             .fillMaxSize()
                             .weight(0.25f)
@@ -116,6 +128,7 @@ fun ViajeScreen(
                             actualizarPagina(uiState.viaje.id!!)
                         },
                         viewModel = viewModel,
+                        finalizado = finalizado,
                         modifier = Modifier
                             .fillMaxSize()
                             .weight(0.75f)
@@ -134,8 +147,25 @@ fun ViajeScreen(
 @Composable
 fun InformacionViaje(
     modifier: Modifier = Modifier,
-    viaje: Viaje
+    viaje: Viaje,
+    finalizado: Boolean,
+    viewModel: ViajeViewModel,
+    actualizarPagina: () -> Unit
 ) {
+
+    var editarViaje by remember { mutableStateOf(false) }
+
+    if (editarViaje) {
+        Dialog(onDismissRequest = { editarViaje = false }) {
+            EditarViaje(
+                viewModel = viewModel,
+                cerrarDialogo = { editarViaje = !editarViaje },
+                actualizarPagina = actualizarPagina,
+                viaje = viaje
+            )
+        }
+    }
+
     Row (
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
@@ -167,18 +197,20 @@ fun InformacionViaje(
 
         }
 
-        Row (
-            modifier = Modifier
-                .fillMaxSize()
-                .weight(0.25f),
-            verticalAlignment = Alignment.Top,
-            horizontalArrangement = Arrangement.End
-        ){
-            IconButton(onClick = { /*TODO*/ }) {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = ""
-                )
+        if(!finalizado) {
+            Row (
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(0.25f),
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.End
+            ){
+                IconButton(onClick = { editarViaje = !editarViaje }) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = ""
+                    )
+                }
             }
         }
 
@@ -191,7 +223,8 @@ fun MostrarEtapas(
     modifier: Modifier = Modifier,
     etapas: List<Etapa>,
     viewModel: ViajeViewModel,
-    actualizarPagina: () -> Unit
+    actualizarPagina: () -> Unit,
+    finalizado: Boolean
 ) {
 
     var nuevaEtapa by remember { mutableStateOf(false) }
@@ -216,15 +249,17 @@ fun MostrarEtapas(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            Row (
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ){
-                Button(
-                    onClick = { nuevaEtapa = !nuevaEtapa },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = "NUEVA ETAPA", style = MaterialTheme.typography.titleMedium)
+            if(!finalizado) {
+                Row (
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ){
+                    Button(
+                        onClick = { nuevaEtapa = !nuevaEtapa },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(text = "NUEVA ETAPA", style = MaterialTheme.typography.titleMedium)
+                    }
                 }
             }
 
@@ -258,6 +293,203 @@ fun MostrarEtapas(
 
         }
     }
+}
+
+@OptIn(DelicateCoroutinesApi::class)
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun EditarViaje(
+    viewModel: ViajeViewModel,
+    cerrarDialogo: () -> Unit,
+    actualizarPagina: () -> Unit,
+    viaje: Viaje
+) {
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+
+        var nombre by remember { mutableStateOf(viaje.nombre) }
+        var descripcion by remember { mutableStateOf(viaje.descripcion ?: "") }
+        var fechaInicio by remember { mutableStateOf(viaje.inicio) }
+        var fechaFinal by remember { mutableStateOf(viaje.final) }
+        var seleccionarFechaInicio by remember { mutableStateOf(false) }
+        var seleccionarFechaFinal by remember { mutableStateOf(false) }
+
+        val mensajeUi = viewModel.mensajeUi.observeAsState(initial = "")
+
+        Card (
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+            elevation = CardDefaults.cardElevation(defaultElevation = 16.dp)
+        ){
+            Column(
+                modifier = Modifier
+                    .wrapContentSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+
+                Row (
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ){
+                    IconButton(onClick = { cerrarDialogo() }) {
+                        Icon(imageVector = Icons.Default.Close, contentDescription = "")
+                    }
+                }
+
+                Text(
+                    text = "Editar viaje",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Spacer(modifier = Modifier.padding(8.dp))
+
+                TextField(
+                    value = nombre,
+                    onValueChange = { nombre = it },
+                    label = { Text("Nombre del viaje*") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Next
+                    ),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.padding(8.dp))
+
+                TextField(
+                    value = descripcion,
+                    onValueChange = { descripcion = it },
+                    label = { Text("Descripción del viaje") },
+                    singleLine = false,
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Next
+                    ),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.padding(8.dp))
+
+                TextField(
+                    value = fechaInicio,
+                    onValueChange = { fechaInicio = it },
+                    label = { Text("Fecha de inicio*") },
+                    singleLine = true,
+                    trailingIcon = {
+                        IconButton(onClick = { seleccionarFechaInicio = !seleccionarFechaInicio }) {
+                            Icon(imageVector = Icons.Default.DateRange, contentDescription = "")
+                        }
+                    },
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Next
+                    ),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                    ),
+                    readOnly = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.padding(8.dp))
+
+                if(seleccionarFechaInicio) {
+                    MyDatePickerDialog(
+                        onDateSelected = { fechaInicio = it },
+                        onDismiss = { seleccionarFechaInicio = !seleccionarFechaInicio }
+                    )
+                }
+
+                TextField(
+                    value = fechaFinal,
+                    onValueChange = { fechaFinal = it },
+                    label = { Text("Fecha de final*") },
+                    singleLine = true,
+                    trailingIcon = {
+                        IconButton(onClick = { seleccionarFechaFinal = !seleccionarFechaFinal }) {
+                            Icon(imageVector = Icons.Default.DateRange, contentDescription = "")
+                        }
+                    },
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Next
+                    ),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                    ),
+                    readOnly = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+
+                )
+
+                Spacer(modifier = Modifier.padding(8.dp))
+
+                if(seleccionarFechaFinal) {
+                    MyDatePickerDialog(
+                        onDateSelected = { fechaFinal = it },
+                        onDismiss = { seleccionarFechaFinal = !seleccionarFechaFinal }
+                    )
+                }
+
+                Spacer(modifier = Modifier.padding(8.dp))
+
+                Text(
+                    text = mensajeUi.value,
+                    modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                )
+
+                Button(
+                    onClick = {
+                        GlobalScope.launch {
+                            if(viewModel.actualizarViaje(nombre = nombre, descripcion = descripcion, fechaInicio = fechaInicio, fechaFin = fechaFinal, viaje = viaje)) {
+                                withContext(Dispatchers.Main) {
+                                    actualizarPagina()
+                                }
+                            }
+                        }
+
+                    },
+                    modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(text = "Actualizar")
+                        Spacer(modifier = Modifier.weight(1f))
+                        Icon(imageVector = Icons.Default.ArrowForward, contentDescription = "")
+                    }
+                }
+
+            }
+
+        }
+
+
+    }
+
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
