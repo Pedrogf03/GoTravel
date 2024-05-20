@@ -342,10 +342,17 @@ fun LoginScreen(
                                 with (sharedPref.edit()) {
                                     putString("email", email)
                                     putString("contraseña", contrasena)
+                                    putBoolean("sesionIniciada", true)
                                     apply()
                                 }
                                 borrarNavegacion()
                                 navigateToHome()
+                            }
+                        } else {
+                            val sharedPref = context.getSharedPreferences("credenciales", Context.MODE_PRIVATE)
+                            with (sharedPref.edit()) {
+                                putBoolean("sesionIniciada", false)
+                                apply()
                             }
                         }
                     }

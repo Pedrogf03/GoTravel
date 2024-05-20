@@ -54,8 +54,9 @@ fun AppNavHost(
             val sharedPref = context.getSharedPreferences("credenciales", Context.MODE_PRIVATE)
             val email = sharedPref.getString("email", "")
             val contrasena = sharedPref.getString("contraseña", "")
+            val sesionIniciada = sharedPref.getBoolean("sesionIniciada", false)
 
-            if (!email.isNullOrBlank() && !contrasena.isNullOrBlank()) {
+            if (sesionIniciada && !email.isNullOrBlank() && !contrasena.isNullOrBlank()) {
                 navController.navigate("${CredencialesDestination.route}/login")
             } else {
                 LandingScreen(

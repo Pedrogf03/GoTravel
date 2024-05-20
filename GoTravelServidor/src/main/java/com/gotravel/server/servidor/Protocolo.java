@@ -43,10 +43,10 @@ public class Protocolo {
 
                 if(entrada.equals("chat")) {
                     //TODO
-                } else if(entrada.equals("fin")) {
+                } else if(entrada.equals("cerrarSesion")) {
                     //TODO
                     estado = Estado.FINALIZADO;
-                    mensaje = "cerrarApp";
+                    mensaje = "finalizado";
                 } else {
                     mensaje = "peticion";
                 }

@@ -2,6 +2,7 @@ package com.gotravel.server;
 
 import com.gotravel.server.service.AppService;
 import com.gotravel.server.servidor.HiloCliente;
+import com.gotravel.server.servidor.Sesion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -26,7 +27,7 @@ public class ServerApplication implements Runnable {
 	private int puerto;
 	private boolean pararServidor;
 	private ServerSocket socketServidor;
-	private List<Socket> clientesConectados;
+	private List<Sesion> clientesConectados;
 
 	public ServerApplication(AppService service) {
 
@@ -79,9 +80,8 @@ public class ServerApplication implements Runnable {
 			socketServidor = server;
 			while(!pararServidor) {
 				Socket cliente = socketServidor.accept();
-				clientesConectados.add(cliente);
 				LOG.info("Se ha conectado un usuario");
-				HiloCliente hilo = new HiloCliente(cliente, service);
+				HiloCliente hilo = new HiloCliente(cliente, service, clientesConectados);
 				hilo.start();
 			}
 		} catch (IOException e) {

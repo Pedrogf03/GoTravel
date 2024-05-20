@@ -20,19 +20,20 @@ public class HiloCliente extends Thread {
 
     private final Protocolo protocolo;
     private final AppService service;
-    private Sesion sesion;
+    private final Sesion sesion;
     private final Logger LOG = LoggerFactory.getLogger(ServerApplication.class);
 
     private boolean sesionIniciada;
     private boolean terminar;
 
-    public HiloCliente(Socket cliente, AppService service) {
+    public HiloCliente(Socket cliente, AppService service, List<Sesion> clientesConectados) {
         this.service = service;
         this.protocolo = new Protocolo(service);
         this.sesionIniciada = false;
         this.terminar = false;
 
         sesion = new Sesion(cliente);
+        clientesConectados.add(sesion);
 
     }
 
@@ -96,7 +97,7 @@ public class HiloCliente extends Thread {
 
             }
 
-            while(true) {
+            while(!terminar) {
 
                 String[] fromCliente = sesion.getEntrada().readUTF().split(";");
                 String opcion = fromCliente[0];
@@ -200,12 +201,15 @@ public class HiloCliente extends Thread {
                     };
 
                     sesion.getSalida().writeUTF(json);
+                } else if (output.equals("finalizado")) {
+                    terminar = true;
+                    LOG.info("Se ha desconectado un usuario");
                 }
 
             }
 
         } catch (IOException e) {
-            LOG.info("Se ha desconectado un usuario");
+            LOG.warn("Se ha desconectado un usuario");
         } finally {
             if (sesion.getCliente() != null) {
                 try {
