@@ -33,7 +33,27 @@ CREATE TABLE IF NOT EXISTS `gotravel`.`usuario` (
   UNIQUE INDEX `Email_UNIQUE` (`email` ASC) VISIBLE,
   UNIQUE INDEX `Tfno_UNIQUE` (`tfno` ASC) VISIBLE)
 ENGINE = InnoDB
-AUTO_INCREMENT = 3
+AUTO_INCREMENT = 18
+DEFAULT CHARACTER SET = utf8mb3;
+
+
+-- -----------------------------------------------------
+-- Table `gotravel`.`chat`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `gotravel`.`chat` (
+  `id_chat` INT NOT NULL,
+  `id_usuario1` INT NOT NULL,
+  `id_usuario2` INT NOT NULL,
+  PRIMARY KEY (`id_chat`),
+  INDEX `fk_Chat_usuario1_idx` (`id_usuario1` ASC) VISIBLE,
+  INDEX `fk_Chat_usuario2_idx` (`id_usuario2` ASC) VISIBLE,
+  CONSTRAINT `fk_Chat_usuario1`
+    FOREIGN KEY (`id_usuario1`)
+    REFERENCES `gotravel`.`usuario` (`id_usuario`),
+  CONSTRAINT `fk_Chat_usuario2`
+    FOREIGN KEY (`id_usuario2`)
+    REFERENCES `gotravel`.`usuario` (`id_usuario`))
+ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb3;
 
 
@@ -43,7 +63,7 @@ DEFAULT CHARACTER SET = utf8mb3;
 CREATE TABLE IF NOT EXISTS `gotravel`.`viaje` (
   `id_viaje` INT NOT NULL AUTO_INCREMENT,
   `nombre` VARCHAR(45) NOT NULL,
-  `descripcion` VARCHAR(150) NULL DEFAULT NULL,
+  `descripcion` VARCHAR(200) NULL DEFAULT NULL,
   `fecha_inicio` DATE NOT NULL,
   `fecha_fin` DATE NOT NULL,
   `coste_total` DOUBLE NOT NULL,
@@ -54,6 +74,7 @@ CREATE TABLE IF NOT EXISTS `gotravel`.`viaje` (
     FOREIGN KEY (`id_usuario`)
     REFERENCES `gotravel`.`usuario` (`id_usuario`))
 ENGINE = InnoDB
+AUTO_INCREMENT = 14
 DEFAULT CHARACTER SET = utf8mb3;
 
 
@@ -74,6 +95,7 @@ CREATE TABLE IF NOT EXISTS `gotravel`.`etapa` (
     FOREIGN KEY (`id_viaje`)
     REFERENCES `gotravel`.`viaje` (`id_viaje`))
 ENGINE = InnoDB
+AUTO_INCREMENT = 12
 DEFAULT CHARACTER SET = utf8mb3;
 
 
@@ -146,6 +168,9 @@ CREATE TABLE IF NOT EXISTS `gotravel`.`servicio` (
   `id_localizacion` INT NOT NULL,
   `id_usuario` INT NOT NULL,
   `oculto` ENUM('0', '1') NOT NULL DEFAULT '0',
+  `fecha_inicio` DATE NOT NULL,
+  `fecha_final` DATE NULL DEFAULT NULL,
+  `hora` TIME NULL DEFAULT NULL,
   PRIMARY KEY (`id_servicio`),
   INDEX `fk_Servicio_TipoServicio1_idx` (`tipo_servicio` ASC) VISIBLE,
   INDEX `fk_Servicio_Localizacion1_idx` (`id_localizacion` ASC) VISIBLE,
@@ -230,20 +255,20 @@ DEFAULT CHARACTER SET = utf8mb3;
 -- Table `gotravel`.`mensaje`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `gotravel`.`mensaje` (
-  `id_mensaje` INT NOT NULL AUTO_INCREMENT,
-  `contenido` VARCHAR(500) NOT NULL,
+  `id_mensaje` INT NOT NULL,
+  `contenido` VARCHAR(200) NOT NULL,
   `fecha` DATE NOT NULL,
   `hora` TIME NOT NULL,
-  `id_emisor` INT NOT NULL,
-  `id_receptor` INT NOT NULL,
+  `id_usuario` INT NOT NULL,
+  `id_chat` INT NOT NULL,
   PRIMARY KEY (`id_mensaje`),
-  INDEX `fk_Mensaje_Usuario1_idx` (`id_emisor` ASC) VISIBLE,
-  INDEX `fk_Mensaje_Usuario2_idx` (`id_receptor` ASC) VISIBLE,
-  CONSTRAINT `fk_Mensaje_Usuario1`
-    FOREIGN KEY (`id_emisor`)
-    REFERENCES `gotravel`.`usuario` (`id_usuario`),
-  CONSTRAINT `fk_Mensaje_Usuario2`
-    FOREIGN KEY (`id_receptor`)
+  INDEX `fk_Mensaje_usuario1_idx` (`id_usuario` ASC) VISIBLE,
+  INDEX `fk_Mensaje_Chat1_idx` (`id_chat` ASC) VISIBLE,
+  CONSTRAINT `fk_Mensaje_Chat1`
+    FOREIGN KEY (`id_chat`)
+    REFERENCES `gotravel`.`chat` (`id_chat`),
+  CONSTRAINT `fk_Mensaje_usuario1`
+    FOREIGN KEY (`id_usuario`)
     REFERENCES `gotravel`.`usuario` (`id_usuario`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb3;
