@@ -12,7 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -37,6 +38,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -277,21 +279,36 @@ fun MostrarEtapas(
                     Text(text = "Este viaje aún no tiene etapas", color = MaterialTheme.colorScheme.onSurface)
                 }
             } else {
-                LazyColumn {
-                    var numEtapas = 0
-                    items(items = etapas) {etapa ->
-                        numEtapas++
-                        if(numEtapas > 2) {
-                            numEtapas = 1
-                        }
 
+                val fechaActual = LocalDate.now()
+                var indiceEtapaActual = etapas.indexOfFirst { etapa ->
+                    val inicio = LocalDate.parse(etapa.inicio, formatoFinal)
+                    val final = LocalDate.parse(etapa.final, formatoFinal)
+                    !fechaActual.isBefore(inicio) && !fechaActual.isAfter(final)
+                }
+
+                // Si no se encuentra una etapa en curso, busca la próxima etapa
+                if (indiceEtapaActual == -1) {
+                    indiceEtapaActual = etapas.indexOfFirst { etapa ->
+                        val inicio = LocalDate.parse(etapa.inicio, formatoFinal)
+                        fechaActual.isBefore(inicio)
+                    }
+                }
+
+                val state = rememberLazyListState()
+
+                LazyColumn(state = state) {
+                    itemsIndexed(items = etapas) { index, etapa ->
                         EtapaCard(
                             etapa = etapa,
-                            color = if(numEtapas != 1) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
+                            color = if(index == indiceEtapaActual) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(top = 8.dp)
                         )
-
                     }
+                }
+
+                LaunchedEffect(key1 = true) {
+                    state.animateScrollToItem(index = indiceEtapaActual)
                 }
             }
 
@@ -713,7 +730,7 @@ fun CrearEtapa(
                              */
                         } else {
                             GlobalScope.launch {
-                                if(viewModel.crearEtapa(nombre = nombre, fechaInicio = fechaInicio, fechaFinal = fechaFinal, tipo = tipo)) {
+                                if(viewModel.guardarEtapa(nombre = nombre, fechaInicio = fechaInicio, fechaFinal = fechaFinal, tipo = tipo)) {
                                     withContext(Dispatchers.Main) {
                                         actualizarPagina()
                                     }

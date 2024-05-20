@@ -1,11 +1,9 @@
 package com.gotravel.mobile.ui.navigation
 
-import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -49,22 +47,11 @@ fun AppNavHost(
     ) {
 
         composable(route = LandingDestination.route) {
-
-            val context = LocalContext.current
-            val sharedPref = context.getSharedPreferences("credenciales", Context.MODE_PRIVATE)
-            val email = sharedPref.getString("email", "")
-            val contrasena = sharedPref.getString("contraseña", "")
-            val sesionIniciada = sharedPref.getBoolean("sesionIniciada", false)
-
-            if (sesionIniciada && !email.isNullOrBlank() && !contrasena.isNullOrBlank()) {
-                navController.navigate("${CredencialesDestination.route}/login")
-            } else {
-                LandingScreen(
-                    navigateToCredenciales = {
-                        navController.navigate("${CredencialesDestination.route}/${it}")
-                    }
-                )
-            }
+            LandingScreen(
+                navigateToCredenciales = {
+                    navController.navigate("${CredencialesDestination.route}/${it}")
+                }
+            )
         }
 
 

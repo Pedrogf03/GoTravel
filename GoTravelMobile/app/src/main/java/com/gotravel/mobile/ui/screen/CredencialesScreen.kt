@@ -88,9 +88,9 @@ fun CredencialesScreen(
     val email = sharedPref.getString("email", "")
     val contrasena = sharedPref.getString("contraseña", "")
 
-    val sesionIniciada = remember { mutableStateOf(false) }
+    val sesionIniciada = remember { mutableStateOf(true) }
 
-    if (!AppUiState.segundoPlano && !sesionIniciada.value) {
+    if (!AppUiState.segundoPlano && sesionIniciada.value && viewModel.opcion == "login") {
         if (!email.isNullOrBlank() && !contrasena.isNullOrBlank()) {
             LaunchedEffect(Unit) {
                 GlobalScope.launch {
@@ -101,16 +101,20 @@ fun CredencialesScreen(
                             navigateToHome()
                         }
                     } else {
-                        sesionIniciada.value = true
+                        with (sharedPref.edit()) {
+                            putBoolean("sesionIniciada", false)
+                            apply()
+                        }
+                        sesionIniciada.value = false
                     }
                 }
             }
         } else {
-            sesionIniciada.value = true
+            sesionIniciada.value = false
         }
     }
 
-    if (sesionIniciada.value) {
+    if (!sesionIniciada.value || viewModel.opcion == "registro") {
         Pantalla(
             navigateUp,
             modifier,

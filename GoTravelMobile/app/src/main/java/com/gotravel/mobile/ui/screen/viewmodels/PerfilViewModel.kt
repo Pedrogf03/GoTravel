@@ -208,12 +208,16 @@ class PerfilViewModel : ViewModel() {
 
     fun cerrarSesion() {
 
-        AppUiState.salida.writeUTF("cerrarSesion")
-        AppUiState.salida.flush()
+        try{
+            AppUiState.salida.writeUTF("cerrarSesion")
+            AppUiState.salida.flush()
 
-        AppUiState.salida.close()
-        AppUiState.entrada.close()
-        AppUiState.socket!!.close()
+            AppUiState.salida.close()
+            AppUiState.entrada.close()
+            AppUiState.socket!!.close()
+        } catch (e: IOException) {
+            // IGNORE
+        }
 
     }
 

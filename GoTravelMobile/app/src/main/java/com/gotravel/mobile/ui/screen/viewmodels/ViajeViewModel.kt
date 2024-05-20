@@ -87,89 +87,19 @@ class ViajeViewModel(
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    suspend fun actualizarEtapa(etapa: Etapa, nombre: String, fechaInicio: String, fechaFinal: String, tipo: String) : Boolean {
+    suspend fun guardarEtapa(nombre: String, fechaInicio: String, fechaFinal: String, tipo: String, etapaActualizar: Etapa? = null): Boolean {
 
         if(nombre.isBlank() || fechaInicio.isBlank() || fechaFinal.isBlank() || tipo.isBlank()) {
             mensajeUi.postValue("Por favor rellena todos los campos")
         } else {
 
-            val etapaActualizada = etapa.copy(nombre = nombre, fechaInicio = LocalDate.parse(fechaInicio, formatoFinal).format(formatoFromDb), fechaFinal = LocalDate.parse(fechaFinal, formatoFinal).format(formatoFromDb), tipo = tipo)
-
-            if(!(etapa.nombre.isBlank() || etapa.nombre.isEmpty()) && etapa.nombre.matches(Regex.regexNombre)) {
-
-                val inicio = LocalDate.parse(etapa.inicio, formatoFinal)
-                val final = LocalDate.parse(etapa.final, formatoFinal)
-
-                if(!final.isBefore(inicio)) {
-
-                    val viaje = findViajeById(idViaje)
-
-                    if(!inicio.isBefore(LocalDate.parse(viaje!!.inicio, formatoFinal))) {
-
-                        if(!final.isAfter(LocalDate.parse(viaje.final, formatoFinal))) {
-
-                            val gson = GsonBuilder()
-                                .serializeNulls()
-                                .setLenient()
-                                .create()
-
-                            val etapaFromServer : Etapa?
-
-                            try {
-
-                                AppUiState.salida.writeUTF("save;etapa;${idViaje}")
-                                AppUiState.salida.flush()
-
-                                val json = gson.toJson(etapaActualizada)
-                                AppUiState.salida.writeUTF(json)
-                                AppUiState.salida.flush()
-
-                                val jsonFromServer = AppUiState.entrada.readUTF()
-                                etapaFromServer = gson.fromJson(jsonFromServer, Etapa::class.java)
-
-                                return etapaFromServer != null
-
-                            } catch (e: IOException) {
-                                e.printStackTrace()
-                            } catch (e: Exception) {
-                                e.printStackTrace()
-                            }
-
-                            return false
-
-                        } else {
-                            mensajeUi.postValue("El final no puede ser posterior a la fecha de final del viaje")
-                        }
-
-                    } else {
-                        mensajeUi.postValue("El inicio de la etapa no puede ser antes que la fecha de inicio del viaje")
-                    }
-
-                } else {
-                    mensajeUi.postValue("La fecha de final no puede ser anterior a la inicial")
-                }
-
+            val etapa: Etapa
+            if(etapaActualizar != null) {
+                etapa = etapaActualizar.copy(nombre = nombre, fechaInicio = LocalDate.parse(fechaInicio, formatoFinal).format(formatoFromDb), fechaFinal = LocalDate.parse(fechaFinal, formatoFinal).format(formatoFromDb), tipo = tipo)
             } else {
-                mensajeUi.postValue("El nombre no es válido")
+                etapa = Etapa(nombre = nombre, fechaInicio = LocalDate.parse(fechaInicio, formatoFinal).format(formatoFromDb), fechaFinal = LocalDate.parse(fechaFinal, formatoFinal).format(formatoFromDb), tipo = tipo, costeTotal = 0.0)
             }
 
-            return false
-
-        }
-
-        return false
-
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    suspend fun crearEtapa(nombre: String, fechaInicio: String, fechaFinal: String, tipo: String): Boolean {
-
-        if(nombre.isBlank() || fechaInicio.isBlank() || fechaFinal.isBlank() || tipo.isBlank()) {
-            mensajeUi.postValue("Por favor rellena todos los campos")
-        } else {
-
-            val etapa = Etapa(nombre = nombre, fechaInicio = LocalDate.parse(fechaInicio, formatoFinal).format(formatoFromDb), fechaFinal = LocalDate.parse(fechaFinal, formatoFinal).format(formatoFromDb), tipo = tipo, costeTotal = 0.0)
-
             if(!(etapa.nombre.isBlank() || etapa.nombre.isEmpty()) && etapa.nombre.matches(Regex.regexNombre)) {
 
                 val inicio = LocalDate.parse(etapa.inicio, formatoFinal)
@@ -182,6 +112,19 @@ class ViajeViewModel(
                     if(!inicio.isBefore(LocalDate.parse(viaje!!.inicio, formatoFinal))) {
 
                         if(!final.isAfter(LocalDate.parse(viaje.final, formatoFinal))) {
+
+                            for (etapaExistente in viaje.etapas) {
+                                val inicioExistente = LocalDate.parse(etapaExistente.inicio, formatoFinal)
+                                val finalExistente = LocalDate.parse(etapaExistente.final, formatoFinal)
+
+                                val inicioNueva = LocalDate.parse(fechaInicio, formatoFinal)
+                                val finalNueva = LocalDate.parse(fechaFinal, formatoFinal)
+
+                                if (inicioNueva < finalExistente && inicioExistente < finalNueva) {
+                                    mensajeUi.postValue("La nueva etapa se superpone con una etapa existente")
+                                    return false
+                                }
+                            }
 
                             val gson = GsonBuilder()
                                 .serializeNulls()
