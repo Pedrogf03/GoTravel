@@ -1,5 +1,6 @@
 package com.gotravel.server.model;
 
+import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,6 +23,17 @@ public class Servicio {
 
     @Column(name = "precio", nullable = false)
     private Double precio;
+
+    @Column(name = "fecha_inicio", nullable = false, columnDefinition = "DATE")
+    @Expose
+    private String fechaInicio;
+
+    @Column(name = "fecha_final", columnDefinition = "DATE")
+    @Expose
+    private String fechaFinal;
+
+    @Column(name = "hora", columnDefinition = "TIME")
+    private String hora;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "tipo_servicio", nullable = false)

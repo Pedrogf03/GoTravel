@@ -3,7 +3,6 @@ package com.gotravel.server.model;
 import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
@@ -45,6 +44,7 @@ public class Viaje {
     private Usuario usuario;
 
     @OneToMany(mappedBy = "viaje", fetch = FetchType.EAGER)
+    @OrderBy("fechaInicio ASC")
     @Expose
     private List<Etapa> etapas;
 

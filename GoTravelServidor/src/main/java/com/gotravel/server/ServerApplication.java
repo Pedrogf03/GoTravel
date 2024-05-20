@@ -2,7 +2,6 @@ package com.gotravel.server;
 
 import com.gotravel.server.service.AppService;
 import com.gotravel.server.servidor.HiloCliente;
-import com.gotravel.server.servidor.Sesion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -27,7 +26,7 @@ public class ServerApplication implements Runnable {
 	private int puerto;
 	private boolean pararServidor;
 	private ServerSocket socketServidor;
-	private List<Sesion> clientesConectados;
+	private List<HiloCliente> clientesConectados;
 
 	public ServerApplication(AppService service) {
 
