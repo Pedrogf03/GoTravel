@@ -44,7 +44,6 @@ public class Protocolo {
                 if(entrada.equals("chat")) {
                     //TODO
                 } else if(entrada.equals("cerrarSesion")) {
-                    //TODO
                     estado = Estado.FINALIZADO;
                     mensaje = "finalizado";
                 } else {

@@ -3,7 +3,7 @@ package com.gotravel.mobile.data
 import android.graphics.BitmapFactory
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import com.gotravel.mobile.network.AppService
+import com.gotravel.mobile.network.ImageApiService
 import java.io.InputStream
 
 interface AppRepository {
@@ -11,7 +11,7 @@ interface AppRepository {
     suspend fun getHomeImage(): ImageBitmap
 }
 
-class NetworkRepository(private val service: AppService) : AppRepository {
+class NetworkRepository(private val service: ImageApiService) : AppRepository {
     override suspend fun getLandingImage(): ImageBitmap {
 
         val responseBody = service.getLandingImage()

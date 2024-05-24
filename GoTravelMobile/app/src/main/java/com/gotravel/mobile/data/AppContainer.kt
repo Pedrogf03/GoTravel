@@ -1,7 +1,7 @@
 package com.gotravel.mobile.data
 
 import android.content.Context
-import com.gotravel.mobile.network.AppService
+import com.gotravel.mobile.network.ImageApiService
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 
@@ -12,14 +12,14 @@ interface AppContainer {
 class DefaultAppContainer(private val context: Context) : AppContainer {
 
     private val baseUrl = "https://api.api-ninjas.com/v1/"
-    private val api_key = "mvJLckP+ODVVNtwGqUupVw==FY5JmodyfUIlt5QX"
+    private val apiKey = "mvJLckP+ODVVNtwGqUupVw==FY5JmodyfUIlt5QX"
 
     private val okHttpClient = OkHttpClient.Builder()
         .addInterceptor { chain ->
             val original = chain.request()
 
             val requestBuilder = original.newBuilder()
-                .header("X-Api-Key", api_key)
+                .header("X-Api-Key", apiKey)
                 .header("Accept", "image/jpg")
                 .method(original.method, original.body)
 
@@ -34,8 +34,8 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
         .build()
 
 
-    private val retrofitService: AppService by lazy {
-        retrofit.create(AppService::class.java)
+    private val retrofitService: ImageApiService by lazy {
+        retrofit.create(ImageApiService::class.java)
     }
 
     override val ApiRepository: AppRepository by lazy {

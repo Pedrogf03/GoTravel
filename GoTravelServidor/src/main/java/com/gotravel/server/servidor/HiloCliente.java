@@ -2,8 +2,10 @@ package com.gotravel.server.servidor;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.gotravel.server.PayPal.PayPalToken;
 import com.gotravel.server.ServerApplication;
 import com.gotravel.server.model.Etapa;
+import com.gotravel.server.model.Metodopago;
 import com.gotravel.server.model.Usuario;
 import com.gotravel.server.model.Viaje;
 import com.gotravel.server.service.AppService;
@@ -199,6 +201,16 @@ public class HiloCliente extends Thread {
                             }
                             yield jsonFromServer;
                         }
+                        case "findMetodosPago" -> {
+                            List<Metodopago> metodosPago = service.findMetodosPagoByUsuarioId(idUsuario);
+                            yield gson.toJson(metodosPago);
+                        }
+                        case "suscribirme" -> {
+                            PayPalToken pt = new PayPalToken(
+                                    token -> System.out.println("token: " + token)
+                            );
+                            yield "";
+                        }
                         default -> "";
                     };
 
@@ -212,8 +224,8 @@ public class HiloCliente extends Thread {
             }
 
         } catch (IOException e) {
-            LOG.warn("Se ha desconectado un usuario");
             clientesConectados.remove(this);
+            LOG.warn("Se ha interrumpido la conexion con un usuario");
         } finally {
             if (sesion.getCliente() != null) {
                 try {

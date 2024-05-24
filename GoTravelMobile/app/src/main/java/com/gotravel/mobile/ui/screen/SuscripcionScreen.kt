@@ -1,33 +1,51 @@
 package com.gotravel.mobile.ui.screen
 
+import android.os.Build
+import androidx.annotation.RequiresApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.gotravel.gotravel.R
 import com.gotravel.mobile.ui.AppTopBar
 import com.gotravel.mobile.ui.AppViewModelProvider
 import com.gotravel.mobile.ui.navigation.NavDestination
+import com.gotravel.mobile.ui.screen.viewmodels.SuscripcionUiState
 import com.gotravel.mobile.ui.screen.viewmodels.SuscripcionViewModel
+import kotlinx.coroutines.DelicateCoroutinesApi
 
 object SuscripcionDestination : NavDestination {
     override val route = "suscripcion"
@@ -36,6 +54,7 @@ object SuscripcionDestination : NavDestination {
     val routeWithArgs = "$route/{${esProfesional}}"
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun SuscripcionScreen (
     modifier: Modifier = Modifier,
@@ -66,7 +85,12 @@ fun SuscripcionScreen (
             if(esProfesional) {
                 // TODO
             } else {
-                SuscribirseScreen(viewModel)
+                SuscribirseScreen(
+                    viewModel,
+                    navigateToStart = {
+                        navController.navigate(LandingDestination.route)
+                    }
+                )
             }
         }
 
@@ -74,10 +98,24 @@ fun SuscripcionScreen (
 
 }
 
+@OptIn(DelicateCoroutinesApi::class)
 @Composable
 fun SuscribirseScreen(
-    viewModel: SuscripcionViewModel
+    viewModel: SuscripcionViewModel,
+    navigateToStart: () -> Unit
 ) {
+
+    var mostrarMas by remember { mutableStateOf(false) }
+
+    if(mostrarMas) {
+        Dialog(onDismissRequest = { mostrarMas = false }) {
+            Suscribirse(
+                viewModel = viewModel,
+                cerrarDialogo = { mostrarMas = !mostrarMas },
+                navigateToStart = navigateToStart
+            )
+        }
+    }
 
     Card (
         elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
@@ -153,7 +191,9 @@ fun SuscribirseScreen(
             )
             Spacer(modifier = Modifier.padding(8.dp))
             Button(
-                onClick = { /*TODO*/ },
+                onClick = {
+                    mostrarMas = true
+                },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimary)
             ) {
@@ -165,5 +205,85 @@ fun SuscribirseScreen(
             }
         }
     }
+
+}
+
+@Composable
+fun Suscribirse(
+    viewModel: SuscripcionViewModel,
+    cerrarDialogo: () -> Unit,
+    navigateToStart: () -> Unit
+) {
+
+    when (val uiState = viewModel.uiState) {
+        is SuscripcionUiState.Loading -> {
+            LandingLoadingScreen()
+        }
+        is SuscripcionUiState.Success -> {
+
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+
+                Card (
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 16.dp)
+                ) {
+
+                    Column(
+                        modifier = Modifier
+                            .wrapContentSize()
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            Text(text = "Plan de profesionales", style = MaterialTheme.typography.titleMedium)
+                            Spacer(modifier = Modifier.weight(1f))
+                            Text(text = "4.99€", style = MaterialTheme.typography.labelLarge)
+                        }
+
+                        Spacer(modifier = Modifier.padding(16.dp))
+
+                        Text(text = "Selecciona un método de pago", style = MaterialTheme.typography.titleMedium)
+
+                        Spacer(modifier = Modifier.padding(8.dp))
+
+                        if(uiState.metodosPago.isNotEmpty()) {
+                            LazyColumn {
+                                items(uiState.metodosPago) {metodo ->
+
+                                }
+                            }
+                        } else {
+                            Text(text = "No tienes métodos de pago guardados", style = MaterialTheme.typography.labelSmall)
+                        }
+
+                        Spacer(modifier = Modifier.padding(8.dp))
+
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.clickable {
+                                // TODO
+                            }
+                        ) {
+                            Icon(imageVector = Icons.Default.Add, contentDescription = "")
+                            Text(text = "Añadir método de pago")
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+        else -> ErrorScreen(navigateToStart = navigateToStart)
+    }
+
+
 
 }

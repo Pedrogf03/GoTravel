@@ -2,9 +2,11 @@ package com.gotravel.server.service;
 
 import com.gotravel.server.ServerApplication;
 import com.gotravel.server.model.Etapa;
+import com.gotravel.server.model.Metodopago;
 import com.gotravel.server.model.Usuario;
 import com.gotravel.server.model.Viaje;
 import com.gotravel.server.repository.EtapaRepository;
+import com.gotravel.server.repository.MetodosPagoRepository;
 import com.gotravel.server.repository.UsuarioRepository;
 import com.gotravel.server.repository.ViajeRepository;
 import org.slf4j.Logger;
@@ -12,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -90,4 +93,10 @@ public class AppService {
         }
     }
 
+    @Autowired
+    private MetodosPagoRepository metodosPagoRepository;
+
+    public List<Metodopago> findMetodosPagoByUsuarioId(int idUsuario) {
+        return metodosPagoRepository.findAllByUsuarioId(idUsuario);
+    }
 }

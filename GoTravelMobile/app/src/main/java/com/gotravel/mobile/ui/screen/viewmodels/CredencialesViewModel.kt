@@ -1,10 +1,12 @@
 package com.gotravel.mobile.ui.screen.viewmodels
 
 import android.content.Context
+import android.content.Intent
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.google.gson.GsonBuilder
+import com.gotravel.mobile.ClosingService
 import com.gotravel.mobile.data.model.Usuario
 import com.gotravel.mobile.ui.screen.CredencialesDestination
 import com.gotravel.mobile.ui.utils.AppUiState
@@ -75,6 +77,10 @@ class CredencialesViewModel(
 
                 AppUiState.salida = DataOutputStream(AppUiState.socket!!.getOutputStream())
                 AppUiState.entrada = DataInputStream(AppUiState.socket!!.getInputStream())
+
+                // Una vez iniciado el socket y flujos, se lanza el servicio de cerrar la aplicacion
+                val intent = Intent(context, ClosingService::class.java)
+                context.startService(intent)
 
                 AppUiState.salida.writeUTF(peticion) // El mensaje envíado dependerá de si se ha solicitado un inicio de sesión o un registro
                 AppUiState.salida.flush()
