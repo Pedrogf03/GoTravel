@@ -10,9 +10,6 @@ import lombok.Setter
 @NoArgsConstructor
 @AllArgsConstructor
 data class Paypal(
-    override val id: Int,
-    override val usuario: Usuario,
+    override val id: Int?,
     val email: String
-) : Metodopago(id, usuario) {
-
-}
+) : Metodopago(id)

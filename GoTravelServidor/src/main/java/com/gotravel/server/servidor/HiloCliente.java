@@ -4,10 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.gotravel.server.PayPal.PayPalToken;
 import com.gotravel.server.ServerApplication;
-import com.gotravel.server.model.Etapa;
-import com.gotravel.server.model.Metodopago;
-import com.gotravel.server.model.Usuario;
-import com.gotravel.server.model.Viaje;
+import com.gotravel.server.model.*;
 import com.gotravel.server.service.AppService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +43,7 @@ public class HiloCliente extends Thread {
 
         Gson gson = new GsonBuilder()
                 .excludeFieldsWithoutExposeAnnotation()
+                .registerTypeAdapter(Metodopago.class, new MetodopagoAdapter())
                 .serializeNulls()
                 .setLenient()
                 .create();
@@ -188,6 +186,12 @@ public class HiloCliente extends Thread {
                                 etapaFromUser.setViaje(v);
                                 etapaFromUser = service.saveEtapa(etapaFromUser);
                                 jsonFromServer = gson.toJson(etapaFromUser);
+                            } else if(tabla.equalsIgnoreCase("metodoPago")) {
+                                System.out.println(jsonFromUser);
+                                Metodopago metodoFromUser = gson.fromJson(jsonFromUser, Metodopago.class);
+                                metodoFromUser.setUsuario(sesion.getUsuario());
+                                metodoFromUser = service.saveMetodo(metodoFromUser);
+                                jsonFromServer = gson.toJson(metodoFromUser);
                             }
                             yield jsonFromServer;
                         }

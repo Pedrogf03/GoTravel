@@ -4,6 +4,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <application
+        android:enableOnBackInvokedCallback="true"
         android:name="com.gotravel.mobile.GoTravelApplication"
         android:usesCleartextTraffic="true"
         android:allowBackup="true"
@@ -14,15 +15,31 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.GoTravel"
-        tools:targetApi="31">
+        tools:targetApi="tiramisu">
         <service android:name="com.gotravel.mobile.ClosingService" android:stopWithTask="false"/>
         <activity
             android:name="com.gotravel.mobile.MainActivity"
+            android:launchMode="singleTop"
             android:exported="true"
             android:theme="@style/Theme.GoTravel">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- Intent filter for handling return_url -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="gotravel" android:host="returnurl" />
+            </intent-filter>
+
+            <!-- Intent filter for handling cancel_url -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="gotravel" android:host="cancelurl" />
             </intent-filter>
         </activity>
     </application>

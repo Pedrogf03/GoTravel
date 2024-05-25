@@ -12,6 +12,6 @@ import lombok.Setter
 @AllArgsConstructor
 @Serializable
 abstract class Metodopago (
-    open val id: Int,
-    open val usuario: Usuario
+    @Transient
+    open val id: Int?
 )

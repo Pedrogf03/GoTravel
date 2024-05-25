@@ -95,7 +95,7 @@ CREATE TABLE IF NOT EXISTS `gotravel`.`etapa` (
     FOREIGN KEY (`id_viaje`)
     REFERENCES `gotravel`.`viaje` (`id_viaje`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 12
+AUTO_INCREMENT = 13
 DEFAULT CHARACTER SET = utf8mb3;
 
 
@@ -111,6 +111,7 @@ CREATE TABLE IF NOT EXISTS `gotravel`.`metodopago` (
     FOREIGN KEY (`id_usuario`)
     REFERENCES `gotravel`.`usuario` (`id_usuario`))
 ENGINE = InnoDB
+AUTO_INCREMENT = 8
 DEFAULT CHARACTER SET = utf8mb3;
 
 
@@ -215,6 +216,21 @@ CREATE TABLE IF NOT EXISTS `gotravel`.`contratacion` (
   CONSTRAINT `fk_Contratacion_Usuario1`
     FOREIGN KEY (`id_usuario`)
     REFERENCES `gotravel`.`usuario` (`id_usuario`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb3;
+
+
+-- -----------------------------------------------------
+-- Table `gotravel`.`dir_facturacion`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `gotravel`.`dir_facturacion` (
+  `line1` VARCHAR(45) NOT NULL,
+  `ciudad` VARCHAR(45) NOT NULL,
+  `estado` VARCHAR(45) NOT NULL,
+  `cp` CHAR(5) NOT NULL,
+  `codigo_pais` VARCHAR(45) NOT NULL,
+  `id_facturacion` INT NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id_facturacion`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb3;
 
@@ -348,13 +364,23 @@ DEFAULT CHARACTER SET = utf8mb3;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `gotravel`.`tarjetacredito` (
   `id_metodopago` INT NOT NULL,
-  `fecha_vencimiento` DATE NOT NULL,
-  `nombre` VARCHAR(200) NOT NULL,
-  `ultimos_digitos` CHAR(4) NOT NULL,
+  `numero` CHAR(16) NOT NULL,
+  `tipo` VARCHAR(45) NOT NULL,
+  `titular` VARCHAR(100) NOT NULL,
+  `mes_vencimiento` INT NOT NULL,
+  `anyo_vencimiento` INT NOT NULL,
+  `cvv` CHAR(3) NOT NULL,
+  `dir_facturacion` INT NOT NULL,
   PRIMARY KEY (`id_metodopago`),
+  INDEX `fk_tarjetacredito_dir_facturacion1_idx` (`dir_facturacion` ASC) VISIBLE,
   CONSTRAINT `fk_TarjetaCredito_MetodoPago1`
     FOREIGN KEY (`id_metodopago`)
-    REFERENCES `gotravel`.`metodopago` (`id_metodopago`))
+    REFERENCES `gotravel`.`metodopago` (`id_metodopago`),
+  CONSTRAINT `fk_tarjetacredito_dir_facturacion1`
+    FOREIGN KEY (`dir_facturacion`)
+    REFERENCES `gotravel`.`dir_facturacion` (`id_facturacion`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb3;
 
@@ -396,7 +422,6 @@ DEFAULT CHARACTER SET = utf8mb3;
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
-
 
 -- -----------------------------------------------------
 -- Inserts por defecto

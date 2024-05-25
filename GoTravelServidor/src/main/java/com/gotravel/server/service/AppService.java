@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -98,5 +99,19 @@ public class AppService {
 
     public List<Metodopago> findMetodosPagoByUsuarioId(int idUsuario) {
         return metodosPagoRepository.findAllByUsuarioId(idUsuario);
+    }
+
+    public Metodopago saveMetodo(Metodopago metodo) {
+        try {
+            metodo = metodosPagoRepository.save(metodo);
+            return findMetodoById(metodo.getId());
+        } catch (Exception e) {
+            LOG.error("Error: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    private Metodopago findMetodoById(Integer id) {
+        return metodosPagoRepository.findById(id).orElse(null);
     }
 }

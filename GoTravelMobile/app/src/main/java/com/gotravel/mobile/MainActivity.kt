@@ -41,6 +41,24 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+
+        val uri = intent.data
+        if (uri != null && uri.scheme == "gotravel") {
+            when (uri.host) {
+                "returnurl" -> {
+                    // Aquí puedes manejar el caso de éxito del pago
+                    println("Pago exitoso")
+                }
+                "cancelurl" -> {
+                    // Aquí puedes manejar el caso de cancelación del pago
+                    println("Pago cancelado")
+                }
+            }
+        }
+    }
+
 }
 
 class ClosingService : Service() {
