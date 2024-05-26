@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.gotravel.mobile.data.model.DirFacturacion
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaType
@@ -15,23 +16,30 @@ import org.json.JSONObject
 import java.io.IOException
 import java.time.Instant
 
-class CreditCardPaymentClient(
+class PayPalSubscriptions(
     private val context: Context
 ) {
 
     private val client = OkHttpClient.Builder().build()
-    private val planId = "P-4TM537472W447740TMZILMPY"
+    private val planId = "P-7EA59780H1130000JMZJTC5A"
     private val tokenClient = PayPalToken()
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun createSubscription() {
+    fun createSubscription(dirFacturacion: DirFacturacion) {
         tokenClient.obtenerTokenPaypal { token ->
-            subscription(token)
+            subscription(token, dirFacturacion)
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun subscription(token: String) {
+    fun getSuscription(id: String) {
+        tokenClient.obtenerTokenPaypal { token ->
+            getSubscriptionDetails(token = token, subscriptionId = id)
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun subscription(token: String, dirFacturacion: DirFacturacion) {
         val url = "https://api-m.sandbox.paypal.com/v1/billing/subscriptions"
 
         val mediaType = "application/json".toMediaType()
@@ -43,7 +51,7 @@ class CreditCardPaymentClient(
               "quantity": "1",
               "shipping_amount": {
                 "currency_code": "EUR",
-                "value": "4.99"
+                "value": "0.00"
               },
               "subscriber": {
                 "name": {
@@ -56,12 +64,12 @@ class CreditCardPaymentClient(
                     "full_name": "${AppUiState.usuario.nombre} ${AppUiState.usuario.apellidos}"
                   },
                   "address": {
-                    "address_line_1": "2211 N First Street",
-                    "address_line_2": "Building 17",
-                    "admin_area_2": "San Jose",
-                    "admin_area_1": "CA",
-                    "postal_code": "95131",
-                    "country_code": "US"
+                    "address_line_1": "${dirFacturacion.linea1}",
+                    "address_line_2": "${dirFacturacion.linea2}",
+                    "admin_area_2": "${dirFacturacion.ciudad}",
+                    "admin_area_1": "${dirFacturacion.estado}",
+                    "postal_code": "${dirFacturacion.cp}",
+                    "country_code": "${dirFacturacion.codigoPais}"
                   }
                 }
               },
@@ -100,23 +108,25 @@ class CreditCardPaymentClient(
                     println("Error: ${response.code}")
                     println("Response body: ${response.body?.string()}")
                 } else {
-                    // La solicitud fue exitosa, puedes procesar la respuesta aquí
+
                     val responseBody = response.body?.string()
 
-                    // Analiza la respuesta JSON
-                    val json = JSONObject(responseBody)
+
+                    val json = responseBody?.let { JSONObject(it) }
 
                     // Extrae el enlace de aprobación
-                    val links = json.getJSONArray("links")
-                    for (i in 0 until links.length()) {
-                        val link = links.getJSONObject(i)
-                        if (link.getString("rel") == "approve") {
-                            val approvalUrl = link.getString("href")
+                    val links = json?.getJSONArray("links")
+                    if (links != null) {
+                        for (i in 0 until links.length()) {
+                            val link = links.getJSONObject(i)
+                            if (link.getString("rel") == "approve") {
+                                val approvalUrl = link.getString("href")
 
-                            // Crea un Intent para abrir el enlace de aprobación en el navegador
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(approvalUrl))
-                            context.startActivity(intent)
-                            break
+                                // Crea un Intent para abrir el enlace de aprobación en el navegador
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(approvalUrl))
+                                context.startActivity(intent)
+                                break
+                            }
                         }
                     }
                 }
@@ -124,4 +134,34 @@ class CreditCardPaymentClient(
 
         })
     }
+
+    private fun getSubscriptionDetails(subscriptionId: String, token: String) {
+        val url = "https://api-m.sandbox.paypal.com/v1/billing/subscriptions/$subscriptionId"
+
+        val request = Request.Builder()
+            .url(url)
+            .get()
+            .addHeader("Authorization", "Bearer $token")
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                e.printStackTrace()
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if (!response.isSuccessful) {
+                    println("Error: ${response.code}")
+                    println("Response body: ${response.body?.string()}")
+                } else {
+                    val responseBody = response.body?.string()
+                    val json = responseBody?.let { JSONObject(it) }
+
+                    println(json)
+
+                }
+            }
+        })
+    }
+
 }

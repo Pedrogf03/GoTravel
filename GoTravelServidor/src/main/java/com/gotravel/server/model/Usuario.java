@@ -109,7 +109,7 @@ public class Usuario implements Serializable {
     @OneToMany(mappedBy = "emisor")
     private List<Mensaje> mensajes;
 
-    @OneToMany(mappedBy = "usuario")
-    private List<Metodopago> metodosPago;
+    @OneToMany(mappedBy = "usuario", fetch = FetchType.EAGER)
+    private List<DirFacturacion> direcciones;
 
 }

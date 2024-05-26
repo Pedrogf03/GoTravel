@@ -53,7 +53,7 @@ class HomeViewModel(
 
             try {
 
-                AppUiState.salida.writeUTF("proximoViaje")
+                AppUiState.salida.writeUTF("findByUserId;proximoViaje")
                 AppUiState.salida.flush()
 
                 val jsonFromServer = AppUiState.entrada.readUTF()
@@ -89,7 +89,7 @@ class HomeViewModel(
                     val salida = DataOutputStream(AppUiState.socket!!.getOutputStream())
                     val entrada = DataInputStream(AppUiState.socket!!.getInputStream())
 
-                    salida.writeUTF("viajeActual")
+                    salida.writeUTF("findByUserId;viajeActual")
                     salida.flush()
 
                     val jsonFromServer = entrada.readUTF()

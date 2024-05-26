@@ -1,21 +1,13 @@
 package com.gotravel.server.service;
 
 import com.gotravel.server.ServerApplication;
-import com.gotravel.server.model.Etapa;
-import com.gotravel.server.model.Metodopago;
-import com.gotravel.server.model.Usuario;
-import com.gotravel.server.model.Viaje;
-import com.gotravel.server.repository.EtapaRepository;
-import com.gotravel.server.repository.MetodosPagoRepository;
-import com.gotravel.server.repository.UsuarioRepository;
-import com.gotravel.server.repository.ViajeRepository;
+import com.gotravel.server.model.*;
+import com.gotravel.server.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -95,23 +87,31 @@ public class AppService {
     }
 
     @Autowired
-    private MetodosPagoRepository metodosPagoRepository;
+    private DirFacturacionRepository dirFacturacionRepository;
 
-    public List<Metodopago> findMetodosPagoByUsuarioId(int idUsuario) {
-        return metodosPagoRepository.findAllByUsuarioId(idUsuario);
-    }
-
-    public Metodopago saveMetodo(Metodopago metodo) {
+    public DirFacturacion saveDirFacturacion(DirFacturacion dirFacturacion) {
         try {
-            metodo = metodosPagoRepository.save(metodo);
-            return findMetodoById(metodo.getId());
+            dirFacturacion = dirFacturacionRepository.save(dirFacturacion);
+            return findDirFacturacionById(dirFacturacion.getId());
         } catch (Exception e) {
             LOG.error("Error: {}", e.getMessage());
             return null;
         }
     }
 
-    private Metodopago findMetodoById(Integer id) {
-        return metodosPagoRepository.findById(id).orElse(null);
+    private DirFacturacion findDirFacturacionById(Integer id) {
+        return dirFacturacionRepository.findById(id).orElse(null);
     }
+
+    public List<DirFacturacion> findDireccionesFacturacionFromUserId(int idUsuario) {
+        return dirFacturacionRepository.findAllByUsuarioId(idUsuario);
+    }
+
+    @Autowired
+    private RolesRepository rolesRepository;
+
+    public Rol findRol(String rol) {
+        return rolesRepository.findById(rol).orElse(null);
+    }
+
 }

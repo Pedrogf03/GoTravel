@@ -82,7 +82,7 @@ class ViajesViewModel(
 
             try {
 
-                AppUiState.salida.writeUTF("consultarViajes")
+                AppUiState.salida.writeUTF("findByUserId;viaje")
                 AppUiState.salida.flush()
 
                 val jsonFromServer = AppUiState.entrada.readUTF()

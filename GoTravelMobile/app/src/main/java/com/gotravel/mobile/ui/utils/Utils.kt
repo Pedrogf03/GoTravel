@@ -2,16 +2,19 @@ package com.gotravel.mobile.ui.utils
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
 import com.google.gson.JsonParseException
-import com.gotravel.mobile.data.model.Metodopago
-import com.gotravel.mobile.data.model.Paypal
-import com.gotravel.mobile.data.model.Tarjetacredito
 import com.gotravel.mobile.data.model.Usuario
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.Callback
+import okhttp3.Request
 import java.io.DataInputStream
 import java.io.DataOutputStream
+import java.io.IOException
 import java.lang.reflect.Type
 import java.math.BigInteger
 import java.net.Socket
@@ -36,7 +39,7 @@ object Regex {
     val regexTitular = "^[\\p{L} ]+\$".toRegex()
     val regexNumero = "^\\d{16}\$".toRegex()
     val regexCvv = "^\\d{3}\$".toRegex()
-    val regexCalle = Regex("^[\\p{L}0-9 .,\\\\/'-]+$")
+    val regexDireccion = Regex("^[\\p{L}0-9 .,\\\\/'º-]+$")
     val regexCiudadEstado = Regex("^[\\p{L} ]+$")
     val regexCP = Regex("^\\d{5}$")
 }
@@ -50,30 +53,6 @@ fun String.sha256(): String {
 val formatoFromDb = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 @RequiresApi(Build.VERSION_CODES.O)
 val formatoFinal: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-
-class MetodopagoAdapter : JsonDeserializer<Metodopago> {
-    @Throws(JsonParseException::class)
-    override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): Metodopago {
-        val jsonObject = json.asJsonObject
-
-        // Determina el tipo de objeto Metodopago por el número de atributos.
-        return when (jsonObject.entrySet().size) {
-            2 -> context.deserialize(json, Paypal::class.java)
-            8 -> context.deserialize(json, Tarjetacredito::class.java)
-            else -> throw JsonParseException("No se pudo deserializar el objeto Metodopago: número de atributos desconocido")
-        }
-    }
-}
-
-fun obtenerTipoTarjeta(numeroTarjeta: String): String {
-    return when {
-        numeroTarjeta.startsWith("4") -> "Visa"
-        numeroTarjeta.startsWith("5") -> "MasterCard"
-        numeroTarjeta.startsWith("34") || numeroTarjeta.startsWith("37") -> "American Express"
-        numeroTarjeta.startsWith("6011") || numeroTarjeta.startsWith("65") -> "Discover"
-        else -> "Desconocido"
-    }
-}
 
 val countryCodes = mapOf(
     "Afganistán" to "AF",
@@ -270,6 +249,37 @@ val countryCodes = mapOf(
 fun obtenerCodigoPais(nombrePais: String): String? {
     return countryCodes[nombrePais]
 }
+
+suspend fun addRolProfesional() {
+
+    return withContext(Dispatchers.IO) {
+        val gson = GsonBuilder()
+            .serializeNulls()
+            .setLenient()
+            .create()
+
+        try {
+
+            AppUiState.salida.writeUTF("suscribirse")
+            AppUiState.salida.flush()
+
+            val jsonFromServer = AppUiState.entrada.readUTF()
+            val usuario : Usuario? = gson.fromJson(jsonFromServer, Usuario::class.java)
+
+            if(usuario != null) {
+                AppUiState.usuario = usuario.copy(foto = AppUiState.usuario.foto)
+            }
+
+        } catch (e: IOException) {
+            e.printStackTrace()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+}
+
+
 
 
 

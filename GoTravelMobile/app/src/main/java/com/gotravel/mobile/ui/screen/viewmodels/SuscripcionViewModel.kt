@@ -13,23 +13,21 @@ import androidx.lifecycle.viewModelScope
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import com.gotravel.mobile.data.model.DirFacturacion
-import com.gotravel.mobile.data.model.Metodopago
-import com.gotravel.mobile.data.model.Tarjetacredito
+import com.gotravel.mobile.data.model.Usuario
+import com.gotravel.mobile.data.model.Viaje
 import com.gotravel.mobile.ui.screen.SuscripcionDestination
 import com.gotravel.mobile.ui.utils.AppUiState
-import com.gotravel.mobile.ui.utils.CreditCardPaymentClient
-import com.gotravel.mobile.ui.utils.MetodopagoAdapter
+import com.gotravel.mobile.ui.utils.PayPalSubscriptions
 import com.gotravel.mobile.ui.utils.Regex
 import com.gotravel.mobile.ui.utils.obtenerCodigoPais
-import com.gotravel.mobile.ui.utils.obtenerTipoTarjeta
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
-import java.time.LocalDate
+import java.lang.NullPointerException
 
 sealed interface SuscripcionUiState {
-    data class Success(val metodosPago: List<Metodopago>) : SuscripcionUiState
+    data class Success(val direcciones: List<DirFacturacion>) : SuscripcionUiState
     object Error : SuscripcionUiState
     object Loading : SuscripcionUiState
 }
@@ -47,18 +45,130 @@ class SuscripcionViewModel(
         private set
 
     init {
-        getMetodosPago()
+        getDireccionesFacturacion()
     }
 
-    private fun getMetodosPago() {
+    private fun getDireccionesFacturacion() {
         viewModelScope.launch {
             uiState = try {
-                SuscripcionUiState.Success(findMetodosPagoFromUserId())
+                SuscripcionUiState.Success(getDireccionesFacturacionFromUserId())
             } catch (e: IOException) {
                 SuscripcionUiState.Error
             }
         }
     }
+
+    private suspend fun getDireccionesFacturacionFromUserId(): List<DirFacturacion> {
+
+        return withContext(Dispatchers.IO) {
+            val gson = GsonBuilder()
+                .serializeNulls()
+                .setLenient()
+                .create()
+
+            try {
+
+                AppUiState.salida.writeUTF("findByUserId;dirFacturacion")
+                AppUiState.salida.flush()
+
+                val jsonFromServer = AppUiState.entrada.readUTF()
+                val type = object : TypeToken<List<DirFacturacion>>() {}.type
+                return@withContext gson.fromJson<List<DirFacturacion>?>(jsonFromServer, type)
+
+            } catch (e: IOException) {
+                e.printStackTrace()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
+            return@withContext listOf()
+        }
+
+    }
+
+    suspend fun guardarDireccion(linea1: String, linea2: String?, ciudad: String, estado: String, pais: String, cp: String): Boolean {
+
+        if(linea1.matches(Regex.regexDireccion)) {
+
+            if(linea2 != null && !linea2.matches(Regex.regexDireccion)){
+                mensajeUi.postValue("La linea2 no es válida")
+            } else {
+                if(ciudad.matches(Regex.regexCiudadEstado)) {
+
+                    if(estado.matches(Regex.regexCiudadEstado)) {
+
+                        val codigoPais = obtenerCodigoPais(pais)
+
+                        if(codigoPais != null) {
+
+                            if(cp.matches(Regex.regexCP)) {
+
+                                var dirFacturacion = DirFacturacion(linea1 = linea1, linea2 = linea2, ciudad = ciudad, estado = estado, codigoPais = codigoPais, cp = cp)
+
+                                return withContext(Dispatchers.IO) {
+                                    val gson = GsonBuilder()
+                                        .serializeNulls()
+                                        .setLenient()
+                                        .create()
+
+                                    try {
+
+                                        AppUiState.salida.writeUTF("save;dirFacturacion")
+                                        AppUiState.salida.flush()
+
+                                        AppUiState.salida.writeUTF(gson.toJson(dirFacturacion))
+                                        AppUiState.salida.flush()
+
+                                        println(gson.toJson(dirFacturacion))
+
+                                        val jsonFromServer = AppUiState.entrada.readUTF()
+                                        dirFacturacion = gson.fromJson(jsonFromServer, DirFacturacion::class.java)
+
+                                        getDireccionesFacturacion()
+                                        return@withContext true
+
+                                    } catch (e: IOException) {
+                                        e.printStackTrace()
+                                    } catch (e: NullPointerException){
+                                        mensajeUi.postValue("No se ha podido guardar la direccion")
+                                    } catch (e: Exception) {
+                                        e.printStackTrace()
+                                    }
+
+                                    return@withContext false
+                                }
+
+                            } else {
+                                mensajeUi.postValue("El código postal no es válido")
+                            }
+
+                        } else {
+                            mensajeUi.postValue("El país no es válido")
+                        }
+
+                    } else {
+                        mensajeUi.postValue("La provincia no es válida")
+                    }
+
+                } else {
+                    mensajeUi.postValue("La ciudad no es válida")
+                }
+            }
+
+        } else {
+            mensajeUi.postValue("La linea1 no es válida")
+        }
+
+        return false
+
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun suscribirse(context: Context, dirFacturacion: DirFacturacion) {
+        PayPalSubscriptions(context).createSubscription(dirFacturacion)
+    }
+
+    /*
 
     private suspend fun findMetodosPagoFromUserId(): List<Metodopago> {
         return withContext(Dispatchers.IO) {
@@ -85,13 +195,6 @@ class SuscripcionViewModel(
 
             return@withContext listOf<Metodopago>()
         }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun suscribirse(context: Context) {
-
-        CreditCardPaymentClient(context).createSubscription()
-
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -180,45 +283,6 @@ class SuscripcionViewModel(
         return null
 
     }
-
-    fun validarDireccion(calle: String, ciudad: String, estado: String, pais: String, cp: String): DirFacturacion? {
-
-        if(calle.matches(Regex.regexCalle)) {
-
-            if(ciudad.matches(Regex.regexCiudadEstado)) {
-
-                if(estado.matches(Regex.regexCiudadEstado)) {
-
-                    val codigoPais = obtenerCodigoPais(pais)
-
-                    if(codigoPais != null) {
-
-                        if(cp.matches(Regex.regexCP)) {
-
-                            return DirFacturacion(line1 = calle, ciudad = ciudad, estado = estado, codigoPais = codigoPais, cp = cp)
-
-                        } else {
-                            mensajeUi.postValue("El código postal no es válido")
-                        }
-
-                    } else {
-                        mensajeUi.postValue("El país no es válido")
-                    }
-
-                } else {
-                    mensajeUi.postValue("La provincia no es válida")
-                }
-
-            } else {
-                mensajeUi.postValue("La ciudad no es válida")
-            }
-
-        } else {
-            mensajeUi.postValue("La calle no es válida")
-        }
-
-        return null
-
-    }
+     */
 
 }

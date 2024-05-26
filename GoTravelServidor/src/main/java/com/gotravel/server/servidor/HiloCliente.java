@@ -2,7 +2,6 @@ package com.gotravel.server.servidor;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.gotravel.server.PayPal.PayPalToken;
 import com.gotravel.server.ServerApplication;
 import com.gotravel.server.model.*;
 import com.gotravel.server.service.AppService;
@@ -43,7 +42,6 @@ public class HiloCliente extends Thread {
 
         Gson gson = new GsonBuilder()
                 .excludeFieldsWithoutExposeAnnotation()
-                .registerTypeAdapter(Metodopago.class, new MetodopagoAdapter())
                 .serializeNulls()
                 .setLenient()
                 .create();
@@ -109,18 +107,6 @@ public class HiloCliente extends Thread {
                 if(output.equals("peticion")){
                     int idUsuario = sesion.getUsuario().getId();
                     String json = switch (opcion) {
-                        case "consultarViajes" -> {
-                            List<Viaje> viajes = service.findViajesByUsuarioId(idUsuario);
-                            yield gson.toJson(viajes);
-                        }
-                        case "proximoViaje" -> {
-                            Viaje proximoViaje = service.findProximoViajeByUsuarioId(idUsuario);
-                            yield gson.toJson(proximoViaje);
-                        }
-                        case "viajeActual" -> {
-                            Viaje viajeActual = service.findViajeActualByUsuarioId(idUsuario);
-                            yield gson.toJson(viajeActual);
-                        }
                         case "update" -> {
                             String tabla = fromCliente[1];
                             String jsonFromUser = sesion.getEntrada().readUTF();
@@ -186,13 +172,19 @@ public class HiloCliente extends Thread {
                                 etapaFromUser.setViaje(v);
                                 etapaFromUser = service.saveEtapa(etapaFromUser);
                                 jsonFromServer = gson.toJson(etapaFromUser);
-                            } else if(tabla.equalsIgnoreCase("metodoPago")) {
+                            } else if(tabla.equalsIgnoreCase("dirFacturacion")) {
+                                System.out.println(jsonFromUser);
+                                DirFacturacion dirFromUser = gson.fromJson(jsonFromUser, DirFacturacion.class);
+                                dirFromUser.setUsuario(service.findUsuarioById(idUsuario));
+                                DirFacturacion df = service.saveDirFacturacion(dirFromUser);
+                                jsonFromServer = gson.toJson(df);
+                            }/* else if(tabla.equalsIgnoreCase("metodoPago")) {
                                 System.out.println(jsonFromUser);
                                 Metodopago metodoFromUser = gson.fromJson(jsonFromUser, Metodopago.class);
                                 metodoFromUser.setUsuario(sesion.getUsuario());
                                 metodoFromUser = service.saveMetodo(metodoFromUser);
                                 jsonFromServer = gson.toJson(metodoFromUser);
-                            }
+                            }*/
                             yield jsonFromServer;
                         }
                         case "findById" -> {
@@ -205,6 +197,24 @@ public class HiloCliente extends Thread {
                             }
                             yield jsonFromServer;
                         }
+                        case "findByUserId" -> {
+                            String tabla = fromCliente[1];
+                            String jsonFromServer = "";
+                            if(tabla.equalsIgnoreCase("viaje")) {
+                                List<Viaje> viajes = service.findViajesByUsuarioId(idUsuario);
+                                jsonFromServer = gson.toJson(viajes);
+                            } else if(tabla.equalsIgnoreCase("proximoViaje")){
+                                Viaje proximoViaje = service.findProximoViajeByUsuarioId(idUsuario);
+                                jsonFromServer = gson.toJson(proximoViaje);
+                            } else if(tabla.equalsIgnoreCase("viajeActual")){
+                                Viaje viajeActual = service.findViajeActualByUsuarioId(idUsuario);
+                                yield gson.toJson(viajeActual);
+                            } else if(tabla.equalsIgnoreCase("dirFacturacion")){
+                                List<DirFacturacion> direcciones = service.findDireccionesFacturacionFromUserId(idUsuario);
+                                jsonFromServer = gson.toJson(direcciones);
+                            }
+                            yield jsonFromServer;
+                        }/*
                         case "findMetodosPago" -> {
                             List<Metodopago> metodosPago = service.findMetodosPagoByUsuarioId(idUsuario);
                             yield gson.toJson(metodosPago);
@@ -214,6 +224,11 @@ public class HiloCliente extends Thread {
                                     token -> System.out.println("token: " + token)
                             );
                             yield "";
+                        }*/
+                        case "suscribirse" -> {
+                            sesion.getUsuario().getRoles().add(service.findRol("profesional"));
+                            sesion.setUsuario(service.saveUsuario(sesion.getUsuario()));
+                            yield gson.toJson(sesion.getUsuario());
                         }
                         default -> "";
                     };

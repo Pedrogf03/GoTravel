@@ -17,16 +17,12 @@ public class Pago {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_usuario", nullable = false)
-    private com.gotravel.server.model.Usuario usuario;
+    private Usuario usuario;
 
     @Column(name = "coste", nullable = false)
     private Double coste;
 
     @Column(name = "fecha", nullable = false, columnDefinition = "DATE")
     private String fecha;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_metodopago", nullable = false)
-    private Metodopago metodopago;
 
 }

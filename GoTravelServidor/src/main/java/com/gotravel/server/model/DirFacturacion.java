@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @Entity
@@ -17,9 +19,13 @@ public class DirFacturacion {
     @Expose
     private Integer id;
 
-    @Column(name = "line1", nullable = false, length = 45)
+    @Column(name = "linea1", nullable = false, length = 100)
     @Expose
-    private String line1;
+    private String linea1;
+
+    @Column(name = "linea2", length = 100)
+    @Expose
+    private String linea2;
 
     @Column(name = "ciudad", nullable = false, length = 45)
     @Expose
@@ -36,5 +42,9 @@ public class DirFacturacion {
     @Column(name = "codigo_pais", nullable = false, length = 45)
     @Expose
     private String codigoPais;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_usuario", nullable = false)
+    private Usuario usuario;
 
 }

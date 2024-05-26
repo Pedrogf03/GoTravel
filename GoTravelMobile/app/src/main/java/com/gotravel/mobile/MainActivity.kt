@@ -15,12 +15,24 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.gotravel.mobile.ui.App
+import com.gotravel.mobile.ui.screen.HomeDestination
 import com.gotravel.mobile.ui.theme.GoTravelTheme
 import com.gotravel.mobile.ui.utils.AppUiState
+import com.gotravel.mobile.ui.utils.PayPalSubscriptions
+import com.gotravel.mobile.ui.utils.addRolProfesional
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.IOException
 
 class MainActivity : ComponentActivity() {
+
+    lateinit var navController: NavHostController
     @SuppressLint("SourceLockedOrientationActivity")
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,16 +43,19 @@ class MainActivity : ComponentActivity() {
         setContent {
             GoTravelTheme {
                 // A surface container using the 'background' color from the theme
+                navController = rememberNavController()
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    App()
+                    App(navController)
                 }
             }
         }
     }
 
+    @SuppressLint("NewApi")
+    @OptIn(DelicateCoroutinesApi::class)
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
 
@@ -48,8 +63,21 @@ class MainActivity : ComponentActivity() {
         if (uri != null && uri.scheme == "gotravel") {
             when (uri.host) {
                 "returnurl" -> {
-                    // Aquí puedes manejar el caso de éxito del pago
-                    println("Pago exitoso")
+
+                    val subscriptionId = uri.getQueryParameter("subscription_id")
+
+                    val context = this;
+
+                    GlobalScope.launch {
+                        PayPalSubscriptions(context = context).getSuscription(subscriptionId!!)
+                        /*
+                        addRolProfesional()
+                        withContext(Dispatchers.Main) {
+                            navController.navigate(HomeDestination.route)
+                        }
+                         */
+                    }
+
                 }
                 "cancelurl" -> {
                     // Aquí puedes manejar el caso de cancelación del pago

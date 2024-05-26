@@ -15,6 +15,5 @@ data class Pago (
     val id: Int,
     val usuario: Usuario,
     val coste: Double,
-    val fecha: String,
-    val metodopago: Metodopago
+    val fecha: String
 )
