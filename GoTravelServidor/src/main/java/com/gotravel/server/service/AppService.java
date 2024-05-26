@@ -114,4 +114,38 @@ public class AppService {
         return rolesRepository.findById(rol).orElse(null);
     }
 
+    @Autowired
+    private PagoRepository pagoRepository;
+
+    public Pago savePago(Pago pago) {
+        try {
+            pago = pagoRepository.save(pago);
+            return findPagoById(pago.getId());
+        } catch (Exception e) {
+            LOG.error("Error: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    private Pago findPagoById(int id) {
+        return pagoRepository.findById(id).orElse(null);
+    }
+
+    @Autowired
+    private SuscripcionRepository suscripcionRepository;
+
+    public Suscripcion saveSuscripcion(Suscripcion suscripcion) {
+        try {
+            suscripcion = suscripcionRepository.save(suscripcion);
+            return findSuscripcionById(suscripcion.getId());
+        } catch (Exception e) {
+            LOG.error("Error: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    private Suscripcion findSuscripcionById(String id) {
+        return suscripcionRepository.findById(id).orElse(null);
+    }
+
 }

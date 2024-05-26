@@ -12,8 +12,7 @@ import lombok.Setter
 @AllArgsConstructor
 @Serializable
 data class Pago (
-    val id: Int,
-    val usuario: Usuario,
+    val id: Int? = null,
     val coste: Double,
     val fecha: String
 )

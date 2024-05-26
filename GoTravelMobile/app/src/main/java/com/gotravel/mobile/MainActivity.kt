@@ -69,13 +69,11 @@ class MainActivity : ComponentActivity() {
                     val context = this;
 
                     GlobalScope.launch {
-                        PayPalSubscriptions(context = context).getSuscription(subscriptionId!!)
-                        /*
-                        addRolProfesional()
+                        val suscripcion = PayPalSubscriptions(context = context).getSuscription(subscriptionId!!)
+                        addRolProfesional(suscripcion)
                         withContext(Dispatchers.Main) {
                             navController.navigate(HomeDestination.route)
                         }
-                         */
                     }
 
                 }

@@ -7,6 +7,7 @@ import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
 import com.google.gson.JsonParseException
+import com.gotravel.mobile.data.model.Suscripcion
 import com.gotravel.mobile.data.model.Usuario
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -250,7 +251,7 @@ fun obtenerCodigoPais(nombrePais: String): String? {
     return countryCodes[nombrePais]
 }
 
-suspend fun addRolProfesional() {
+suspend fun addRolProfesional(suscripcion: Suscripcion) {
 
     return withContext(Dispatchers.IO) {
         val gson = GsonBuilder()
@@ -260,8 +261,7 @@ suspend fun addRolProfesional() {
 
         try {
 
-            AppUiState.salida.writeUTF("suscribirse")
-            AppUiState.salida.flush()
+            AppUiState.salida.writeUTF("suscribirse;" + gson.toJson(suscripcion))
 
             val jsonFromServer = AppUiState.entrada.readUTF()
             val usuario : Usuario? = gson.fromJson(jsonFromServer, Usuario::class.java)

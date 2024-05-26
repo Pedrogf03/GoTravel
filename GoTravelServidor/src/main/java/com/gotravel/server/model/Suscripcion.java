@@ -1,5 +1,6 @@
 package com.gotravel.server.model;
 
+import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,16 +13,19 @@ public class Suscripcion {
 
     @Id
     @Column(name = "id_suscripcion", nullable = false)
-    private Integer id;
+    @Expose
+    private String id;
 
     @Column(name = "fecha_inicio", nullable = false, columnDefinition = "DATE")
+    @Expose
     private String fechaInicio;
 
     @Column(name = "fecha_final", nullable = false, columnDefinition = "DATE")
+    @Expose
     private String fechaFinal;
 
-    @Lob
-    @Column(name = "estado", nullable = false, columnDefinition = "ENUM('activa', 'inactiva')")
+    @Column(name = "estado", nullable = false)
+    @Expose
     private String estado;
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)
@@ -30,6 +34,7 @@ public class Suscripcion {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_pago", nullable = false)
+    @Expose
     private Pago pago;
 
 }

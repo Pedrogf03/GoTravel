@@ -84,7 +84,7 @@ public class Usuario implements Serializable {
     @OneToMany(mappedBy = "usuario")
     private List<Servicio> servicios;
 
-    @OneToMany(mappedBy = "usuario")
+    @OneToMany(mappedBy = "usuario", fetch = FetchType.EAGER)
     private List<Pago> pagos;
 
     @OneToMany(mappedBy = "usuario")

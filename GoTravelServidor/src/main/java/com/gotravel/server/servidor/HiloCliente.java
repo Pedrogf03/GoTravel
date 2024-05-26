@@ -218,15 +218,20 @@ public class HiloCliente extends Thread {
                         case "findMetodosPago" -> {
                             List<Metodopago> metodosPago = service.findMetodosPagoByUsuarioId(idUsuario);
                             yield gson.toJson(metodosPago);
-                        }
-                        case "suscribirme" -> {
-                            PayPalToken pt = new PayPalToken(
-                                    token -> System.out.println("token: " + token)
-                            );
-                            yield "";
                         }*/
                         case "suscribirse" -> {
-                            sesion.getUsuario().getRoles().add(service.findRol("profesional"));
+                            System.out.println(fromCliente[1]);
+                            Suscripcion s = gson.fromJson(fromCliente[1], Suscripcion.class);
+
+                            Pago p = s.getPago();
+                            p.setUsuario(sesion.getUsuario());
+                            p = service.savePago(p);
+
+                            s.setPago(p);
+                            s.setUsuario(sesion.getUsuario());
+                            service.saveSuscripcion(s);
+
+                            sesion.getUsuario().getRoles().add(service.findRol("Profesional"));
                             sesion.setUsuario(service.saveUsuario(sesion.getUsuario()));
                             yield gson.toJson(sesion.getUsuario());
                         }

@@ -12,10 +12,9 @@ import lombok.Setter
 @AllArgsConstructor
 @Serializable
 data class Suscripcion (
-    val id: Int,
+    val id: String,
     val fechaInicio: String,
     val fechaFinal: String,
     val estado: String,
-    val usuario: Usuario,
     val pago: Pago,
 )

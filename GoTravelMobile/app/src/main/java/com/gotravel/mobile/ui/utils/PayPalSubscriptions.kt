@@ -5,6 +5,10 @@ import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.gotravel.mobile.data.model.DirFacturacion
+import com.gotravel.mobile.data.model.Pago
+import com.gotravel.mobile.data.model.Suscripcion
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaType
@@ -25,21 +29,19 @@ class PayPalSubscriptions(
     private val tokenClient = PayPalToken()
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun createSubscription(dirFacturacion: DirFacturacion) {
-        tokenClient.obtenerTokenPaypal { token ->
-            subscription(token, dirFacturacion)
-        }
+    suspend fun createSubscription(dirFacturacion: DirFacturacion) {
+        val token = tokenClient.obtenerTokenPaypal()
+        subscription(token, dirFacturacion)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun getSuscription(id: String) {
-        tokenClient.obtenerTokenPaypal { token ->
-            getSubscriptionDetails(token = token, subscriptionId = id)
-        }
+    suspend fun getSuscription(id: String) : Suscripcion {
+        val token = tokenClient.obtenerTokenPaypal()
+        return getSubscriptionDetails(token = token, subscriptionId = id)!!
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun subscription(token: String, dirFacturacion: DirFacturacion) {
+    suspend fun subscription(token: String, dirFacturacion: DirFacturacion) {
         val url = "https://api-m.sandbox.paypal.com/v1/billing/subscriptions"
 
         val mediaType = "application/json".toMediaType()
@@ -97,45 +99,45 @@ class PayPalSubscriptions(
             .addHeader("Prefer", "return=representation")
             .build()
 
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                // Aquí puedes manejar el caso cuando la solicitud falla
-                e.printStackTrace()
-            }
+        withContext(Dispatchers.IO) {
+            client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    // Aquí puedes manejar el caso cuando la solicitud falla
+                    e.printStackTrace()
+                }
 
-            override fun onResponse(call: Call, response: Response) {
-                if (!response.isSuccessful) {
-                    println("Error: ${response.code}")
-                    println("Response body: ${response.body?.string()}")
-                } else {
+                override fun onResponse(call: Call, response: Response) {
+                    if (!response.isSuccessful) {
+                        println("Error: ${response.code}")
+                        println("Response body: ${response.body?.string()}")
+                    } else {
 
-                    val responseBody = response.body?.string()
+                        val responseBody = response.body?.string()
+                        val json = responseBody?.let { JSONObject(it) }
 
+                        // Extrae el enlace de aprobación
+                        val links = json?.getJSONArray("links")
+                        if (links != null) {
+                            for (i in 0 until links.length()) {
+                                val link = links.getJSONObject(i)
+                                if (link.getString("rel") == "approve") {
+                                    val approvalUrl = link.getString("href")
 
-                    val json = responseBody?.let { JSONObject(it) }
-
-                    // Extrae el enlace de aprobación
-                    val links = json?.getJSONArray("links")
-                    if (links != null) {
-                        for (i in 0 until links.length()) {
-                            val link = links.getJSONObject(i)
-                            if (link.getString("rel") == "approve") {
-                                val approvalUrl = link.getString("href")
-
-                                // Crea un Intent para abrir el enlace de aprobación en el navegador
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(approvalUrl))
-                                context.startActivity(intent)
-                                break
+                                    // Crea un Intent para abrir el enlace de aprobación en el navegador
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(approvalUrl))
+                                    context.startActivity(intent)
+                                    break
+                                }
                             }
                         }
                     }
                 }
-            }
 
-        })
+            })
+        }
     }
 
-    private fun getSubscriptionDetails(subscriptionId: String, token: String) {
+    private suspend fun getSubscriptionDetails(subscriptionId: String, token: String): Suscripcion? {
         val url = "https://api-m.sandbox.paypal.com/v1/billing/subscriptions/$subscriptionId"
 
         val request = Request.Builder()
@@ -144,24 +146,27 @@ class PayPalSubscriptions(
             .addHeader("Authorization", "Bearer $token")
             .build()
 
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
+        return withContext(Dispatchers.IO) {
+            val response = client.newCall(request).execute()
+
+            if (!response.isSuccessful) {
+                println("Error: ${response.code}")
+                println("Response body: ${response.body?.string()}")
+                null
+            } else {
+                val responseBody = response.body?.string()
+                val json = JSONObject(responseBody!!)
+
+                val estado = json.getString("status")
+                val fechaInicio = json.getString("start_time")
+                val billingInfo = json.getJSONObject("billing_info")
+                val fechaFinal = billingInfo.getString("next_billing_time")
+                val coste = billingInfo.getJSONObject("last_payment").getJSONObject("amount").getString("value").toDouble()
+
+                val pago = Pago(coste = coste, fecha = fechaInicio.take(10))
+                return@withContext Suscripcion(id = subscriptionId, fechaInicio = fechaInicio.take(10), fechaFinal = fechaFinal.take(10), estado = estado, pago = pago)
             }
-
-            override fun onResponse(call: Call, response: Response) {
-                if (!response.isSuccessful) {
-                    println("Error: ${response.code}")
-                    println("Response body: ${response.body?.string()}")
-                } else {
-                    val responseBody = response.body?.string()
-                    val json = responseBody?.let { JSONObject(it) }
-
-                    println(json)
-
-                }
-            }
-        })
+        }
     }
 
 }

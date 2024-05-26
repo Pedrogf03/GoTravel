@@ -164,7 +164,7 @@ class SuscripcionViewModel(
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun suscribirse(context: Context, dirFacturacion: DirFacturacion) {
+    suspend fun suscribirse(context: Context, dirFacturacion: DirFacturacion) {
         PayPalSubscriptions(context).createSubscription(dirFacturacion)
     }
 
