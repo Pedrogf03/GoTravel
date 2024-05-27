@@ -4,10 +4,12 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
-import com.gotravel.mobile.data.model.DirFacturacion
 import com.gotravel.mobile.data.model.Pago
 import com.gotravel.mobile.data.model.Suscripcion
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.Call
 import okhttp3.Callback
@@ -18,7 +20,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import org.json.JSONObject
 import java.io.IOException
-import java.time.Instant
+import java.time.LocalDate
 
 class PayPalSubscriptions(
     private val context: Context
@@ -29,56 +31,29 @@ class PayPalSubscriptions(
     private val tokenClient = PayPalToken()
 
     @RequiresApi(Build.VERSION_CODES.O)
-    suspend fun createSubscription(dirFacturacion: DirFacturacion) {
-        val token = tokenClient.obtenerTokenPaypal()
-        subscription(token, dirFacturacion)
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    suspend fun getSuscription(id: String) : Suscripcion {
-        val token = tokenClient.obtenerTokenPaypal()
-        return getSubscriptionDetails(token = token, subscriptionId = id)!!
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    suspend fun subscription(token: String, dirFacturacion: DirFacturacion) {
+    suspend fun createSubscription() {
         val url = "https://api-m.sandbox.paypal.com/v1/billing/subscriptions"
 
+        val token = tokenClient.obtenerTokenPaypal()
+
         val mediaType = "application/json".toMediaType()
-        val startTime = Instant.now().plusSeconds(3600).toString()
+
         val json = """
             {
               "plan_id": "$planId",
-              "start_time": "$startTime",
               "quantity": "1",
-              "shipping_amount": {
-                "currency_code": "EUR",
-                "value": "0.00"
-              },
+              "auto_renewal": true,
               "subscriber": {
                 "name": {
                   "given_name": "${AppUiState.usuario.nombre}",
-                  "surname": "${AppUiState.usuario.apellidos}"
+                  "surname": "${if(AppUiState.usuario.apellidos != null) AppUiState.usuario.apellidos else ""}"
                 },
-                "email_address": "${AppUiState.usuario.email}",
-                "shipping_address": {
-                  "name": {
-                    "full_name": "${AppUiState.usuario.nombre} ${AppUiState.usuario.apellidos}"
-                  },
-                  "address": {
-                    "address_line_1": "${dirFacturacion.linea1}",
-                    "address_line_2": "${dirFacturacion.linea2}",
-                    "admin_area_2": "${dirFacturacion.ciudad}",
-                    "admin_area_1": "${dirFacturacion.estado}",
-                    "postal_code": "${dirFacturacion.cp}",
-                    "country_code": "${dirFacturacion.codigoPais}"
-                  }
-                }
+                "email_address": "${AppUiState.usuario.email}"
               },
               "application_context": {
                 "brand_name": "GoTravel!",
                 "locale": "es-ES",
-                "shipping_preference": "SET_PROVIDED_ADDRESS",
+                "shipping_preference": "NO_SHIPPING",
                 "user_action": "SUBSCRIBE_NOW",
                 "payment_method": {
                   "payer_selected": "PAYPAL",
@@ -137,8 +112,11 @@ class PayPalSubscriptions(
         }
     }
 
-    private suspend fun getSubscriptionDetails(subscriptionId: String, token: String): Suscripcion? {
+    @RequiresApi(Build.VERSION_CODES.O)
+    suspend fun getSuscription(subscriptionId: String): Suscripcion? {
         val url = "https://api-m.sandbox.paypal.com/v1/billing/subscriptions/$subscriptionId"
+
+        val token = tokenClient.obtenerTokenPaypal()
 
         val request = Request.Builder()
             .url(url)
@@ -150,7 +128,7 @@ class PayPalSubscriptions(
             val response = client.newCall(request).execute()
 
             if (!response.isSuccessful) {
-                println("Error: ${response.code}")
+                println("Error getting sub: ${response.code}")
                 println("Response body: ${response.body?.string()}")
                 null
             } else {
@@ -160,12 +138,113 @@ class PayPalSubscriptions(
                 val estado = json.getString("status")
                 val fechaInicio = json.getString("start_time")
                 val billingInfo = json.getJSONObject("billing_info")
-                val fechaFinal = billingInfo.getString("next_billing_time")
-                val coste = billingInfo.getJSONObject("last_payment").getJSONObject("amount").getString("value").toDouble()
+                val fechaFinal = LocalDate.parse(fechaInicio.take(10), formatoFromDb).plusMonths(1).format(formatoFromDb)
+                val coste: Double = try {
+                    billingInfo.getJSONObject("last_payment").getJSONObject("amount").getString("value").toDouble()
+                } catch (e: NullPointerException) {
+                    4.99
+                }
 
                 val pago = Pago(coste = coste, fecha = fechaInicio.take(10))
-                return@withContext Suscripcion(id = subscriptionId, fechaInicio = fechaInicio.take(10), fechaFinal = fechaFinal.take(10), estado = estado, pago = pago)
+                return@withContext Suscripcion(id = subscriptionId, fechaInicio = fechaInicio.take(10), fechaFinal = fechaFinal, estado = estado,renovar = "1", pagos = listOf(pago))
             }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    suspend fun cancelSubscription(
+        subscriptionId: String,
+        onSuscripcionCancelada: () -> Unit
+        ) {
+        val url = "https://api-m.sandbox.paypal.com/v1/billing/subscriptions/${subscriptionId}/suspend"
+
+        val token = tokenClient.obtenerTokenPaypal()
+
+        val mediaType = "application/json".toMediaType()
+
+        val json = """
+            {
+              "reason": "Cancelar suscripción"
+            }
+        """.trimIndent()
+        val body = json.toRequestBody(mediaType)
+
+        val request = Request.Builder()
+            .url(url)
+            .post(body)
+            .addHeader("Content-Type", "application/json")
+            .addHeader("Authorization", "Bearer $token")
+            .addHeader("Prefer", "return=representation")
+            .build()
+
+        withContext(Dispatchers.IO) {
+            client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    // Aquí puedes manejar el caso cuando la solicitud falla
+                    e.printStackTrace()
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    if (!response.isSuccessful) {
+                        println("Error: ${response.code}")
+                        println("Response body: ${response.body?.string()}")
+                    } else {
+
+                        onSuscripcionCancelada()
+
+                    }
+                }
+
+            })
+        }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    @RequiresApi(Build.VERSION_CODES.O)
+    suspend fun activateSubscription(
+        subscriptionId: String,
+        onSuscripcionReactivada: () -> Unit
+    ) {
+        val url = "https://api-m.sandbox.paypal.com/v1/billing/subscriptions/${subscriptionId}/activate"
+
+        val token = tokenClient.obtenerTokenPaypal()
+
+        val mediaType = "application/json".toMediaType()
+
+        val json = """
+            {
+              "reason": "Renovar suscripción"
+            }
+        """.trimIndent()
+        val body = json.toRequestBody(mediaType)
+
+        val request = Request.Builder()
+            .url(url)
+            .post(body)
+            .addHeader("Content-Type", "application/json")
+            .addHeader("Authorization", "Bearer $token")
+            .addHeader("Prefer", "return=representation")
+            .build()
+
+        withContext(Dispatchers.IO) {
+            client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    // Aquí puedes manejar el caso cuando la solicitud falla
+                    e.printStackTrace()
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    if (!response.isSuccessful) {
+                        println("Error: ${response.code}")
+                        println("Response body: ${response.body?.string()}")
+                    } else {
+
+                        onSuscripcionReactivada()
+
+                    }
+                }
+
+            })
         }
     }
 

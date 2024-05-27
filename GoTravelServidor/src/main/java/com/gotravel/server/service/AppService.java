@@ -1,6 +1,7 @@
 package com.gotravel.server.service;
 
 import com.gotravel.server.ServerApplication;
+import com.gotravel.server.model.Suscripcion;
 import com.gotravel.server.model.*;
 import com.gotravel.server.repository.*;
 import org.slf4j.Logger;
@@ -87,27 +88,6 @@ public class AppService {
     }
 
     @Autowired
-    private DirFacturacionRepository dirFacturacionRepository;
-
-    public DirFacturacion saveDirFacturacion(DirFacturacion dirFacturacion) {
-        try {
-            dirFacturacion = dirFacturacionRepository.save(dirFacturacion);
-            return findDirFacturacionById(dirFacturacion.getId());
-        } catch (Exception e) {
-            LOG.error("Error: {}", e.getMessage());
-            return null;
-        }
-    }
-
-    private DirFacturacion findDirFacturacionById(Integer id) {
-        return dirFacturacionRepository.findById(id).orElse(null);
-    }
-
-    public List<DirFacturacion> findDireccionesFacturacionFromUserId(int idUsuario) {
-        return dirFacturacionRepository.findAllByUsuarioId(idUsuario);
-    }
-
-    @Autowired
     private RolesRepository rolesRepository;
 
     public Rol findRol(String rol) {
@@ -144,8 +124,12 @@ public class AppService {
         }
     }
 
-    private Suscripcion findSuscripcionById(String id) {
+    public Suscripcion findSuscripcionById(String id) {
         return suscripcionRepository.findById(id).orElse(null);
+    }
+
+    public Suscripcion findSuscripcionByUsuarioId(int idUsuario) {
+        return suscripcionRepository.findSuscripcionByUsuarioId(idUsuario);
     }
 
 }

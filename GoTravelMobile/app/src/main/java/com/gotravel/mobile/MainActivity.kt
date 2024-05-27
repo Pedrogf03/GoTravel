@@ -19,6 +19,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.gotravel.mobile.ui.App
 import com.gotravel.mobile.ui.screen.HomeDestination
+import com.gotravel.mobile.ui.screen.SuscripcionDestination
 import com.gotravel.mobile.ui.theme.GoTravelTheme
 import com.gotravel.mobile.ui.utils.AppUiState
 import com.gotravel.mobile.ui.utils.PayPalSubscriptions
@@ -65,12 +66,11 @@ class MainActivity : ComponentActivity() {
                 "returnurl" -> {
 
                     val subscriptionId = uri.getQueryParameter("subscription_id")
-
                     val context = this;
 
                     GlobalScope.launch {
                         val suscripcion = PayPalSubscriptions(context = context).getSuscription(subscriptionId!!)
-                        addRolProfesional(suscripcion)
+                        addRolProfesional(suscripcion!!)
                         withContext(Dispatchers.Main) {
                             navController.navigate(HomeDestination.route)
                         }
@@ -78,8 +78,7 @@ class MainActivity : ComponentActivity() {
 
                 }
                 "cancelurl" -> {
-                    // Aquí puedes manejar el caso de cancelación del pago
-                    println("Pago cancelado")
+                    navController.navigate("${SuscripcionDestination.route}/false")
                 }
             }
         }

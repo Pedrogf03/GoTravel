@@ -72,7 +72,7 @@ public class Usuario implements Serializable {
     @OneToMany(mappedBy = "usuario")
     private List<Viaje> viajes;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(
             name = "usuariorol",
             joinColumns = @JoinColumn(name = "id_usuario"),
@@ -90,7 +90,7 @@ public class Usuario implements Serializable {
     @OneToMany(mappedBy = "usuario")
     private List<Contratacion> contrataciones;
 
-    @OneToOne(mappedBy = "usuario")
+    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL)
     private Suscripcion suscripcion;
 
     @OneToMany(mappedBy = "usuario1")
@@ -108,8 +108,5 @@ public class Usuario implements Serializable {
 
     @OneToMany(mappedBy = "emisor")
     private List<Mensaje> mensajes;
-
-    @OneToMany(mappedBy = "usuario", fetch = FetchType.EAGER)
-    private List<DirFacturacion> direcciones;
 
 }

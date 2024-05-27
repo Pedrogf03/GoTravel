@@ -3,6 +3,7 @@ package com.gotravel.server.servidor;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.gotravel.server.ServerApplication;
+import com.gotravel.server.model.Suscripcion;
 import com.gotravel.server.model.*;
 import com.gotravel.server.service.AppService;
 import org.slf4j.Logger;
@@ -12,6 +13,10 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class HiloCliente extends Thread {
@@ -70,6 +75,29 @@ public class HiloCliente extends Thread {
 
                 String output = protocolo.procesarMensaje(gson.toJson(u) +  ";" + contrasena);
 
+                // Si se obtiene el usuario correctamente, se actualiza, por si se ha cambiado algo de la suscripción y los roles.
+                if(!output.equals("reintentar")) {
+
+                    u = gson.fromJson(output, Usuario.class);
+
+                    Suscripcion s = service.findSuscripcionByUsuarioId(u.getId()); // SE OBTIENE LA SUSCRIPCION
+                    if(s != null && s.getRenovar().equals("0") && s.getEstado().equals("ACTIVE")) { // SI NO HAY QUE RENOVARLA Y ESTÁ ACTIVA
+                        LocalDate fechaFin = LocalDate.parse(s.getFechaFinal(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                        if(fechaFin.isAfter(LocalDate.now()) || fechaFin.isEqual(LocalDate.now())) { // Y ADEMÁS LA FECHA ES PRESENTE O PASADA
+                            s.setEstado("INACTIVE"); // SE CAMBIA A INACTIVA
+                            service.saveSuscripcion(s); // SE ACTUALIZA LA SUSCRIPCION
+                            for (int i = 0; i < u.getRoles().size(); i++) {
+                                if(u.getRoles().get(i).getNombre().equals("Profesional")) {
+                                    u.getRoles().remove(i);
+                                }
+                            }
+                            u = service.saveUsuario(u); // SE ACTUALIZA EL USUARIO
+                            output = gson.toJson(u);
+                        }
+                    }
+
+                }
+
                 // Si ha iniciado sesion, se manda un json que contiene al usuario
                 // Si no ha iniciado sesion, se manda un mensaje de reintentar
                 sesion.getSalida().writeUTF(output);
@@ -100,6 +128,9 @@ public class HiloCliente extends Thread {
             while(!terminar) {
 
                 String[] fromCliente = sesion.getEntrada().readUTF().split(";");
+
+                System.out.println(Arrays.toString(fromCliente));
+
                 String opcion = fromCliente[0];
 
                 String output = protocolo.procesarMensaje(opcion);
@@ -172,19 +203,7 @@ public class HiloCliente extends Thread {
                                 etapaFromUser.setViaje(v);
                                 etapaFromUser = service.saveEtapa(etapaFromUser);
                                 jsonFromServer = gson.toJson(etapaFromUser);
-                            } else if(tabla.equalsIgnoreCase("dirFacturacion")) {
-                                System.out.println(jsonFromUser);
-                                DirFacturacion dirFromUser = gson.fromJson(jsonFromUser, DirFacturacion.class);
-                                dirFromUser.setUsuario(service.findUsuarioById(idUsuario));
-                                DirFacturacion df = service.saveDirFacturacion(dirFromUser);
-                                jsonFromServer = gson.toJson(df);
-                            }/* else if(tabla.equalsIgnoreCase("metodoPago")) {
-                                System.out.println(jsonFromUser);
-                                Metodopago metodoFromUser = gson.fromJson(jsonFromUser, Metodopago.class);
-                                metodoFromUser.setUsuario(sesion.getUsuario());
-                                metodoFromUser = service.saveMetodo(metodoFromUser);
-                                jsonFromServer = gson.toJson(metodoFromUser);
-                            }*/
+                            }
                             yield jsonFromServer;
                         }
                         case "findById" -> {
@@ -209,31 +228,45 @@ public class HiloCliente extends Thread {
                             } else if(tabla.equalsIgnoreCase("viajeActual")){
                                 Viaje viajeActual = service.findViajeActualByUsuarioId(idUsuario);
                                 yield gson.toJson(viajeActual);
-                            } else if(tabla.equalsIgnoreCase("dirFacturacion")){
-                                List<DirFacturacion> direcciones = service.findDireccionesFacturacionFromUserId(idUsuario);
-                                jsonFromServer = gson.toJson(direcciones);
+                            } else if(tabla.equalsIgnoreCase("suscripcion")){
+                                Suscripcion suscripcion = service.findSuscripcionByUsuarioId(idUsuario);
+                                yield gson.toJson(suscripcion);
                             }
                             yield jsonFromServer;
-                        }/*
-                        case "findMetodosPago" -> {
-                            List<Metodopago> metodosPago = service.findMetodosPagoByUsuarioId(idUsuario);
-                            yield gson.toJson(metodosPago);
-                        }*/
-                        case "suscribirse" -> {
-                            System.out.println(fromCliente[1]);
-                            Suscripcion s = gson.fromJson(fromCliente[1], Suscripcion.class);
+                        }
+                        case "suscripcion" -> {
+                            String eleccion = fromCliente[1];
+                            String jsonFromServer = "";
+                            if(eleccion.equals("crear")) {
+                                Suscripcion s = gson.fromJson(fromCliente[2], Suscripcion.class);
 
-                            Pago p = s.getPago();
-                            p.setUsuario(sesion.getUsuario());
-                            p = service.savePago(p);
+                                s.setUsuario(sesion.getUsuario());
+                                s.getPagos().get(0).setUsuario(sesion.getUsuario());
+                                service.saveSuscripcion(s);
 
-                            s.setPago(p);
-                            s.setUsuario(sesion.getUsuario());
-                            service.saveSuscripcion(s);
+                                sesion.getUsuario().getRoles().add(service.findRol("Profesional"));
+                                sesion.setUsuario(service.saveUsuario(sesion.getUsuario()));
+                                jsonFromServer =  gson.toJson(sesion.getUsuario());
+                            } else if (eleccion.equals("renovar")) {
+                                String idSuscripcion = fromCliente[2];
 
-                            sesion.getUsuario().getRoles().add(service.findRol("Profesional"));
-                            sesion.setUsuario(service.saveUsuario(sesion.getUsuario()));
-                            yield gson.toJson(sesion.getUsuario());
+                                Suscripcion s = service.findSuscripcionById(idSuscripcion);
+                                s.setRenovar("1");
+                                s.setEstado("ACTIVE");
+                                LocalDate fechaFinal = LocalDate.parse(s.getFechaFinal(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                                if(fechaFinal.isAfter(LocalDate.now()) || fechaFinal.isEqual(LocalDate.now())) {
+                                    // Si está renovando una suscripción que ya ha caducado, se le pone a la fecha final un mes desde el día de hoy
+                                    s.setFechaFinal(LocalDate.now().plusMonths(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+                                }
+                                jsonFromServer = gson.toJson(service.saveSuscripcion(s));
+                            } else if (eleccion.equals("cancelar")) {
+                                String idSuscripcion = fromCliente[2];
+
+                                Suscripcion s = service.findSuscripcionById(idSuscripcion);
+                                s.setRenovar("0");
+                                jsonFromServer = gson.toJson(service.saveSuscripcion(s));
+                            }
+                            yield jsonFromServer;
                         }
                         default -> "";
                     };

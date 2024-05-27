@@ -1,9 +1,8 @@
 package com.gotravel.mobile.ui.screen
 
-import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,15 +11,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -29,7 +24,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -44,22 +38,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.gotravel.gotravel.R
-import com.gotravel.mobile.data.model.DirFacturacion
 import com.gotravel.mobile.ui.AppTopBar
 import com.gotravel.mobile.ui.AppViewModelProvider
 import com.gotravel.mobile.ui.navigation.NavDestination
+import com.gotravel.mobile.ui.screen.viewmodels.HomeUiState
 import com.gotravel.mobile.ui.screen.viewmodels.SuscripcionUiState
 import com.gotravel.mobile.ui.screen.viewmodels.SuscripcionViewModel
-import com.gotravel.mobile.ui.utils.AppUiState
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -100,13 +93,13 @@ fun SuscripcionScreen (
             horizontalAlignment = Alignment.CenterHorizontally
         ){
             if(esProfesional) {
-                // TODO
+                MiSuscripcionScreen(
+                    viewModel = viewModel,
+                    navController = navController
+                )
             } else {
                 SuscribirseScreen(
-                    viewModel = viewModel,
-                    navigateToStart = {
-                        navController.navigate(LandingDestination.route)
-                    }
+                    viewModel = viewModel
                 )
             }
         }
@@ -115,26 +108,100 @@ fun SuscripcionScreen (
 
 }
 
+@OptIn(DelicateCoroutinesApi::class)
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun MiSuscripcionScreen(
+    viewModel: SuscripcionViewModel,
+    navController: NavHostController
+) {
+
+    when (val uiState = viewModel.uiState) {
+        is SuscripcionUiState.Loading -> {
+            LandingLoadingScreen()
+        }
+        is SuscripcionUiState.Success -> {
+
+            val suscripcion = uiState.suscripcion!!
+
+            Column (
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ){
+                Card (
+                    elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
+                    modifier = Modifier.padding(16.dp)
+                ){
+                    Column(
+                        modifier = Modifier
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "Información de suscripción",
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                        Spacer(modifier = Modifier.padding(8.dp))
+                        if(suscripcion.renovar == "1") {
+                            Text(
+                                text = "Tu suscripción está activa y se renovará automáticamente el ${suscripcion.final}",
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center
+                            )
+                        } else {
+                            Text(
+                                text = "Tu suscripción está activa pero se suspenderá automáticamente el ${suscripcion.final}",
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                        val context = LocalContext.current
+                        Button(
+                            onClick = {
+
+                                if(suscripcion.renovar == "1") {
+                                    GlobalScope.launch {
+                                        viewModel.cancelSubscription(context, suscripcion.id)
+                                    }
+                                } else {
+                                    GlobalScope.launch {
+                                        viewModel.suscribirse(context)
+                                    }
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimary)
+                        ) {
+                            if(suscripcion.renovar == "1") {
+                                Text(text = "Cancelar suscripción", color = MaterialTheme.colorScheme.primary, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+                            } else {
+                                Text(text = "Renovar suscripción", color = MaterialTheme.colorScheme.primary, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+                            }
+                        }
+
+                    }
+                }
+            }
+            
+        }
+        else -> ErrorScreen{
+            navController.navigate(LandingDestination.route)
+        }
+    }
+
+}
+
+@OptIn(DelicateCoroutinesApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun SuscribirseScreen(
-    viewModel: SuscripcionViewModel,
-    navigateToStart: () -> Unit
+    viewModel: SuscripcionViewModel
 ) {
-
-    var mostrarMas by remember { mutableStateOf(false) }
-
-    if(mostrarMas) {
-        Dialog(onDismissRequest = { mostrarMas = false }) {
-            Suscribirse(
-                viewModel = viewModel,
-                navigateToStart = navigateToStart,
-                cerrarDialogo = {
-                    mostrarMas = !mostrarMas
-                }
-            )
-        }
-    }
 
     Card (
         elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
@@ -209,913 +276,35 @@ fun SuscribirseScreen(
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(modifier = Modifier.padding(8.dp))
+            val context = LocalContext.current
             Button(
                 onClick = {
-                    mostrarMas = true
+                    GlobalScope.launch {
+                        viewModel.suscribirse(context)
+                    }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimary)
             ) {
-                Text(
-                    text = "Unirse",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-        }
-    }
-
-}
-
-@OptIn(DelicateCoroutinesApi::class)
-@SuppressLint("NewApi")
-@Composable
-fun Suscribirse(
-    viewModel: SuscripcionViewModel,
-    cerrarDialogo: () -> Unit,
-    navigateToStart: () -> Unit
-) {
-
-    when (val uiState = viewModel.uiState) {
-        is SuscripcionUiState.Loading -> {
-            LandingLoadingScreen()
-        }
-        is SuscripcionUiState.Success -> {
-            var dirFacturacion by remember { mutableStateOf<DirFacturacion?>(null) }
-            var addDir by remember { mutableStateOf(false) }
-
-            if(addDir) {
-                Dialog(onDismissRequest = { addDir = false }) {
-                    NuevaDireccion(
-                        viewModel = viewModel,
-                        cerrarDialogo = { addDir = !addDir }
-                    )
-                }
-            }
-
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-
-                Card (
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 16.dp)
-                ) {
-
-                    Column(
-                        modifier = Modifier
-                            .wrapContentSize()
-                            .padding(bottom = 8.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-
-                        Row (
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End
-                        ){
-                            IconButton(onClick = { cerrarDialogo() }) {
-                                Icon(imageVector = Icons.Default.Close, contentDescription = "")
-                            }
-                        }
-
-                        Text(text = "Programa de profesionales", style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
-                        Text(text = "4.99€", style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
-
-                        Spacer(modifier = Modifier.padding(8.dp))
-
-                        if(uiState.direcciones.isEmpty()) {
-                            Text(text = "No tienes direcciones guardadas")
-                        } else {
-                            LazyColumn {
-                                items(uiState.direcciones) { dir ->
-                                    Row(
-                                        Modifier
-                                            .selectable(selected = (dir == dirFacturacion), onClick = { dirFacturacion = dir })
-                                            .fillMaxWidth(),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.Center
-
-                                    ) {
-                                        RadioButton(
-                                            selected = (dir == dirFacturacion),
-                                            onClick = { dirFacturacion = dir }
-                                        )
-                                        Text(
-                                            text = dir.linea1 + " " + dir.ciudad,
-                                            modifier = Modifier.padding(start = 16.dp)
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        Row(
-                            horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier.clickable {
-                                addDir = true
-                            }
-                        ) {
-                            Icon(imageVector = Icons.Default.Add, contentDescription = "")
-                            Text(text = "Añadir dirección de facturación")
-                        }
-
-                        var mensajeError by remember { mutableStateOf("") }
-                        Text(text = mensajeError, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
-
-                        val context = LocalContext.current
-                        Button(onClick = {
-                            if(dirFacturacion != null) {
-                                GlobalScope.launch {
-                                    viewModel.suscribirse(context, dirFacturacion!!)
-                                }
-                            } else {
-                                mensajeError = "Selecciona una dirección de facturación"
-                            }
-                        }) {
-                            Text(text = "Pagar con PayPal")
-                        }
-
-                    }
-
-                }
-
-            }
-        }
-        else -> ErrorScreen(navigateToStart = navigateToStart)
-    }
-
-}
-
-@OptIn(DelicateCoroutinesApi::class)
-@Composable
-fun NuevaDireccion(
-    viewModel: SuscripcionViewModel,
-    cerrarDialogo: () -> Unit
-) {
-
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-
-        val mensajeUi = viewModel.mensajeUi.observeAsState(initial = "")
-
-        Card (
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-            elevation = CardDefaults.cardElevation(defaultElevation = 16.dp)
-        ){
-            Column(
-                modifier = Modifier
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-
-                Row (
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ){
-                    IconButton(onClick = { cerrarDialogo() }) {
-                        Icon(imageVector = Icons.Default.Close, contentDescription = "")
-                    }
-                }
-
-                var linea1 by remember { mutableStateOf("") }
-                var linea2 by remember { mutableStateOf("") }
-                var ciudad by remember { mutableStateOf("") }
-                var estado by remember { mutableStateOf("") }
-                var cp by remember { mutableStateOf("") }
-                var pais by remember { mutableStateOf("") }
-
-                Text(
-                    text = "Dirección de facturación",
-                    style = MaterialTheme.typography.titleLarge
-                )
-
-                Spacer(modifier = Modifier.padding(8.dp))
-
-                TextField(
-                    value = linea1,
-                    onValueChange = { linea1 = it },
-                    label = { Text("Linea 1 dirección*") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Next
-                    ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.padding(8.dp))
-
-                TextField(
-                    value = linea2,
-                    onValueChange = { linea2 = it },
-                    label = { Text("Linea 2 dirección (opcional)") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Next
-                    ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.padding(8.dp))
-
-                TextField(
-                    value = ciudad,
-                    onValueChange = { ciudad = it },
-                    label = { Text("Ciudad*") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Next
-                    ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.padding(8.dp))
-
-                TextField(
-                    value = estado,
-                    onValueChange = { estado = it },
-                    label = { Text("Estado/Provincia*") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Next
-                    ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.padding(8.dp))
-
-                TextField(
-                    value = cp,
-                    onValueChange = { cp = it },
-                    label = { Text("Código postal*") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = ImeAction.Next
-                    ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.padding(8.dp))
-
-                TextField(
-                    value = pais,
-                    onValueChange = { pais = it },
-                    label = { Text("País*") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Next
-                    ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.padding(8.dp))
-
-                Text(
-                    text = mensajeUi.value,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
-                )
-
-                Button(
-                    onClick = {
-
-                        GlobalScope.launch {
-
-                            if(viewModel.guardarDireccion(linea1 = linea1, linea2 = linea2.ifBlank { null }, ciudad = ciudad, estado = estado, pais = pais, cp = cp)) {
-                                cerrarDialogo()
-                            }
-
-                        }
-
-                    },
+                Row(
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Guardar método de pago")
+                    Row (
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start
+                    ){
+                        Image(painter = painterResource(id = R.drawable.paypalicon), contentDescription = "", modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.padding(8.dp))
+                        Text(text = "Suscribirse con PayPal", color = MaterialTheme.colorScheme.primary)
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text(text = "4.99€", color = MaterialTheme.colorScheme.primary)
                 }
-
             }
-
         }
-
     }
 
 }
-
-/*
-@OptIn(DelicateCoroutinesApi::class)
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun Suscribirse(
-    viewModel: SuscripcionViewModel,
-    cerrarDialogo: () -> Unit,
-    navigateToStart: () -> Unit
-) {
-
-    when (val uiState = viewModel.uiState) {
-        is SuscripcionUiState.Loading -> {
-            LandingLoadingScreen()
-        }
-        is SuscripcionUiState.Success -> {
-
-            var addMetodopago by remember { mutableStateOf(false) }
-            var metodoPagoaUsar by remember { mutableStateOf<Metodopago?>(null) }
-
-            if(addMetodopago) {
-                Dialog(onDismissRequest = { addMetodopago = false }) {
-                    NuevoMetodoPago(
-                        viewModel = viewModel,
-                        cerrarDialogo = { addMetodopago = !addMetodopago }
-                    )
-                }
-            }
-
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-
-                Card (
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 16.dp)
-                ) {
-
-                    Column(
-                        modifier = Modifier
-                            .wrapContentSize()
-                            .padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-
-                        Row (
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End
-                        ){
-
-                        }
-
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(text = "Plan de profesionales", style = MaterialTheme.typography.titleLarge)
-                            Spacer(modifier = Modifier.weight(1f))
-                            IconButton(onClick = { cerrarDialogo() }) {
-                                Icon(imageVector = Icons.Default.Close, contentDescription = "")
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.padding(8.dp))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Text(text = "4.99€", style = MaterialTheme.typography.titleLarge)
-                        }
-
-                        Spacer(modifier = Modifier.padding(16.dp))
-
-                        Text(text = "Selecciona un método de pago", style = MaterialTheme.typography.titleMedium)
-
-                        Spacer(modifier = Modifier.padding(8.dp))
-
-                        if(uiState.metodosPago.isNotEmpty()) {
-                            LazyColumn {
-                                items(uiState.metodosPago) {metodo ->
-                                    Row(
-                                        Modifier
-                                            .selectable(selected = (metodo == metodoPagoaUsar), onClick = { metodoPagoaUsar = metodo }),
-                                        verticalAlignment = Alignment.CenterVertically
-
-                                    ) {
-                                        RadioButton(
-                                            selected = (metodo == metodoPagoaUsar),
-                                            onClick = { metodoPagoaUsar = metodo }
-                                        )
-                                        Text(
-                                            text = when (metodo) {
-                                                is Tarjetacredito -> metodo.tipo + " que acaba en " + metodo.numero.takeLast(4)
-                                                is Paypal -> "Paypal: " + metodo.email
-                                                else -> "Desconocido"
-                                            },
-                                            modifier = Modifier.padding(start = 16.dp),
-                                            style = MaterialTheme.typography.labelMedium
-                                        )
-                                    }
-                                }
-                            }
-                        } else {
-                            Text(text = "No tienes métodos de pago guardados", style = MaterialTheme.typography.labelSmall)
-                        }
-
-                        Spacer(modifier = Modifier.padding(8.dp))
-
-                        Row(
-                            horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier.clickable {
-                                addMetodopago = true
-                            }
-                        ) {
-                            Icon(imageVector = Icons.Default.Add, contentDescription = "")
-                            Text(text = "Añadir método de pago")
-                        }
-
-                        Spacer(modifier = Modifier.padding(8.dp))
-
-                        var mensajeError by remember { mutableStateOf("") }
-                        Text(text = mensajeError)
-
-                        val context = LocalContext.current
-                        Button(onClick = {
-                            GlobalScope.launch {
-                                viewModel.suscribirse(context)
-                            }
-                        }) {
-                            Text(text = "Pagar con PayPal")
-                        }
-
-                    }
-
-                }
-
-            }
-
-        }
-        else -> ErrorScreen(navigateToStart = navigateToStart)
-    }
-
-
-
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-@OptIn(DelicateCoroutinesApi::class)
-@Composable
-fun NuevoMetodoPago(
-    viewModel: SuscripcionViewModel,
-    cerrarDialogo: () -> Unit
-) {
-
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-
-        var fechaVencimiento by remember { mutableStateOf("") }
-        var titular by remember { mutableStateOf("") }
-        var numero by remember { mutableStateOf("") }
-        var cvv by remember { mutableStateOf("") }
-
-        var guardarMetodoPago by remember { mutableStateOf(false) }
-
-        var seleccionarFechaVencimiento by remember { mutableStateOf(false) }
-
-        val mensajeUi = viewModel.mensajeUi.observeAsState(initial = "")
-
-        Card (
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-            elevation = CardDefaults.cardElevation(defaultElevation = 16.dp)
-        ){
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .weight(0.45f)
-                    .padding(16.dp)
-                    .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-
-                Row (
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ){
-                    IconButton(onClick = { cerrarDialogo() }) {
-                        Icon(imageVector = Icons.Default.Close, contentDescription = "")
-                    }
-                }
-
-                Text(
-                    text = "Nuevo método de pago",
-                    style = MaterialTheme.typography.titleLarge
-                )
-
-                Spacer(modifier = Modifier.padding(8.dp))
-
-                TextField(
-                    value = titular,
-                    onValueChange = { titular = it },
-                    label = { Text("Titular de la tarjeta*") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Next
-                    ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.padding(8.dp))
-
-                TextField(
-                    value = numero,
-                    onValueChange = { numero = it },
-                    label = { Text("Numero de la tarjeta*") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = ImeAction.Next
-                    ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.padding(8.dp))
-
-                TextField(
-                    value = cvv,
-                    onValueChange = { cvv = it },
-                    label = { Text("Código de seguridad*") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = ImeAction.Next
-                    ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.padding(8.dp))
-
-                TextField(
-                    value = fechaVencimiento,
-                    onValueChange = { fechaVencimiento = it },
-                    label = { Text("Fecha de vencimiento*") },
-                    singleLine = true,
-                    trailingIcon = {
-                        IconButton(onClick = { seleccionarFechaVencimiento = !seleccionarFechaVencimiento }) {
-                            Icon(imageVector = Icons.Default.DateRange, contentDescription = "")
-                        }
-                    },
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Next
-                    ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                    ),
-                    readOnly = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                )
-
-                if(seleccionarFechaVencimiento) {
-                    MonthYearPickerDialog(
-                        onMonthYearSelected = { fechaVencimiento = it },
-                        onDismiss = { seleccionarFechaVencimiento = !seleccionarFechaVencimiento }
-                    )
-                }
-
-                Spacer(modifier = Modifier.padding(8.dp))
-
-                var calle by remember { mutableStateOf("") }
-                var ciudad by remember { mutableStateOf("") }
-                var estado by remember { mutableStateOf("") }
-                var cp by remember { mutableStateOf("") }
-                var pais by remember { mutableStateOf("") }
-
-                Text(
-                    text = "Dirección de facturación",
-                    style = MaterialTheme.typography.titleLarge
-                )
-
-                Spacer(modifier = Modifier.padding(8.dp))
-
-                TextField(
-                    value = calle,
-                    onValueChange = { calle = it },
-                    label = { Text("Calle*") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Next
-                    ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.padding(8.dp))
-
-                TextField(
-                    value = ciudad,
-                    onValueChange = { ciudad = it },
-                    label = { Text("Ciudad*") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Next
-                    ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.padding(8.dp))
-
-                TextField(
-                    value = estado,
-                    onValueChange = { estado = it },
-                    label = { Text("Estado/Provincia*") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Next
-                    ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.padding(8.dp))
-
-                TextField(
-                    value = cp,
-                    onValueChange = { cp = it },
-                    label = { Text("Código postal*") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Next
-                    ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.padding(8.dp))
-
-                TextField(
-                    value = pais,
-                    onValueChange = { pais = it },
-                    label = { Text("País*") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Next
-                    ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.padding(8.dp))
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Checkbox(
-                        checked = guardarMetodoPago,
-                        onCheckedChange = { guardarMetodoPago = it },
-                        colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.secondary)
-                    )
-
-                    Text(
-                        text = "Guardar metodo de pago",
-                        modifier = Modifier.padding(start = 8.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.padding(8.dp))
-
-                Text(
-                    text = mensajeUi.value,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
-                )
-
-                Button(
-                    onClick = {
-
-                        val dirFacturacion = viewModel.validarDireccion(calle = calle, ciudad = ciudad, estado = estado, pais = pais, cp = cp)
-
-                        if(dirFacturacion != null) {
-
-                            val tarjeta = viewModel.validarMetodopago(numero, titular, fechaVencimiento, cvv, dirFacturacion = dirFacturacion)
-                            if(tarjeta != null) {
-                                if(guardarMetodoPago) {
-                                    GlobalScope.launch {
-                                        viewModel.guardarMetodopago(tarjeta)
-                                    }
-                                }
-                                cerrarDialogo()
-                            }
-                        }
-
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Guardar método de pago")
-                }
-
-            }
-
-        }
-
-    }
-
-}
-
-@Composable
-fun MonthYearPickerDialog(
-    onMonthYearSelected: (String) -> Unit,
-    onDismiss: () -> Unit
-) {
-    val currentMonth = Calendar.getInstance().get(Calendar.MONTH) + 1
-    val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-
-    var selectedMonth by remember { mutableStateOf(currentMonth) }
-    var selectedYear by remember { mutableStateOf(currentYear) }
-
-    val months = (1..12).toList()
-    val years = (currentYear..2099).toList()
-
-    var showMonthDropdown by remember { mutableStateOf(false) }
-    var showYearDropdown by remember { mutableStateOf(false) }
-
-    AlertDialog(
-        onDismissRequest = { onDismiss() },
-        confirmButton = {
-            Button(onClick = {
-                val selectedDate = "${selectedMonth.toString().padStart(2, '0')}/${selectedYear.toString().substring(2)}"
-                onMonthYearSelected(selectedDate)
-                onDismiss()
-            }) {
-                Text(text = "Aceptar")
-            }
-        },
-        dismissButton = {
-            Button(onClick = {
-                onDismiss()
-            }) {
-                Text(text = "Cancelar")
-            }
-        },
-        title = { Text(text = "Seleccione el mes y el año", style = MaterialTheme.typography.titleMedium, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center) },
-        text = {
-            Column (
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.Center
-            ){
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Absolute.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = "Mes:")
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 16.dp)
-                    ) {
-                        Text(
-                            text = selectedMonth.toString(),
-                            Modifier
-                                .clickable { showMonthDropdown = true }
-                                .padding(8.dp)
-                                .width(128.dp), textAlign = TextAlign.Center
-                        )
-                        DropdownMenu(expanded = showMonthDropdown, onDismissRequest = { showMonthDropdown = false }) {
-                            months.forEach { month ->
-                                DropdownMenuItem(
-                                    text = {Text(text = month.toString())},
-                                    onClick = {
-                                        selectedMonth = month
-                                        showMonthDropdown = false
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Absolute.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = "Año:")
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 16.dp)
-                    ) {
-                        Text(
-                            text = selectedYear.toString(),
-                            Modifier
-                                .clickable { showYearDropdown = true }
-                                .padding(8.dp)
-                                .width(128.dp), textAlign = TextAlign.Center
-                        )
-                        DropdownMenu(
-                            expanded = showYearDropdown, onDismissRequest = { showYearDropdown = false },
-                        ) {
-                            years.forEach { year ->
-                                DropdownMenuItem(
-                                    text = {Text(text = year.toString())},
-                                    onClick = {
-                                        selectedYear = year
-                                        showYearDropdown = false
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    )
-}
- */
 
 
 
