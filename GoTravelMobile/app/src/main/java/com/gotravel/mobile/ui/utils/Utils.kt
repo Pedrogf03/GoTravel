@@ -27,10 +27,9 @@ object AppUiState {
 object Regex {
     val regexEmail = "^(?=.{1,150}\$)[A-Za-z0-9+_.-]+@(.+)$".toRegex()
     val regexContrasena = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9\\s]).{8,}$".toRegex()
-    val regexNombre = "^(?=.{1,45}\$)[a-zA-Z0-9 áéíóúÁÉÍÓÚüÜñÑ]*$".toRegex()
-    val regexApellidos = "^(?=.{1,200}\$)[a-zA-Z0-9 áéíóúÁÉÍÓÚüÜñÑ]*$".toRegex()
-    val regexCamposGrandes = "^(?=.{1,500}\$)[a-zA-Z0-9 áéíóúÁÉÍÓÚüÜñÑ]*$".toRegex()
+    val regexCamposAlfaNum = "^(?=.{1,500}\$)[a-zA-Z0-9 áéíóúÁÉÍÓÚüÜñÑ,]*$".toRegex()
     val regexTfno = "^\\d{9}$".toRegex()
+    val regexCp = "^\\d{5}$".toRegex()
 }
 
 fun String.sha256(): String {

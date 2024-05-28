@@ -300,7 +300,7 @@ fun MyTimePickerDialog(
                     Spacer(modifier = Modifier.padding(8.dp))
 
                     Button(onClick = {
-                        onTimeSelected("$selectedHour:$selectedMinute")
+                        onTimeSelected("${selectedHour.toString().padStart(2, '0')}:${selectedMinute.toString().padStart(2, '0')}")
                         onDismiss()
                     }) {
                         Text(text = "Seleccionar")
@@ -315,7 +315,6 @@ fun MyTimePickerDialog(
     }
 
 }
-
 
 
 @SuppressLint("SimpleDateFormat")

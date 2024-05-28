@@ -38,8 +38,14 @@ public class Protocolo {
                 Usuario u = gson.fromJson(fromCliente[0], Usuario.class);
 
                 if(u != null && u.getContrasena().equals(fromCliente[1])) {
-                    mensaje = gson.toJson(u);
-                    estado = Estado.ATENDIENDO_PETICIONES;
+
+                    if (u.getOculto().equals("1")){
+                        mensaje = "oculto";
+                    } else {
+                        mensaje = gson.toJson(u);
+                        estado = Estado.ATENDIENDO_PETICIONES;
+                    }
+
                 } else {
                     mensaje = "reintentar";
                 }

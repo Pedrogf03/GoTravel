@@ -63,11 +63,11 @@ public class Usuario implements Serializable {
     @Column(name = "foto")
     private byte[] foto;
 
-    @Lob
     @Column(name = "oculto", nullable = false, columnDefinition = "ENUM('0', '1')")
-    private String oculto = "0";
+    @Expose
+    private String oculto;
 
-    @OneToMany(mappedBy = "usuario")
+    @OneToMany(mappedBy = "usuario", fetch = FetchType.EAGER)
     private List<Viaje> viajes;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
@@ -79,22 +79,22 @@ public class Usuario implements Serializable {
     @Expose
     private List<Rol> roles;
 
-    @OneToMany(mappedBy = "usuario")
+    @OneToMany(mappedBy = "usuario", fetch = FetchType.EAGER)
     private List<Servicio> servicios;
 
     @OneToMany(mappedBy = "usuario", fetch = FetchType.EAGER)
     private List<Pago> pagos;
 
-    @OneToMany(mappedBy = "usuario")
+    @OneToMany(mappedBy = "usuario", fetch = FetchType.EAGER)
     private List<Contratacion> contrataciones;
 
-    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Suscripcion suscripcion;
 
-    @OneToMany(mappedBy = "usuario1")
+    @OneToMany(mappedBy = "usuario1", fetch = FetchType.EAGER)
     private List<Chat> chatsComoUsuario1;
 
-    @OneToMany(mappedBy = "usuario2")
+    @OneToMany(mappedBy = "usuario2", fetch = FetchType.EAGER)
     private List<Chat> chatsComoUsuario2;
 
     public List<Chat> getChats() {
@@ -104,7 +104,7 @@ public class Usuario implements Serializable {
         return todosLosChats;
     }
 
-    @OneToMany(mappedBy = "emisor")
+    @OneToMany(mappedBy = "emisor", fetch = FetchType.EAGER)
     private List<Mensaje> mensajes;
 
 }

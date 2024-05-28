@@ -170,9 +170,6 @@ fun AppNavHost(
                 navigateToContrataciones = {
                     //TODO
                 },
-                navigateToMetodosPago = {
-                    //TODO
-                },
                 navigateToPagos = {
                     //TODO
                 },

@@ -24,9 +24,9 @@ class PerfilViewModel : ViewModel() {
 
     suspend fun updateUsuario(usuario: Usuario): Boolean {
 
-        if(!(usuario.nombre.isBlank() || usuario.nombre.isEmpty()) && usuario.nombre.matches(Regex.regexNombre)) {
+        if(!(usuario.nombre.isBlank() || usuario.nombre.isEmpty()) && usuario.nombre.matches(Regex.regexCamposAlfaNum) && usuario.nombre.length <= 45) {
 
-            if(usuario.apellidos != null && usuario.apellidos!!.matches(Regex.regexCamposGrandes) ) {
+            if(usuario.apellidos != null && usuario.apellidos!!.matches(Regex.regexCamposAlfaNum) && usuario.apellidos!!.length <= 200 ) {
 
                 if(!(usuario.email.isBlank() || usuario.email.isEmpty()) && usuario.email.matches(Regex.regexEmail)) {
 

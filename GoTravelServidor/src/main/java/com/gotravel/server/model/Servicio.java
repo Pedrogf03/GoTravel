@@ -13,15 +13,19 @@ public class Servicio {
 
     @Id
     @Column(name = "id_servicio", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(name = "nombre", nullable = false, length = 45)
+    @Expose
     private String nombre;
 
-    @Column(name = "descripcion", nullable = false, length = 100)
+    @Column(name = "descripcion", nullable = false, length = 500)
+    @Expose
     private String descripcion;
 
     @Column(name = "precio", nullable = false)
+    @Expose
     private Double precio;
 
     @Column(name = "fecha_inicio", nullable = false, columnDefinition = "DATE")
@@ -33,14 +37,17 @@ public class Servicio {
     private String fechaFinal;
 
     @Column(name = "hora", columnDefinition = "TIME")
+    @Expose
     private String hora;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "tipo_servicio", nullable = false)
+    @Expose
     private Tiposervicio tipoServicio;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.ALL)
     @JoinColumn(name = "id_direccion", nullable = false)
+    @Expose
     private Direccion direccion;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

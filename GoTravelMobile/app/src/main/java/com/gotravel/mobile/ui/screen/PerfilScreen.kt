@@ -55,7 +55,6 @@ fun PerfilScreen(
     navController: NavHostController,
     navigateToEditarPerfil: () -> Unit,
     navigateToPagos: () -> Unit,
-    navigateToMetodosPago: () -> Unit,
     navigateToContrataciones: () -> Unit,
     navigateToSuscripcion: (Boolean) -> Unit,
     navigateToStart: () -> Unit,
@@ -98,7 +97,6 @@ fun PerfilScreen(
                 esProfesional = AppUiState.usuario.roles.contains(Rol("Profesional")),
                 navigateToEditarPerfil = navigateToEditarPerfil,
                 navigateToPagos = navigateToPagos,
-                navigateToMetodosPago = navigateToMetodosPago,
                 navigateToContrataciones = navigateToContrataciones,
                 navigateToSuscripcion = navigateToSuscripcion,
                 cerrarSesion = {
@@ -125,7 +123,6 @@ fun PerfilScreenContent(
     esProfesional: Boolean,
     navigateToEditarPerfil: () -> Unit,
     navigateToPagos: () -> Unit,
-    navigateToMetodosPago: () -> Unit,
     navigateToContrataciones: () -> Unit,
     navigateToSuscripcion: (Boolean) -> Unit,
     cerrarSesion: () -> Unit,
@@ -173,28 +170,14 @@ fun PerfilScreenContent(
             Spacer(modifier = Modifier.padding(8.dp))
 
             Button(
-                onClick = { navigateToMetodosPago() },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary)
-            ) {
-                Text(
-                    text = "METODOS DE PAGO",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
-            }
-
-            Spacer(modifier = Modifier.padding(8.dp))
-
-            Button(
                 onClick = { navigateToContrataciones() },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimary)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Text(
                     text = "SERVICIOS CONTRATADOS",
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
             }
 
@@ -203,12 +186,12 @@ fun PerfilScreenContent(
             Button(
                 onClick = { navigateToSuscripcion(esProfesional) },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary)
+                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.onPrimary)
             ) {
                 Text(
                     text = if(esProfesional) "MI SUSCRIPCIÓN" else "PROGRAMA DE PROFESIONALES",
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimary
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
 
@@ -227,12 +210,12 @@ fun PerfilScreenContent(
                     navigateToStart()
                 },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.onPrimary)
+                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary)
             ) {
                 Text(
                     text = "CERRAR SESIÓN",
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
             }
 
@@ -248,32 +231,32 @@ fun PerfilScreenContent(
                         navigateToStart()
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary)
+                    colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.onPrimary)
                 ) {
                     Text(
                         text = "CERRAR SERVIDOR",
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onPrimary
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
-            } else {
-                Card (
-                    elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary)
-                ){
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(imageVector = Icons.Default.Warning, contentDescription = "")
-                        Spacer(modifier = Modifier.padding(8.dp))
-                        Text(
-                            text = "¡Y recuerda llevar tu documentación siempre encima al viajar!",
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center
-                        )
-                    }
+            }
+
+            Card (
+                elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary)
+            ){
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(imageVector = Icons.Default.Warning, contentDescription = "")
+                    Spacer(modifier = Modifier.padding(8.dp))
+                    Text(
+                        text = "¡Y recuerda llevar tu documentación siempre encima al viajar!",
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
 

@@ -1,5 +1,6 @@
 package com.gotravel.server.model;
 
+import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,19 +16,28 @@ public class Direccion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "calle", nullable = false, length = 100)
-    private String calle;
+    @Column(name = "linea1", nullable = false, length = 200)
+    @Expose
+    private String linea1;
 
-    @Column(name = "numero", nullable = false, length = 5)
-    private String numero;
+    @Column(name = "linea2", length = 200)
+    @Expose
+    private String linea2;
 
-    @Column(name = "ciudad", nullable = false, length = 50)
+    @Column(name = "ciudad", nullable = false, length = 100)
+    @Expose
     private String ciudad;
 
-    @Column(name = "estado", nullable = false, length = 50)
+    @Column(name = "estado", nullable = false, length = 100)
+    @Expose
     private String estado;
 
+    @Column(name = "pais", nullable = false, length = 100)
+    @Expose
+    private String pais;
+
     @Column(name = "cp", nullable = false, length = 5, columnDefinition = "CHAR")
+    @Expose
     private String cp;
 
 }

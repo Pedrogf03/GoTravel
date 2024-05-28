@@ -94,6 +94,11 @@ class CredencialesViewModel(
                     }
 
                     return false
+                } else if(fromServer.equals("oculto")) {
+                    if(peticion.contains("login")) {
+                        mensajeUi.postValue("Ese usuario está oculto y no puede iniciar sesión")
+                    }
+                    return false
                 } else {
                     usuario = gson.fromJson(fromServer, Usuario::class.java)
 
@@ -142,7 +147,7 @@ class CredencialesViewModel(
 
         if (!(nombre.isBlank() || nombre.isEmpty()) && !(email.isBlank() || email.isEmpty()) && !(contrasena.isBlank() || contrasena.isEmpty()) && !(confirmarContrasena.isBlank() || confirmarContrasena.isEmpty())) {
 
-            if (!nombre.matches(Regex.regexNombre)) {
+            if (!nombre.matches(Regex.regexCamposAlfaNum) && nombre.length <= 45) {
                 mensajeUi.postValue("El nombre no es válido")
                 mensajeUi.postValue(nombre)
             } else if (!email.matches(Regex.regexEmail)) {

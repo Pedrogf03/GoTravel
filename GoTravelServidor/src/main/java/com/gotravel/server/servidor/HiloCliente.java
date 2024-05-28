@@ -48,16 +48,16 @@ public class HiloCliente extends Thread {
     @Override
     public void run() {
 
-        Gson gson = new GsonBuilder()
-                .excludeFieldsWithoutExposeAnnotation()
-                .serializeNulls()
-                .setLenient()
-                .create();
-
         try {
 
             sesion.setSalida(new DataOutputStream(sesion.getCliente().getOutputStream()));
             sesion.setEntrada(new DataInputStream(sesion.getCliente().getInputStream()));
+
+            Gson gson = new GsonBuilder()
+                    .excludeFieldsWithoutExposeAnnotation()
+                    .serializeNulls()
+                    .setLenient()
+                    .create();
 
             while (!sesionIniciada) {
 
@@ -79,11 +79,9 @@ public class HiloCliente extends Thread {
                 String output = protocolo.procesarMensaje(gson.toJson(u) +  ";" + contrasena);
 
                 // Si se obtiene el usuario correctamente, se actualiza, por si se ha cambiado algo de la suscripción y los roles.
-                if(!output.equals("reintentar")) {
+                if(!output.equals("reintentar") && !output.equals("oculto") && u != null) {
 
-                    u = gson.fromJson(output, Usuario.class);
-
-                    Suscripcion s = service.findSuscripcionByUsuarioId(u.getId()); // SE OBTIENE LA SUSCRIPCION
+                    Suscripcion s = u.getSuscripcion();
                     if(s != null && s.getRenovar().equals("0") && s.getEstado().equals("ACTIVE")) { // SI NO HAY QUE RENOVARLA Y ESTÁ ACTIVA
                         LocalDate fechaFin = LocalDate.parse(s.getFechaFinal(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                         if(fechaFin.isBefore(LocalDate.now()) || fechaFin.isEqual(LocalDate.now())) { // Y ADEMÁS LA FECHA DE FINAL ES PRESENTE O PASADA
@@ -101,7 +99,6 @@ public class HiloCliente extends Thread {
                         // SE LANZA UN HILO QUE SE ENCARGA DE IR RENOVANDO LAS SUSCRIPCIONES Y ACTUALIZARLAS
                         new Thread(() -> {
                             LocalDate fechaFin = LocalDate.parse(s.getFechaFinal(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                            System.out.println(fechaFin);
                             while(fechaFin.isBefore(LocalDate.now()) || fechaFin.isEqual(LocalDate.now())) { // Y MIENTRAS ADEMÁS LA FECHA DE FINAL SEA PRESENTE O PASADA
                                 fechaFin = fechaFin.plusMonths(1); // SE AÑADE UN MES A LA FECHA DE FINALIZACIÓN
                                 Pago p = new Pago(s.getUsuario(), 4.99, fechaFin.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))); // SE CREA UN NUEVO PAGO
@@ -115,14 +112,12 @@ public class HiloCliente extends Thread {
                 }
 
                 // Si ha iniciado sesion, se manda un json que contiene al usuario
-                // Si no ha iniciado sesion, se manda un mensaje de reintentar
+                // Si no ha iniciado sesion, se manda un mensaje de reintentar o de que el usuario está oculto
                 sesion.getSalida().writeUTF(output);
 
                 // Si ha iniciado sesion, se pone la flag en true y se le pregunta al usuario por la foto
                 if(u != null){
                     sesionIniciada = true;
-
-                    u.setFoto(service.getFotoFromUsuarioId(u.getId()));
 
                     sesion.setUsuario(u);
 
@@ -221,6 +216,12 @@ public class HiloCliente extends Thread {
                                 etapaFromUser.setViaje(v);
                                 etapaFromUser = service.saveEtapa(etapaFromUser);
                                 jsonFromServer = gson.toJson(etapaFromUser);
+                            } else if(tabla.equalsIgnoreCase("servicio")) {
+                                System.out.println(jsonFromUser);
+                                Servicio servicioFromUser = gson.fromJson(jsonFromUser, Servicio.class);
+                                servicioFromUser.setUsuario(sesion.getUsuario());
+                                servicioFromUser = service.saveServicio(servicioFromUser);
+                                jsonFromServer = gson.toJson(servicioFromUser);
                             }
                             yield jsonFromServer;
                         }
@@ -249,6 +250,15 @@ public class HiloCliente extends Thread {
                             } else if(tabla.equalsIgnoreCase("suscripcion")){
                                 Suscripcion suscripcion = service.findSuscripcionByUsuarioId(idUsuario);
                                 yield gson.toJson(suscripcion);
+                            }
+                            yield jsonFromServer;
+                        }
+                        case "findAll" -> {
+                            String tabla = fromCliente[1];
+                            String jsonFromServer = "";
+                            if(tabla.equalsIgnoreCase("tipoServicio")) {
+                                List<Tiposervicio> tiposServicio = service.findAllTiposServicio();
+                                jsonFromServer = gson.toJson(tiposServicio);
                             }
                             yield jsonFromServer;
                         }
@@ -297,8 +307,7 @@ public class HiloCliente extends Thread {
                 } else if (output.equals("finServer")) {
                     sesion.getSalida().writeUTF("cerrando");
                     sesion.getSalida().flush();
-                    LOG.info("Se va a cerrar el servidor");
-                    System.out.println("cerrando server");
+                    LOG.info("El servidor se cerrará en 10 segundos");
                     sleep(10000);
                     terminar = true;
                     clientesConectados.remove(this);

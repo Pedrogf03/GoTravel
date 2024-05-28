@@ -12,11 +12,14 @@ import lombok.Setter
 @AllArgsConstructor
 @Serializable
 data class Servicio (
-    val id: Int,
+    val id: Int? = null,
     val nombre: String,
-    val descripcion: String,
+    val descripcion: String?,
+    val precio: Double,
+    val fechaInicio: String,
+    val fechaFinal: String?,
+    val hora: String?,
     val tipoServicio: Tiposervicio,
-    val localizacion: Localizacion,
-    val usuario: Usuario,
-    val oculto: String
+    val direccion: Direccion,
+    val usuario: Usuario? = null
 )

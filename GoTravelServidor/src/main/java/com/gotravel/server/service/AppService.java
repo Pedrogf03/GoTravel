@@ -136,4 +136,28 @@ public class AppService {
         return suscripcionRepository.findSuscripcionByUsuarioId(idUsuario);
     }
 
+    @Autowired
+    private TipoServicioRepository tipoServicioRepository;
+
+    public List<Tiposervicio> findAllTiposServicio() {
+        return tipoServicioRepository.findAll();
+    }
+
+    @Autowired
+    private ServicioRepository servicioRepository;
+
+    public Servicio saveServicio(Servicio servicio) {
+        try {
+            servicio = servicioRepository.save(servicio);
+            return findServicioById(servicio.getId());
+        } catch (Exception e) {
+            LOG.error("Error: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    public Servicio findServicioById(int id) {
+        return servicioRepository.findById(id).orElse(null);
+    }
+
 }

@@ -107,7 +107,7 @@ class ViajeViewModel(
                 etapa = Etapa(nombre = nombre, fechaInicio = LocalDate.parse(fechaInicio, formatoFinal).format(formatoFromDb), fechaFinal = LocalDate.parse(fechaFinal, formatoFinal).format(formatoFromDb), tipo = tipo, costeTotal = 0.0)
             }
 
-            if(!(etapa.nombre.isBlank() || etapa.nombre.isEmpty()) && etapa.nombre.matches(Regex.regexNombre)) {
+            if(!(etapa.nombre.isBlank() || etapa.nombre.isEmpty()) && etapa.nombre.matches(Regex.regexCamposAlfaNum) && etapa.nombre.length <= 45) {
 
                 val inicio = LocalDate.parse(etapa.inicio, formatoFinal)
                 val final = LocalDate.parse(etapa.final, formatoFinal)
@@ -205,9 +205,9 @@ class ViajeViewModel(
             val inicio = LocalDate.parse(fechaInicio, formatoFinal)
             val fin = LocalDate.parse(fechaFin, formatoFinal)
 
-            if(!nombre.matches(Regex.regexNombre)) {
+            if(!nombre.matches(Regex.regexCamposAlfaNum) || nombre.length >= 45) {
                 mensajeUi.postValue("El nombre no es válido")
-            } else if(descripcion.isNotBlank() && !descripcion.matches(Regex.regexNombre)) {
+            } else if(descripcion.isNotBlank() && !descripcion.matches(Regex.regexCamposAlfaNum)) {
                 mensajeUi.postValue("La descripción no es válida")
             } else if (fin.isBefore(inicio)) {
                 mensajeUi.postValue("La fecha de final no puede ser antes que la fecha de inicio")
