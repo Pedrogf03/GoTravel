@@ -118,16 +118,6 @@ DEFAULT CHARACTER SET = utf8mb3;
 
 
 -- -----------------------------------------------------
--- Table `gotravel`.`localizacion`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `gotravel`.`localizacion` (
-  `id_localizacion` INT NOT NULL AUTO_INCREMENT,
-  PRIMARY KEY (`id_localizacion`))
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8mb3;
-
-
--- -----------------------------------------------------
 -- Table `gotravel`.`tiposervicio`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `gotravel`.`tiposervicio` (
@@ -146,7 +136,7 @@ CREATE TABLE IF NOT EXISTS `gotravel`.`servicio` (
   `descripcion` VARCHAR(100) NOT NULL,
   `precio` DOUBLE NOT NULL,
   `tipo_servicio` VARCHAR(100) NOT NULL,
-  `id_localizacion` INT NOT NULL,
+  `id_direccion` INT NOT NULL,
   `id_usuario` INT NOT NULL,
   `oculto` ENUM('0', '1') NOT NULL DEFAULT '0',
   `fecha_inicio` DATE NOT NULL,
@@ -154,10 +144,10 @@ CREATE TABLE IF NOT EXISTS `gotravel`.`servicio` (
   `hora` TIME NULL DEFAULT NULL,
   PRIMARY KEY (`id_servicio`),
   INDEX `fk_Servicio_TipoServicio1_idx` (`tipo_servicio` ASC) VISIBLE,
-  INDEX `fk_Servicio_Localizacion1_idx` (`id_localizacion` ASC) VISIBLE,
+  INDEX `fk_Servicio_Direccion1_idx` (`id_direccion` ASC) VISIBLE,
   INDEX `fk_Servicio_Usuario1_idx` (`id_usuario` ASC) VISIBLE,
-  CONSTRAINT `fk_Servicio_Localizacion1`
-    FOREIGN KEY (`id_localizacion`)
+  CONSTRAINT `fk_Servicio_Direccion1`
+    FOREIGN KEY (`id_direccion`)
     REFERENCES `gotravel`.`localizacion` (`id_localizacion`),
   CONSTRAINT `fk_Servicio_TipoServicio1`
     FOREIGN KEY (`tipo_servicio`)
@@ -204,16 +194,13 @@ DEFAULT CHARACTER SET = utf8mb3;
 -- Table `gotravel`.`direccion`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `gotravel`.`direccion` (
-  `id_localizacion` INT NOT NULL,
+  `id_direccion` INT NOT NULL AUTO_INCREMENT,
   `calle` VARCHAR(100) NOT NULL,
   `numero` VARCHAR(5) NOT NULL,
   `ciudad` VARCHAR(50) NOT NULL,
   `estado` VARCHAR(50) NOT NULL,
   `cp` CHAR(5) NOT NULL,
-  PRIMARY KEY (`id_localizacion`),
-  CONSTRAINT `fk_Direccion_Localizacion10`
-    FOREIGN KEY (`id_localizacion`)
-    REFERENCES `gotravel`.`localizacion` (`id_localizacion`))
+  PRIMARY KEY (`id_direccion`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb3;
 
@@ -302,21 +289,6 @@ CREATE TABLE IF NOT EXISTS `gotravel`.`suscripcion` (
   CONSTRAINT `fk_Suscripcion_Usuario1`
     FOREIGN KEY (`id_usuario`)
     REFERENCES `gotravel`.`usuario` (`id_usuario`))
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8mb3;
-
-
--- -----------------------------------------------------
--- Table `gotravel`.`ubicacion`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `gotravel`.`ubicacion` (
-  `id_localizacion` INT NOT NULL,
-  `coordenada_x` DECIMAL(9,6) NOT NULL,
-  `coordenada_y` DECIMAL(9,6) NOT NULL,
-  PRIMARY KEY (`id_localizacion`),
-  CONSTRAINT `fk_Direccion_Localizacion1`
-    FOREIGN KEY (`id_localizacion`)
-    REFERENCES `gotravel`.`localizacion` (`id_localizacion`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb3;
 

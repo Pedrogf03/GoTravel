@@ -10,6 +10,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.GsonBuilder
+import com.google.gson.reflect.TypeToken
 import com.gotravel.mobile.data.model.Etapa
 import com.gotravel.mobile.data.model.Viaje
 import com.gotravel.mobile.ui.screen.ViajeDestination
@@ -46,42 +47,48 @@ class ViajeViewModel(
 
     private fun getViaje() {
         viewModelScope.launch {
-            try {
+            uiState = try {
                 val viaje = findViajeById(idViaje)
                 if(viaje != null) {
-                    uiState = ViajeUiState.Success(viaje)
+                    ViajeUiState.Success(viaje)
                 } else {
-                    uiState = ViajeUiState.Error
+                    ViajeUiState.Error
                 }
             } catch (e: IOException) {
-                uiState = ViajeUiState.Error
+                ViajeUiState.Error
             }
         }
     }
 
     private suspend fun findViajeById(idViaje: Int) : Viaje? {
 
-        return withContext(Dispatchers.IO) {
-            val gson = GsonBuilder()
-                .serializeNulls()
-                .setLenient()
-                .create()
+        if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+            return withContext(Dispatchers.IO) {
+                val gson = GsonBuilder()
+                    .serializeNulls()
+                    .setLenient()
+                    .create()
 
-            try {
+                try {
 
-                AppUiState.salida.writeUTF("findById;viaje;${idViaje}")
-                AppUiState.salida.flush()
+                    AppUiState.salida.writeUTF("findById;viaje;${idViaje}")
+                    AppUiState.salida.flush()
 
-                val jsonFromServer = AppUiState.entrada.readUTF()
-                return@withContext gson.fromJson(jsonFromServer, Viaje::class.java)
+                    val jsonFromServer = AppUiState.entrada.readUTF()
+                    return@withContext gson.fromJson(jsonFromServer, Viaje::class.java)
 
-            } catch (e: IOException) {
-                e.printStackTrace()
-            } catch (e: Exception) {
-                e.printStackTrace()
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                    AppUiState.socket!!.close()
+                    return@withContext null
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+                return@withContext null
             }
-
-            return@withContext null
+        } else {
+            return null
         }
 
     }
@@ -126,34 +133,43 @@ class ViajeViewModel(
                                 }
                             }
 
-                            val gson = GsonBuilder()
-                                .serializeNulls()
-                                .setLenient()
-                                .create()
+                            if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+                                return withContext(Dispatchers.IO) {
+                                    val gson = GsonBuilder()
+                                        .serializeNulls()
+                                        .setLenient()
+                                        .create()
 
-                            val etapaFromServer : Etapa?
+                                    val etapaFromServer : Etapa?
 
-                            try {
+                                    try {
 
-                                AppUiState.salida.writeUTF("save;etapa;${idViaje}")
-                                AppUiState.salida.flush()
+                                        AppUiState.salida.writeUTF("save;etapa;${idViaje}")
+                                        AppUiState.salida.flush()
 
-                                val json = gson.toJson(etapa)
-                                AppUiState.salida.writeUTF(json)
-                                AppUiState.salida.flush()
+                                        val json = gson.toJson(etapa)
+                                        AppUiState.salida.writeUTF(json)
+                                        AppUiState.salida.flush()
 
-                                val jsonFromServer = AppUiState.entrada.readUTF()
-                                etapaFromServer = gson.fromJson(jsonFromServer, Etapa::class.java)
+                                        val jsonFromServer = AppUiState.entrada.readUTF()
+                                        etapaFromServer = gson.fromJson(jsonFromServer, Etapa::class.java)
 
-                                return etapaFromServer != null
+                                        return@withContext etapaFromServer != null
 
-                            } catch (e: IOException) {
-                                e.printStackTrace()
-                            } catch (e: Exception) {
-                                e.printStackTrace()
+                                    } catch (e: IOException) {
+                                        e.printStackTrace()
+                                        AppUiState.socket!!.close()
+                                        mensajeUi.postValue("No se puede conectar con el servidor")
+                                        return@withContext false
+                                    } catch (e: Exception) {
+                                        e.printStackTrace()
+                                    }
+
+                                    return@withContext false
+                                }
+                            } else {
+                                return false
                             }
-
-                            return false
 
                         } else {
                             mensajeUi.postValue("El final no puede ser posterior a la fecha de final del viaje")
@@ -180,7 +196,7 @@ class ViajeViewModel(
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun actualizarViaje(nombre: String, descripcion: String, fechaInicio: String, fechaFin: String, viaje: Viaje): Boolean {
+    suspend fun actualizarViaje(nombre: String, descripcion: String, fechaInicio: String, fechaFin: String, viaje: Viaje): Boolean {
 
         if(nombre.isBlank() || fechaInicio.isBlank() || fechaFin.isBlank()) {
             mensajeUi.postValue("Por favor rellena todos los campos obligatorios")
@@ -196,36 +212,47 @@ class ViajeViewModel(
             } else if (fin.isBefore(inicio)) {
                 mensajeUi.postValue("La fecha de final no puede ser antes que la fecha de inicio")
             } else {
-                val viajeActualizado = viaje.copy(nombre = nombre, descripcion = descripcion.ifBlank { null }, fechaInicio = inicio.format(formatoFromDb), fechaFin = fin.format(formatoFromDb))
 
-                val gson = GsonBuilder()
-                    .serializeNulls()
-                    .setLenient()
-                    .create()
 
-                val viajeFromServer : Viaje?
+                if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+                    return withContext(Dispatchers.IO) {
+                        val viajeActualizado = viaje.copy(nombre = nombre, descripcion = descripcion.ifBlank { null }, fechaInicio = inicio.format(formatoFromDb), fechaFin = fin.format(formatoFromDb))
 
-                try {
+                        val gson = GsonBuilder()
+                            .serializeNulls()
+                            .setLenient()
+                            .create()
 
-                    AppUiState.salida.writeUTF("update;viaje")
-                    AppUiState.salida.flush()
+                        val viajeFromServer : Viaje?
 
-                    val json = gson.toJson(viajeActualizado)
-                    AppUiState.salida.writeUTF(json)
-                    AppUiState.salida.flush()
+                        try {
 
-                    val jsonFromServer = AppUiState.entrada.readUTF()
-                    viajeFromServer = gson.fromJson(jsonFromServer, Viaje::class.java)
+                            AppUiState.salida.writeUTF("update;viaje")
+                            AppUiState.salida.flush()
 
-                    return viajeFromServer != null
+                            val json = gson.toJson(viajeActualizado)
+                            AppUiState.salida.writeUTF(json)
+                            AppUiState.salida.flush()
 
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                } catch (e: Exception) {
-                    e.printStackTrace()
+                            val jsonFromServer = AppUiState.entrada.readUTF()
+                            viajeFromServer = gson.fromJson(jsonFromServer, Viaje::class.java)
+
+                            return@withContext viajeFromServer != null
+
+                        } catch (e: IOException) {
+                            e.printStackTrace()
+                            AppUiState.socket!!.close()
+                            mensajeUi.postValue("No se puede conectar con el servidor")
+                            return@withContext false
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+
+                        return@withContext false
+                    }
+                } else {
+                    return false
                 }
-
-                return false
 
             }
         }

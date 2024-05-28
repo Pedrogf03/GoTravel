@@ -18,6 +18,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 import java.time.LocalDate
@@ -141,7 +142,7 @@ class PayPalSubscriptions(
                 val fechaFinal = LocalDate.parse(fechaInicio.take(10), formatoFromDb).plusMonths(1).format(formatoFromDb)
                 val coste: Double = try {
                     billingInfo.getJSONObject("last_payment").getJSONObject("amount").getString("value").toDouble()
-                } catch (e: NullPointerException) {
+                } catch (e: JSONException) {
                     4.99
                 }
 

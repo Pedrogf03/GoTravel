@@ -106,7 +106,10 @@ fun PerfilScreen(
                         viewModel.cerrarSesion()
                     }
                 },
-                navigateToStart = navigateToStart
+                navigateToStart = navigateToStart,
+                cerrarServidor = {
+                    viewModel.cerrarServidor()
+                }
             )
 
         }
@@ -115,6 +118,7 @@ fun PerfilScreen(
 
 }
 
+@OptIn(DelicateCoroutinesApi::class)
 @Composable
 fun PerfilScreenContent(
     modifier: Modifier = Modifier,
@@ -125,7 +129,8 @@ fun PerfilScreenContent(
     navigateToContrataciones: () -> Unit,
     navigateToSuscripcion: (Boolean) -> Unit,
     cerrarSesion: () -> Unit,
-    navigateToStart: () -> Unit
+    navigateToStart: () -> Unit,
+    cerrarServidor: () -> Unit
 ) {
     Card (
         modifier = modifier,
@@ -233,22 +238,42 @@ fun PerfilScreenContent(
 
             Spacer(modifier = Modifier.padding(8.dp))
 
-            Card (
-                elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary)
-            ){
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+            if(AppUiState.usuario.roles.contains(Rol("Administrador"))) {
+                Button(
+                    onClick = {
+                        GlobalScope.launch {
+                            cerrarSesion()
+                            cerrarServidor()
+                        }
+                        navigateToStart()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary)
                 ) {
-                    Icon(imageVector = Icons.Default.Warning, contentDescription = "")
-                    Spacer(modifier = Modifier.padding(8.dp))
                     Text(
-                        text = "¡Y recuerda llevar tu documentación siempre encima al viajar!",
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
+                        text = "CERRAR SERVIDOR",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
+                }
+            } else {
+                Card (
+                    elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary)
+                ){
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(imageVector = Icons.Default.Warning, contentDescription = "")
+                        Spacer(modifier = Modifier.padding(8.dp))
+                        Text(
+                            text = "¡Y recuerda llevar tu documentación siempre encima al viajar!",
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
 

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -120,8 +121,7 @@ fun ViajeScreen(
                         finalizado = finalizado,
                         viewModel = viewModel,
                         modifier = Modifier
-                            .fillMaxSize()
-                            .weight(0.25f)
+                            .wrapContentHeight()
                             .padding(8.dp)
                     )
                     MostrarEtapas(
@@ -130,10 +130,7 @@ fun ViajeScreen(
                             actualizarPagina(uiState.viaje.id!!)
                         },
                         viewModel = viewModel,
-                        finalizado = finalizado,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .weight(0.75f)
+                        finalizado = finalizado
                     )
                 }
 
@@ -176,44 +173,43 @@ fun InformacionViaje(
 
         Column (
             modifier = Modifier
-                .fillMaxSize()
-                .weight(0.75f),
+                .wrapContentHeight()
+                .fillMaxWidth()
+                .padding(8.dp),
             verticalArrangement = Arrangement.Center
         ){
 
-            Text(text = viaje.nombre)
+            if(!finalizado) {
+                Row (
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.Top,
+                    horizontalArrangement = Arrangement.End
+                ){
+                    IconButton(onClick = { editarViaje = !editarViaje }) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = ""
+                        )
+                    }
+                }
+            }
+
+            Text(text = viaje.nombre, modifier = Modifier.fillMaxWidth(), style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
 
             Spacer(modifier = Modifier.padding(8.dp))
 
             if(viaje.descripcion != null) {
-                Text(text = viaje.descripcion)
-
+                Text(text = viaje.descripcion, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Justify)
                 Spacer(modifier = Modifier.padding(8.dp))
             }
 
-            Text(text = "${viaje.inicio} - ${viaje.final}")
+            Text(text = "Desde el ${viaje.inicio} hasta el ${viaje.final}", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Justify)
 
             Spacer(modifier = Modifier.padding(8.dp))
 
             Text(text = "Precio total: ${viaje.costeTotal}€")
 
-        }
-
-        if(!finalizado) {
-            Row (
-                modifier = Modifier
-                    .fillMaxSize()
-                    .weight(0.25f),
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.End
-            ){
-                IconButton(onClick = { editarViaje = !editarViaje }) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = ""
-                    )
-                }
-            }
         }
 
     }

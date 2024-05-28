@@ -10,6 +10,8 @@ import com.gotravel.mobile.ui.utils.AppUiState
 import com.gotravel.mobile.ui.utils.Regex
 import com.gotravel.mobile.ui.utils.formatoFinal
 import com.gotravel.mobile.ui.utils.formatoFromDb
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.time.LocalDate
 
@@ -19,7 +21,7 @@ class CrearViajeViewModel : ViewModel() {
     val mensajeUi: MutableLiveData<String> = MutableLiveData()
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun crearViaje(nombre: String, descripcion: String, fechaInicio: String, fechaFin: String, ) : Viaje? {
+    suspend fun crearViaje(nombre: String, descripcion: String, fechaInicio: String, fechaFin: String, ) : Viaje? {
 
         if(nombre.isBlank() || fechaInicio.isBlank() || fechaFin.isBlank()) {
             mensajeUi.postValue("Por favor rellena todos los campos obligatorios")
@@ -44,38 +46,47 @@ class CrearViajeViewModel : ViewModel() {
 
     }
 
-    private fun guardarViaje(viaje: Viaje) : Viaje? {
+    private suspend fun guardarViaje(viaje: Viaje) : Viaje? {
 
-        val gson = GsonBuilder()
-            .serializeNulls()
-            .setLenient()
-            .create()
+        if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+            return withContext(Dispatchers.IO) {
+                val gson = GsonBuilder()
+                    .serializeNulls()
+                    .setLenient()
+                    .create()
 
-        try {
+                try {
 
-            AppUiState.salida.writeUTF("save;viaje")
-            AppUiState.salida.flush()
+                    AppUiState.salida.writeUTF("save;viaje")
+                    AppUiState.salida.flush()
 
-            val json = gson.toJson(viaje)
-            AppUiState.salida.writeUTF(json)
-            AppUiState.salida.flush()
+                    val json = gson.toJson(viaje)
+                    AppUiState.salida.writeUTF(json)
+                    AppUiState.salida.flush()
 
-            val jsonFromServer = AppUiState.entrada.readUTF()
-            val viajeFromServer = gson.fromJson(jsonFromServer, Viaje::class.java)
+                    val jsonFromServer = AppUiState.entrada.readUTF()
+                    val viajeFromServer = gson.fromJson(jsonFromServer, Viaje::class.java)
 
-            if (viajeFromServer != null) {
-                return viajeFromServer
-            } else {
-                mensajeUi.postValue("No se ha podido guardar el viaje")
+                    if (viajeFromServer != null) {
+                        return@withContext viajeFromServer
+                    } else {
+                        mensajeUi.postValue("No se ha podido guardar el viaje")
+                    }
+
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                    AppUiState.socket!!.close()
+                    mensajeUi.postValue("No se puede conectar con el servidor")
+                    return@withContext null
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+                return@withContext null
             }
-
-        } catch (e: IOException) {
-            e.printStackTrace()
-        } catch (e: Exception) {
-            e.printStackTrace()
+        } else {
+            return null
         }
-
-        return null
 
     }
 

@@ -3,6 +3,7 @@ package com.gotravel.server.model;
 import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 
@@ -10,7 +11,14 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "pago")
+@NoArgsConstructor
 public class Pago {
+
+    public Pago(Usuario usuario, Double coste, String fecha) {
+        this.usuario = usuario;
+        this.coste = coste;
+        this.fecha = fecha;
+    }
 
     @Id
     @Column(name = "id_pago", nullable = false)

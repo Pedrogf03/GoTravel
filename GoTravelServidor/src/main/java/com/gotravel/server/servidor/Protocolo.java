@@ -51,7 +51,10 @@ public class Protocolo {
                     //TODO
                 } else if(entrada.equals("cerrarSesion")) {
                     estado = Estado.FINALIZADO;
-                    mensaje = "finalizado";
+                    mensaje = "finHilo";
+                } else if(entrada.equals("cerrarServidor")) {
+                    estado = Estado.FINALIZADO;
+                    mensaje = "finServer";
                 } else {
                     mensaje = "peticion";
                 }

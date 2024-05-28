@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.gotravel.mobile.GoTravelApplication
+import com.gotravel.mobile.ui.screen.viewmodels.CrearServicioViewModel
 import com.gotravel.mobile.ui.screen.viewmodels.CrearViajeViewModel
 import com.gotravel.mobile.ui.screen.viewmodels.CredencialesViewModel
 import com.gotravel.mobile.ui.screen.viewmodels.HomeViewModel
@@ -56,6 +57,10 @@ object AppViewModelProvider {
 
         initializer {
             SuscripcionViewModel(this.createSavedStateHandle())
+        }
+
+        initializer {
+            CrearServicioViewModel()
         }
 
     }

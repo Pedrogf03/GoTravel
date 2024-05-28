@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
+import com.gotravel.mobile.data.model.Suscripcion
 import com.gotravel.mobile.data.model.Viaje
 import com.gotravel.mobile.ui.screen.ViajesDestination
 import com.gotravel.mobile.ui.utils.AppUiState
@@ -45,11 +46,21 @@ class ViajesViewModel(
         viewModelScope.launch {
             try {
                 val allViajes = findViajesByUsuarioId()
-                val viajesPasados = mutableListOf<Viaje>()
-                val viajes = mutableListOf<Viaje>()
-                if(busqueda != null) {
-                    for(viaje in allViajes) {
-                        if(viaje.nombre.lowercase().contains(busqueda.lowercase())){
+                if (allViajes != null) {
+                    val viajesPasados = mutableListOf<Viaje>()
+                    val viajes = mutableListOf<Viaje>()
+                    if(busqueda != null) {
+                        for(viaje in allViajes) {
+                            if(viaje.nombre.lowercase().contains(busqueda.lowercase())){
+                                if(LocalDate.parse(viaje.final, formatoFinal).isBefore(LocalDate.now())) { // Si el final del viaje es antes del dia de hoy
+                                    viajesPasados.add(viaje)
+                                } else {
+                                    viajes.add(viaje)
+                                }
+                            }
+                        }
+                    } else {
+                        for(viaje in allViajes) {
                             if(LocalDate.parse(viaje.final, formatoFinal).isBefore(LocalDate.now())) { // Si el final del viaje es antes del dia de hoy
                                 viajesPasados.add(viaje)
                             } else {
@@ -57,46 +68,48 @@ class ViajesViewModel(
                             }
                         }
                     }
+                    uiState = ViajesUiState.Success(viajesPasados = viajesPasados, viajes = viajes)
                 } else {
-                    for(viaje in allViajes) {
-                        if(LocalDate.parse(viaje.final, formatoFinal).isBefore(LocalDate.now())) { // Si el final del viaje es antes del dia de hoy
-                            viajesPasados.add(viaje)
-                        } else {
-                            viajes.add(viaje)
-                        }
-                    }
+                    uiState = ViajesUiState.Error
                 }
-                uiState = ViajesUiState.Success(viajesPasados = viajesPasados, viajes = viajes)
             } catch (e: IOException) {
                 uiState = ViajesUiState.Error
             }
         }
     }
 
-    private suspend fun findViajesByUsuarioId() : List<Viaje> {
-        return withContext(Dispatchers.IO) {
-            val gson = GsonBuilder()
-                .serializeNulls()
-                .setLenient()
-                .create()
+    private suspend fun findViajesByUsuarioId() : List<Viaje>? {
 
-            try {
+        if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+            return withContext(Dispatchers.IO) {
+                val gson = GsonBuilder()
+                    .serializeNulls()
+                    .setLenient()
+                    .create()
 
-                AppUiState.salida.writeUTF("findByUserId;viaje")
-                AppUiState.salida.flush()
+                try {
 
-                val jsonFromServer = AppUiState.entrada.readUTF()
-                val type = object : TypeToken<List<Viaje>>() {}.type
-                return@withContext gson.fromJson<List<Viaje>?>(jsonFromServer, type)
+                    AppUiState.salida.writeUTF("findByUserId;viaje")
+                    AppUiState.salida.flush()
 
-            } catch (e: IOException) {
-                e.printStackTrace()
-            } catch (e: Exception) {
-                e.printStackTrace()
+                    val jsonFromServer = AppUiState.entrada.readUTF()
+                    val type = object : TypeToken<List<Viaje>>() {}.type
+                    return@withContext gson.fromJson<List<Viaje>?>(jsonFromServer, type)
+
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                    AppUiState.socket!!.close()
+                    return@withContext null
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+                return@withContext listOf<Viaje>()
             }
-
-            return@withContext listOf<Viaje>()
+        } else {
+            return null
         }
+
     }
 
 }

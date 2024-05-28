@@ -45,41 +45,42 @@ class HomeViewModel(
 
     private suspend fun findProximoViajeByUsuarioId() : Viaje? {
 
-        return withContext(Dispatchers.IO) {
-            val gson = GsonBuilder()
-                .serializeNulls()
-                .setLenient()
-                .create()
+        if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+            return withContext(Dispatchers.IO) {
+                val gson = GsonBuilder()
+                    .serializeNulls()
+                    .setLenient()
+                    .create()
 
-            try {
+                try {
 
-                AppUiState.salida.writeUTF("findByUserId;proximoViaje")
-                AppUiState.salida.flush()
+                    AppUiState.salida.writeUTF("findByUserId;proximoViaje")
+                    AppUiState.salida.flush()
 
-                val jsonFromServer = AppUiState.entrada.readUTF()
-                val viaje : Viaje? = gson.fromJson(jsonFromServer, Viaje::class.java)
-                if (viaje != null) {
-                    return@withContext viaje
-                } else {
+                    val jsonFromServer = AppUiState.entrada.readUTF()
+                    return@withContext gson.fromJson(jsonFromServer, Viaje::class.java)
+
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                    AppUiState.socket!!.close()
                     return@withContext null
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
 
-            } catch (e: IOException) {
-                e.printStackTrace()
-            } catch (e: Exception) {
-                e.printStackTrace()
+                return@withContext null
             }
-
-            return@withContext null
+        } else {
+            return null
         }
 
     }
 
     private suspend fun findViajeActualByUsuarioId() : Viaje? {
 
-        return withContext(Dispatchers.IO) {
+        if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+            return withContext(Dispatchers.IO) {
 
-            if(!AppUiState.socket!!.isClosed) {
                 val gson = GsonBuilder()
                     .serializeNulls()
                     .setLenient()
@@ -102,12 +103,17 @@ class HomeViewModel(
 
                 } catch (e: IOException) {
                     e.printStackTrace()
+                    AppUiState.socket!!.close()
+                    return@withContext null
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
-            }
 
-            return@withContext null
+                return@withContext null
+
+            }
+        } else {
+            return null
         }
 
     }

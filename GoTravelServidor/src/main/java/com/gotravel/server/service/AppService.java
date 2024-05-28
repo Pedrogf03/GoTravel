@@ -37,6 +37,10 @@ public class AppService {
         }
     }
 
+    public byte[] getFotoFromUsuarioId(Integer id) {
+        return usuarioRepository.findById(id).get().getFoto();
+    }
+
     @Autowired
     private ViajeRepository viajeRepository;
 

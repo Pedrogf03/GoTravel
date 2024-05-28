@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -18,80 +19,80 @@ import java.util.Properties;
 import java.util.Scanner;
 
 @SpringBootApplication
-public class ServerApplication implements Runnable {
+public class ServerApplication {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ServerApplication.class);
 	private final AppService service;
 
 	private int puerto;
-	private boolean pararServidor;
+	private volatile boolean pararServidor;
 	private ServerSocket socketServidor;
 	private List<HiloCliente> clientesConectados;
 
-	public ServerApplication(AppService service) {
+	public ServerApplication(AppService service) throws IOException{
 
 		this.service = service;
 
         try {
 			this.pararServidor = false;
 			Properties conf = new Properties();
-			conf.load(new ClassPathResource("application.properties").getInputStream());
+			conf.load(new FileInputStream("server.properties"));
 			this.puerto = Integer.parseInt(conf.getProperty("puerto"));
 			this.clientesConectados = new ArrayList<>();
 		} catch (IOException e) {
             LOG.error("No se han podido leer las propiedades del servidor: {}", e.getMessage());
+			throw e;
 		}
 
-	}
-
-	private void pararServidor() {
-		pararServidor = true;
-		try {
-			socketServidor.close();
-		} catch (IOException e) {
-            LOG.error("Se ha perdido la conexión con un cliente: {}", e.getMessage());
-		}
 	}
 
 	public static void main(String[] args) {
 		ConfigurableApplicationContext context = SpringApplication.run(ServerApplication.class, args);
 
-		ServerApplication server = new ServerApplication(context.getBean(AppService.class));
-		Thread hiloServidor = new Thread(server);
-		hiloServidor.start();
-
-		Scanner sc = new Scanner(System.in);
-		LOG.warn("Pulsa (s) para parar el servidor");
-		String res = sc.nextLine();
-		while (!res.equalsIgnoreCase("s")) {
-			res = sc.nextLine();
+		try {
+			ServerApplication server = new ServerApplication(context.getBean(AppService.class));
+			server.iniciarServidor();
+		} catch (IOException e) {
+			LOG.error("No se ha podido iniciar el servidor {}", e.getMessage());
 		}
-
-		server.pararServidor();
-		sc.close();
 
 		context.close();
 	}
 
 	public void iniciarServidor() {
-
-		try(ServerSocket server = new ServerSocket(puerto)) {
-			socketServidor = server;
-			while(!pararServidor) {
+		try {
+			socketServidor = new ServerSocket(puerto);
+			while (!pararServidor) {
 				Socket cliente = socketServidor.accept();
 				LOG.info("Se ha conectado un usuario");
-				HiloCliente hilo = new HiloCliente(cliente, service, clientesConectados);
-				hilo.start();
+				new HiloCliente(cliente, service, clientesConectados, this).start();
 			}
 		} catch (IOException e) {
-            LOG.error("Se ha interrumpido la conexión: {}", e.getMessage());
+			if (pararServidor) {
+				LOG.info("Cerrando servidor");
+			} else {
+				LOG.error("Se ha interrumpido la conexión: {}", e.getMessage());
+			}
+		} finally {
+			if (socketServidor != null && !socketServidor.isClosed()) {
+				try {
+					socketServidor.close();
+				} catch (IOException e) {
+					LOG.error("Error al cerrar el socket del servidor: {}", e.getMessage());
+				}
+			}
 		}
-
 	}
 
-	@Override
-	public void run() {
-		iniciarServidor();
+	public void pararServidor() {
+		pararServidor = true;
+		if (socketServidor != null && !socketServidor.isClosed()) {
+			try {
+				socketServidor.close();
+			} catch (IOException e) {
+				LOG.error("Error al cerrar el socket del servidor: {}", e.getMessage());
+			}
+		}
 	}
 
 }

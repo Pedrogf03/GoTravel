@@ -159,11 +159,15 @@ fun MiSuscripcionScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 textAlign = TextAlign.Center
                             )
+                            Text(
+                                text = "Si decides volver a suscribirte no se aplicarán cargos hasta la próxima fecha de facturación",
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center
+                            )
                         }
                         val context = LocalContext.current
                         Button(
                             onClick = {
-
                                 if(suscripcion.renovar == "1") {
                                     GlobalScope.launch {
                                         viewModel.cancelSubscription(context, suscripcion.id)
@@ -180,7 +184,7 @@ fun MiSuscripcionScreen(
                             if(suscripcion.renovar == "1") {
                                 Text(text = "Cancelar suscripción", color = MaterialTheme.colorScheme.primary, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
                             } else {
-                                Text(text = "Renovar suscripción", color = MaterialTheme.colorScheme.primary, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+                                Text(text = "Volver a suscribirse", color = MaterialTheme.colorScheme.primary, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
                             }
                         }
 

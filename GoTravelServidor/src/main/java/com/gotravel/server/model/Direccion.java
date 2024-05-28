@@ -1,8 +1,6 @@
 package com.gotravel.server.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,7 +8,12 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "direccion")
-public class Direccion extends Localizacion {
+public class Direccion {
+
+    @Id
+    @Column(name = "id_direccion", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
     @Column(name = "calle", nullable = false, length = 100)
     private String calle;

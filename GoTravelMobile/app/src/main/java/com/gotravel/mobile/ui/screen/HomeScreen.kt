@@ -66,6 +66,7 @@ fun HomeScreen(
     navController: NavHostController,
     onViajeClicked: (Int) -> Unit,
     navigateToCrearViaje: () -> Unit,
+    navigateToCrearServicio: () -> Unit,
     elementosDeNavegacion: List<Screen>,
     navigateToStart: () -> Unit
 ) {
@@ -118,7 +119,8 @@ fun HomeScreen(
                         viajeActual = uiState.viajeActual,
                         imagen = uiState.imagen1,
                         onViajeClicked = onViajeClicked,
-                        navigateToCrearViaje = navigateToCrearViaje
+                        navigateToCrearViaje = navigateToCrearViaje,
+                        navigateToCrearServicio = navigateToCrearServicio
                     )
 
 
@@ -241,7 +243,8 @@ fun HomeScreenContent(
     viajeActual: Viaje?,
     imagen: ImageBitmap,
     onViajeClicked: (Int) -> Unit,
-    navigateToCrearViaje: () -> Unit
+    navigateToCrearViaje: () -> Unit,
+    navigateToCrearServicio: () -> Unit
 ) {
     Card (
         modifier = modifier,
@@ -265,7 +268,7 @@ fun HomeScreenContent(
                 if(esProfesional) {
                     Spacer(modifier = Modifier.padding(8.dp))
                     Button(
-                        onClick = { /*TODO*/ },
+                        onClick = { navigateToCrearServicio() },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimary)
                     ) {
                         Text(

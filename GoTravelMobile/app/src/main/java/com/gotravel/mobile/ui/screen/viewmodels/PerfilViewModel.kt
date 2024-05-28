@@ -8,9 +8,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.gson.GsonBuilder
 import com.gotravel.mobile.data.model.Usuario
+import com.gotravel.mobile.data.model.Viaje
 import com.gotravel.mobile.ui.utils.AppUiState
 import com.gotravel.mobile.ui.utils.Regex
+import com.gotravel.mobile.ui.utils.formatoFromDb
 import com.gotravel.mobile.ui.utils.sha256
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 
@@ -18,7 +22,7 @@ class PerfilViewModel : ViewModel() {
 
     val mensajeUi: MutableLiveData<String> = MutableLiveData()
 
-    fun updateUsuario(usuario: Usuario): Boolean {
+    suspend fun updateUsuario(usuario: Usuario): Boolean {
 
         if(!(usuario.nombre.isBlank() || usuario.nombre.isEmpty()) && usuario.nombre.matches(Regex.regexNombre)) {
 
@@ -28,39 +32,48 @@ class PerfilViewModel : ViewModel() {
 
                     if(usuario.tfno != null && usuario.tfno!!.matches(Regex.regexTfno) ) {
 
-                        val gson = GsonBuilder()
-                            .serializeNulls()
-                            .setLenient()
-                            .create()
+                        if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+                            return withContext(Dispatchers.IO) {
+                                val gson = GsonBuilder()
+                                    .serializeNulls()
+                                    .setLenient()
+                                    .create()
 
-                        val usuarioFromServer : Usuario?
+                                val usuarioFromServer : Usuario?
 
-                        try {
+                                try {
 
-                            AppUiState.salida.writeUTF("update;usuario")
-                            AppUiState.salida.flush()
+                                    AppUiState.salida.writeUTF("update;usuario")
+                                    AppUiState.salida.flush()
 
-                            val json = gson.toJson(usuario)
-                            AppUiState.salida.writeUTF(json)
-                            AppUiState.salida.flush()
+                                    val json = gson.toJson(usuario)
+                                    AppUiState.salida.writeUTF(json)
+                                    AppUiState.salida.flush()
 
-                            val jsonFromServer = AppUiState.entrada.readUTF()
-                            usuarioFromServer = gson.fromJson(jsonFromServer, Usuario::class.java)
+                                    val jsonFromServer = AppUiState.entrada.readUTF()
+                                    usuarioFromServer = gson.fromJson(jsonFromServer, Usuario::class.java)
 
-                            if (usuarioFromServer != null) {
-                                AppUiState.usuario = usuarioFromServer.copy(foto = AppUiState.usuario.foto) // Al recibir el usuario se le vuelve a poner la foto que tenía
-                                return true
-                            } else {
-                                return false
+                                    if (usuarioFromServer != null) {
+                                        AppUiState.usuario = usuarioFromServer.copy(foto = AppUiState.usuario.foto) // Al recibir el usuario se le vuelve a poner la foto que tenía
+                                        return@withContext true
+                                    } else {
+                                        return@withContext false
+                                    }
+
+                                } catch (e: IOException) {
+                                    e.printStackTrace()
+                                    AppUiState.socket!!.close()
+                                    mensajeUi.postValue("No se puede conectar con el servidor")
+                                    return@withContext false
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+
+                                return@withContext false
                             }
-
-                        } catch (e: IOException) {
-                            e.printStackTrace()
-                        } catch (e: Exception) {
-                            e.printStackTrace()
+                        } else {
+                            return false
                         }
-
-                        return false
 
                     } else {
                         mensajeUi.postValue("El número de telefono no es válido")
@@ -82,22 +95,7 @@ class PerfilViewModel : ViewModel() {
 
     }
 
-    private fun reduceImageQuality(byteArray: ByteArray, quality: Int): ByteArray {
-        // Decodifica el ByteArray a un Bitmap
-        val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
-
-        // Crea un nuevo ByteArrayOutputStream
-        val outputStream = ByteArrayOutputStream()
-
-        // Comprime el Bitmap en el ByteArrayOutputStream
-        // Utiliza un valor de calidad menor para reducir el tamaño del ByteArray resultante
-        bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
-
-        // Convierte el ByteArrayOutputStream a un ByteArray
-        return outputStream.toByteArray()
-    }
-
-    fun updateFoto(context: Context, selectedImageUri: Uri?) : Boolean {
+    suspend fun updateFoto(context: Context, selectedImageUri: Uri?) : Boolean {
 
         selectedImageUri?.let { uri ->
             context.contentResolver.openInputStream(uri)?.use { inputStream ->
@@ -107,37 +105,48 @@ class PerfilViewModel : ViewModel() {
                 while (inputStream.read(buffer).also { length = it } != -1) {
                     byteArrayOutputStream.write(buffer, 0, length)
                 }
-                val byteArray = reduceImageQuality(byteArrayOutputStream.toByteArray(), 30)
+                val byteArray = byteArrayOutputStream.toByteArray()
 
-                try {
+                if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+                    return withContext(Dispatchers.IO) {
+                        try {
 
-                    AppUiState.salida.writeUTF("uploadFoto;usuario")
-                    AppUiState.salida.flush()
+                            AppUiState.salida.writeUTF("uploadFoto;usuario")
+                            AppUiState.salida.flush()
 
-                    AppUiState.salida.writeInt(byteArray.size) // Envía el tamaño del array de bytes
-                    AppUiState.salida.write(byteArray) // Envía el array de bytes
-                    AppUiState.salida.flush()
+                            AppUiState.salida.writeInt(byteArray.size) // Envía el tamaño del array de bytes
+                            AppUiState.salida.write(byteArray) // Envía el array de bytes
+                            AppUiState.salida.flush()
 
-                    val gson = GsonBuilder()
-                        .serializeNulls()
-                        .setLenient()
-                        .create()
+                            val gson = GsonBuilder()
+                                .serializeNulls()
+                                .setLenient()
+                                .create()
 
-                    val jsonFromServer = AppUiState.entrada.readUTF()
-                    val usuario = gson.fromJson(jsonFromServer, Usuario::class.java)
+                            val jsonFromServer = AppUiState.entrada.readUTF()
+                            val usuario = gson.fromJson(jsonFromServer, Usuario::class.java)
 
-                    if (usuario != null) {
-                        AppUiState.usuario.foto = byteArray
-                        return true
-                    } else {
-                        mensajeUi.postValue("Lo sentimos, la foto que has seleccionado es demasiado grande")
-                        return false
+                            if (usuario != null) {
+                                AppUiState.usuario.foto = byteArray
+                                return@withContext true
+                            } else {
+                                mensajeUi.postValue("Lo sentimos, la foto que has seleccionado es demasiado grande")
+                                return@withContext false
+                            }
+
+                        } catch (e: IOException) {
+                            e.printStackTrace()
+                            AppUiState.socket!!.close()
+                            mensajeUi.postValue("No se puede conectar con el servidor")
+                            return@withContext false
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+
+                        return@withContext false
                     }
-
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                } catch (e: Exception) {
-                    e.printStackTrace()
+                } else {
+                    return false
                 }
 
             }
@@ -147,7 +156,7 @@ class PerfilViewModel : ViewModel() {
 
     }
 
-    fun updateContrasena(contrasenaActual: String, contrasenaNueva: String, confirmarContrasena: String) : Boolean {
+    suspend fun updateContrasena(contrasenaActual: String, contrasenaNueva: String, confirmarContrasena: String) : Boolean {
 
         if((!(contrasenaActual.isBlank() || contrasenaActual.isEmpty())) && (!(contrasenaNueva.isBlank() || contrasenaNueva.isEmpty())) && (!(confirmarContrasena.isBlank() || confirmarContrasena.isEmpty()))) {
 
@@ -163,33 +172,44 @@ class PerfilViewModel : ViewModel() {
                     mensajeUi.postValue("Las contraseñas no coinciden")
                 } else {
 
-                    val gson = GsonBuilder()
-                        .serializeNulls()
-                        .setLenient()
-                        .create()
+                    if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+                        return withContext(Dispatchers.IO) {
+                            val gson = GsonBuilder()
+                                .serializeNulls()
+                                .setLenient()
+                                .create()
 
-                    val usuarioFromServer : Usuario?
+                            val usuarioFromServer : Usuario?
 
-                    try {
+                            try {
 
-                        AppUiState.salida.writeUTF("updateContrasena;${contrasenaActualHash};${contrasenaNuevaHash}")
-                        AppUiState.salida.flush()
+                                AppUiState.salida.writeUTF("updateContrasena;${contrasenaActualHash};${contrasenaNuevaHash}")
+                                AppUiState.salida.flush()
 
-                        val jsonFromServer = AppUiState.entrada.readUTF()
-                        usuarioFromServer = gson.fromJson(jsonFromServer, Usuario::class.java)
+                                val jsonFromServer = AppUiState.entrada.readUTF()
+                                usuarioFromServer = gson.fromJson(jsonFromServer, Usuario::class.java)
 
-                        if (usuarioFromServer != null) {
-                            AppUiState.usuario = usuarioFromServer.copy(foto = AppUiState.usuario.foto)
-                            return true
-                        } else {
-                            mensajeUi.postValue("Contraseña incorrecta")
-                            return false
+                                if (usuarioFromServer != null) {
+                                    AppUiState.usuario = usuarioFromServer.copy(foto = AppUiState.usuario.foto)
+                                    return@withContext true
+                                } else {
+                                    mensajeUi.postValue("Contraseña incorrecta")
+                                    return@withContext false
+                                }
+
+                            } catch (e: IOException) {
+                                e.printStackTrace()
+                                AppUiState.socket!!.close()
+                                mensajeUi.postValue("No se puede conectar con el servidor")
+                                return@withContext false
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+
+                            return@withContext false
                         }
-
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                    } catch (e: Exception) {
-                        e.printStackTrace()
+                    } else {
+                        return false
                     }
 
                 }
@@ -208,15 +228,36 @@ class PerfilViewModel : ViewModel() {
 
     fun cerrarSesion() {
 
-        try{
-            AppUiState.salida.writeUTF("cerrarSesion")
-            AppUiState.salida.flush()
+        if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+            try{
+                AppUiState.salida.writeUTF("cerrarSesion")
+                AppUiState.salida.flush()
 
-            AppUiState.salida.close()
-            AppUiState.entrada.close()
-            AppUiState.socket!!.close()
-        } catch (e: IOException) {
-            // IGNORE
+                AppUiState.salida.close()
+                AppUiState.entrada.close()
+                AppUiState.socket!!.close()
+            } catch (e: IOException) {
+                e.printStackTrace()
+                AppUiState.socket!!.close()
+            }
+        }
+
+    }
+
+    fun cerrarServidor() {
+
+        if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+            try{
+                AppUiState.salida.writeUTF("cerrarServidor")
+                AppUiState.salida.flush()
+
+                AppUiState.salida.close()
+                AppUiState.entrada.close()
+                AppUiState.socket!!.close()
+            } catch (e: IOException) {
+                e.printStackTrace()
+                AppUiState.socket!!.close()
+            }
         }
 
     }

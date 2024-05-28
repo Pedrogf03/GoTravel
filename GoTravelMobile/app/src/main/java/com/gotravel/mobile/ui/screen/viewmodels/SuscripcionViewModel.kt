@@ -12,6 +12,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.GsonBuilder
 import com.gotravel.mobile.data.model.Suscripcion
+import com.gotravel.mobile.data.model.Viaje
 import com.gotravel.mobile.ui.screen.SuscripcionDestination
 import com.gotravel.mobile.ui.utils.AppUiState
 import com.gotravel.mobile.ui.utils.PayPalSubscriptions
@@ -37,20 +38,24 @@ class SuscripcionViewModel(
     @OptIn(DelicateCoroutinesApi::class)
     @RequiresApi(Build.VERSION_CODES.O)
     suspend fun suscribirse(context: Context) {
-        val suscripcion = findSuscripcionByUsuarioId()
 
-        if(suscripcion != null){
-            PayPalSubscriptions(context).activateSubscription(
-                subscriptionId = suscripcion.id,
-                onSuscripcionReactivada = {
-                    GlobalScope.launch {
-                        activarSuscripcion(suscripcion.id)
+        if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+            val suscripcion = findSuscripcionByUsuarioId()
+
+            if(suscripcion != null){
+                PayPalSubscriptions(context).activateSubscription(
+                    subscriptionId = suscripcion.id,
+                    onSuscripcionReactivada = {
+                        GlobalScope.launch {
+                            activarSuscripcion(suscripcion.id)
+                        }
                     }
-                }
-            )
-        } else {
-            PayPalSubscriptions(context).createSubscription()
+                )
+            } else {
+                PayPalSubscriptions(context).createSubscription()
+            }
         }
+
     }
 
     var uiState: SuscripcionUiState by mutableStateOf(SuscripcionUiState.Loading)
@@ -61,38 +66,48 @@ class SuscripcionViewModel(
     }
 
     private fun getSuscripcion() {
-        viewModelScope.launch {
-            uiState = try {
-                SuscripcionUiState.Success(findSuscripcionByUsuarioId())
-            } catch (e: IOException) {
-                SuscripcionUiState.Error
+
+        if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+            viewModelScope.launch {
+                uiState = try {
+                    SuscripcionUiState.Success(findSuscripcionByUsuarioId())
+                } catch (e: IOException) {
+                    SuscripcionUiState.Error
+                }
             }
         }
+
     }
 
     private suspend fun findSuscripcionByUsuarioId() : Suscripcion? {
 
-        return withContext(Dispatchers.IO) {
-            val gson = GsonBuilder()
-                .serializeNulls()
-                .setLenient()
-                .create()
+        if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+            return withContext(Dispatchers.IO) {
+                val gson = GsonBuilder()
+                    .serializeNulls()
+                    .setLenient()
+                    .create()
 
-            try {
+                try {
 
-                AppUiState.salida.writeUTF("findByUserId;suscripcion")
-                AppUiState.salida.flush()
+                    AppUiState.salida.writeUTF("findByUserId;suscripcion")
+                    AppUiState.salida.flush()
 
-                val jsonFromServer = AppUiState.entrada.readUTF()
-                return@withContext gson.fromJson<Suscripcion?>(jsonFromServer, Suscripcion::class.java)
+                    val jsonFromServer = AppUiState.entrada.readUTF()
+                    return@withContext gson.fromJson<Suscripcion?>(jsonFromServer, Suscripcion::class.java)
 
-            } catch (e: IOException) {
-                e.printStackTrace()
-            } catch (e: Exception) {
-                e.printStackTrace()
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                    AppUiState.socket!!.close()
+                    return@withContext null
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+                return@withContext null
             }
-
-            return@withContext null
+        } else {
+            return null
         }
 
     }
@@ -100,39 +115,44 @@ class SuscripcionViewModel(
     @OptIn(DelicateCoroutinesApi::class)
     @RequiresApi(Build.VERSION_CODES.O)
     suspend fun cancelSubscription(context: Context, subscriptionId: String) {
-        PayPalSubscriptions(context).cancelSubscription(
-            subscriptionId = subscriptionId,
-            onSuscripcionCancelada = {
-                GlobalScope.launch {
-                    cancelarSuscripcion(subscriptionId)
+        if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+            PayPalSubscriptions(context).cancelSubscription(
+                subscriptionId = subscriptionId,
+                onSuscripcionCancelada = {
+                    GlobalScope.launch {
+                        cancelarSuscripcion(subscriptionId)
+                    }
                 }
-            }
-        )
+            )
+        }
     }
 
     private suspend fun cancelarSuscripcion(subscriptionId : String) {
 
-        return withContext(Dispatchers.IO) {
-            val gson = GsonBuilder()
-                .serializeNulls()
-                .setLenient()
-                .create()
+        if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+            return withContext(Dispatchers.IO) {
+                val gson = GsonBuilder()
+                    .serializeNulls()
+                    .setLenient()
+                    .create()
 
-            try {
+                try {
 
-                AppUiState.salida.writeUTF("suscripcion;cancelar;$subscriptionId")
+                    AppUiState.salida.writeUTF("suscripcion;cancelar;$subscriptionId")
 
-                val jsonFromServer = AppUiState.entrada.readUTF()
-                val suscripcion : Suscripcion? = gson.fromJson(jsonFromServer, Suscripcion::class.java)
+                    val jsonFromServer = AppUiState.entrada.readUTF()
+                    val suscripcion : Suscripcion? = gson.fromJson(jsonFromServer, Suscripcion::class.java)
 
-                if(suscripcion != null) {
-                    getSuscripcion()
+                    if(suscripcion != null) {
+                        getSuscripcion()
+                    }
+
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                    AppUiState.socket!!.close()
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
-
-            } catch (e: IOException) {
-                e.printStackTrace()
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
         }
 
@@ -140,27 +160,30 @@ class SuscripcionViewModel(
 
     private suspend fun activarSuscripcion(subscriptionId : String) {
 
-        return withContext(Dispatchers.IO) {
-            val gson = GsonBuilder()
-                .serializeNulls()
-                .setLenient()
-                .create()
+        if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+            return withContext(Dispatchers.IO) {
+                val gson = GsonBuilder()
+                    .serializeNulls()
+                    .setLenient()
+                    .create()
 
-            try {
+                try {
 
-                AppUiState.salida.writeUTF("suscripcion;renovar;$subscriptionId")
+                    AppUiState.salida.writeUTF("suscripcion;renovar;$subscriptionId")
 
-                val jsonFromServer = AppUiState.entrada.readUTF()
-                val suscripcion : Suscripcion? = gson.fromJson(jsonFromServer, Suscripcion::class.java)
+                    val jsonFromServer = AppUiState.entrada.readUTF()
+                    val suscripcion : Suscripcion? = gson.fromJson(jsonFromServer, Suscripcion::class.java)
 
-                if(suscripcion != null) {
-                    getSuscripcion()
+                    if(suscripcion != null) {
+                        getSuscripcion()
+                    }
+
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                    AppUiState.socket!!.close()
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
-
-            } catch (e: IOException) {
-                e.printStackTrace()
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
         }
 

@@ -40,8 +40,8 @@ public class Servicio {
     private Tiposervicio tipoServicio;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_localizacion", nullable = false)
-    private Localizacion localizacion;
+    @JoinColumn(name = "id_direccion", nullable = false)
+    private Direccion direccion;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_usuario", nullable = false)

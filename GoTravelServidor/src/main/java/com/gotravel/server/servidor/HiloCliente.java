@@ -29,8 +29,9 @@ public class HiloCliente extends Thread {
     private boolean sesionIniciada;
     private boolean terminar;
     private final List<HiloCliente> clientesConectados;
+    private ServerApplication server;
 
-    public HiloCliente(Socket cliente, AppService service, List<HiloCliente> clientesConectados) {
+    public HiloCliente(Socket cliente, AppService service, List<HiloCliente> clientesConectados, ServerApplication server) {
         this.service = service;
         this.protocolo = new Protocolo(service);
         this.sesionIniciada = false;
@@ -39,6 +40,8 @@ public class HiloCliente extends Thread {
         sesion = new Sesion(cliente);
         this.clientesConectados = clientesConectados;
         this.clientesConectados.add(this);
+
+        this.server = server;
 
     }
 
@@ -83,17 +86,30 @@ public class HiloCliente extends Thread {
                     Suscripcion s = service.findSuscripcionByUsuarioId(u.getId()); // SE OBTIENE LA SUSCRIPCION
                     if(s != null && s.getRenovar().equals("0") && s.getEstado().equals("ACTIVE")) { // SI NO HAY QUE RENOVARLA Y ESTÁ ACTIVA
                         LocalDate fechaFin = LocalDate.parse(s.getFechaFinal(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                        if(fechaFin.isAfter(LocalDate.now()) || fechaFin.isEqual(LocalDate.now())) { // Y ADEMÁS LA FECHA ES PRESENTE O PASADA
+                        if(fechaFin.isBefore(LocalDate.now()) || fechaFin.isEqual(LocalDate.now())) { // Y ADEMÁS LA FECHA DE FINAL ES PRESENTE O PASADA
                             s.setEstado("INACTIVE"); // SE CAMBIA A INACTIVA
                             service.saveSuscripcion(s); // SE ACTUALIZA LA SUSCRIPCION
                             for (int i = 0; i < u.getRoles().size(); i++) {
                                 if(u.getRoles().get(i).getNombre().equals("Profesional")) {
-                                    u.getRoles().remove(i);
+                                    u.getRoles().remove(i); // SE LE QUITA EL ROL PROFESIONAL
                                 }
                             }
                             u = service.saveUsuario(u); // SE ACTUALIZA EL USUARIO
                             output = gson.toJson(u);
                         }
+                    } else if (s != null && s.getRenovar().equals("1") && s.getEstado().equals("ACTIVE")) { // SI HAY QUE RENOVARLA Y ESTÁ ACTIVA
+                        // SE LANZA UN HILO QUE SE ENCARGA DE IR RENOVANDO LAS SUSCRIPCIONES Y ACTUALIZARLAS
+                        new Thread(() -> {
+                            LocalDate fechaFin = LocalDate.parse(s.getFechaFinal(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                            System.out.println(fechaFin);
+                            while(fechaFin.isBefore(LocalDate.now()) || fechaFin.isEqual(LocalDate.now())) { // Y MIENTRAS ADEMÁS LA FECHA DE FINAL SEA PRESENTE O PASADA
+                                fechaFin = fechaFin.plusMonths(1); // SE AÑADE UN MES A LA FECHA DE FINALIZACIÓN
+                                Pago p = new Pago(s.getUsuario(), 4.99, fechaFin.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))); // SE CREA UN NUEVO PAGO
+                                s.getPagos().add(p); // SE LE AÑADE EL PAGO A LA SUSCRIPCION
+                            }
+                            s.setFechaFinal(fechaFin.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+                            service.saveSuscripcion(s); // SE ACTUALIZA LA SUSCRIPCION
+                        }).start();
                     }
 
                 }
@@ -105,6 +121,8 @@ public class HiloCliente extends Thread {
                 // Si ha iniciado sesion, se pone la flag en true y se le pregunta al usuario por la foto
                 if(u != null){
                     sesionIniciada = true;
+
+                    u.setFoto(service.getFotoFromUsuarioId(u.getId()));
 
                     sesion.setUsuario(u);
 
@@ -272,10 +290,19 @@ public class HiloCliente extends Thread {
                     };
 
                     sesion.getSalida().writeUTF(json);
-                } else if (output.equals("finalizado")) {
+                } else if (output.equals("finHilo")) {
                     terminar = true;
                     clientesConectados.remove(this);
                     LOG.info("Se ha desconectado un usuario");
+                } else if (output.equals("finServer")) {
+                    sesion.getSalida().writeUTF("cerrando");
+                    sesion.getSalida().flush();
+                    LOG.info("Se va a cerrar el servidor");
+                    System.out.println("cerrando server");
+                    sleep(10000);
+                    terminar = true;
+                    clientesConectados.remove(this);
+                    server.pararServidor();
                 }
 
             }
@@ -283,6 +310,9 @@ public class HiloCliente extends Thread {
         } catch (IOException e) {
             clientesConectados.remove(this);
             LOG.warn("Se ha interrumpido la conexion con un usuario");
+        } catch (InterruptedException e) {
+            clientesConectados.remove(this);
+            LOG.warn("Se ha interrumpido el servidor: {}", e.getMessage());
         } finally {
             if (sesion.getCliente() != null) {
                 try {

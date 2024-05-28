@@ -13,6 +13,8 @@ import com.gotravel.mobile.data.model.Rol
 import com.gotravel.mobile.ui.Screen
 import com.gotravel.mobile.ui.screen.CambiarContrasenaDestination
 import com.gotravel.mobile.ui.screen.CambiarContrasenaScreen
+import com.gotravel.mobile.ui.screen.CrearServicioDestination
+import com.gotravel.mobile.ui.screen.CrearServicioScreen
 import com.gotravel.mobile.ui.screen.CrearViajeDestination
 import com.gotravel.mobile.ui.screen.CrearViajeScreen
 import com.gotravel.mobile.ui.screen.CredencialesDestination
@@ -89,6 +91,9 @@ fun AppNavHost(
                 },
                 navigateToCrearViaje = {
                     navController.navigate(CrearViajeDestination.route)
+                },
+                navigateToCrearServicio = {
+                    navController.navigate(CrearServicioDestination.route)
                 },
                 elementosDeNavegacion = items,
                 navigateToStart = {
@@ -217,6 +222,16 @@ fun AppNavHost(
                 navArgument(SuscripcionDestination.esProfesional) { type = NavType.BoolType },
             )) {
             SuscripcionScreen(
+                navController = navController
+            )
+        }
+
+        // Pantalla para crear un nuevo servicio
+        composable(route = CrearServicioDestination.route) {
+            CrearServicioScreen(
+                navigateToServicio = {
+                    // TODO: navController.navigate(("${ServicioDestination.route}/${it}"))
+                },
                 navController = navController
             )
         }
