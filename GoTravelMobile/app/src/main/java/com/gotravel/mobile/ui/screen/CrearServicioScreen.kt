@@ -148,7 +148,7 @@ private fun CrearServicioContent(
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Top
     ) {
 
         var seleccionarInfoBasica by remember { mutableStateOf(true) }

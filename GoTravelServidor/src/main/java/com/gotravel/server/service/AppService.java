@@ -160,4 +160,7 @@ public class AppService {
         return servicioRepository.findById(id).orElse(null);
     }
 
+    public List<Servicio> findServiciosByUsuarioId(int idUsuario) {
+        return servicioRepository.findAllByUsuarioId(idUsuario);
+    }
 }

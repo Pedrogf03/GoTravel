@@ -127,7 +127,8 @@ fun ViajesContent(
         if(viajesPasados.isEmpty() && viajes.isEmpty()) {
             SinViajes(
                 modifier = Modifier.padding(it),
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
+                buscarViaje = buscarViaje
             )
         } else {
             GridViajes(
@@ -172,9 +173,10 @@ fun GridViajes(
             keyboardActions = KeyboardActions(onSearch = {
                 buscarViaje(nombreViaje)
             }),
-            buscarViaje = buscarViaje,
+            buscar = buscarViaje,
             modifier = Modifier
-                .padding(8.dp)
+                .padding(8.dp),
+            label = "viajes"
         )
         
         val opciones = listOf("finalizados", "actuales")
@@ -240,20 +242,48 @@ fun GridViajes(
 
 @Composable
 fun SinViajes(
-    modifier: Modifier, color: Color
+    modifier: Modifier,
+    color: Color,
+    buscarViaje: (String) -> Unit
 ) {
 
     Column (
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = modifier
+            .fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top
     ){
-        Icon(
-            imageVector = Icons.Filled.Info,
-            contentDescription = "",
-            tint = color
+        var nombreServicio by remember { mutableStateOf("") }
+
+        SearchEngine(
+            value = nombreServicio,
+            onValueChange = { nombreServicio = it },
+            keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Search
+            ),
+            keyboardActions = KeyboardActions(onSearch = {
+                buscarViaje(nombreServicio)
+            }),
+            buscar = buscarViaje,
+            modifier = Modifier
+                .padding(8.dp),
+            label = "servicios"
         )
-        Text(text = "No tienes viajes", color = color)
+
+        Column (
+            modifier = modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ){
+            Icon(
+                imageVector = Icons.Filled.Info,
+                contentDescription = "",
+                tint = color
+            )
+            Text(text = "No tienes viajes", color = color)
+        }
+
     }
     
 }
@@ -264,15 +294,16 @@ fun SearchEngine(
     onValueChange: (String) -> Unit,
     keyboardOptions: KeyboardOptions,
     keyboardActions: KeyboardActions,
-    buscarViaje: (String) -> Unit,
-    modifier: Modifier = Modifier,
+    buscar: (String) -> Unit,
+    label: String,
+    modifier: Modifier = Modifier
 ){
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text("Busca un viaje por su nombre") },
+        label = { Text("Busca $label por su nombre") },
         trailingIcon = {
-            IconButton(onClick = { buscarViaje(value) }) {
+            IconButton(onClick = { buscar(value) }) {
                 Icon(
                     imageVector = Icons.Filled.Search,
                     contentDescription = null,
@@ -318,7 +349,7 @@ fun ViajeCard(
             }
 
             Column {
-                Text(text = viaje.nombre, color = textColor)
+                Text(text = viaje.nombre, color = textColor, style = MaterialTheme.typography.titleMedium)
                 Text(text = viaje.inicio + " - " + viaje.final, fontSize = 8.sp, color = textColor)
             }
             Spacer(modifier = Modifier.weight(1f))

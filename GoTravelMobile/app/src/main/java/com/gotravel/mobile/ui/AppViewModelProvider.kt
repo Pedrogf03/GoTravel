@@ -14,6 +14,7 @@ import com.gotravel.mobile.ui.screen.viewmodels.CredencialesViewModel
 import com.gotravel.mobile.ui.screen.viewmodels.HomeViewModel
 import com.gotravel.mobile.ui.screen.viewmodels.LandingViewModel
 import com.gotravel.mobile.ui.screen.viewmodels.PerfilViewModel
+import com.gotravel.mobile.ui.screen.viewmodels.ServiciosViewModel
 import com.gotravel.mobile.ui.screen.viewmodels.SuscripcionViewModel
 import com.gotravel.mobile.ui.screen.viewmodels.ViajeViewModel
 import com.gotravel.mobile.ui.screen.viewmodels.ViajesViewModel
@@ -61,6 +62,12 @@ object AppViewModelProvider {
 
         initializer {
             CrearServicioViewModel()
+        }
+
+        initializer {
+            ServiciosViewModel(
+                this.createSavedStateHandle()
+            )
         }
 
     }

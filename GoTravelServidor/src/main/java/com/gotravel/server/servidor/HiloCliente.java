@@ -250,6 +250,9 @@ public class HiloCliente extends Thread {
                             } else if(tabla.equalsIgnoreCase("suscripcion")){
                                 Suscripcion suscripcion = service.findSuscripcionByUsuarioId(idUsuario);
                                 yield gson.toJson(suscripcion);
+                            } else if(tabla.equalsIgnoreCase("servicio")) {
+                                List<Servicio> servicios = service.findServiciosByUsuarioId(idUsuario);
+                                jsonFromServer = gson.toJson(servicios);
                             }
                             yield jsonFromServer;
                         }

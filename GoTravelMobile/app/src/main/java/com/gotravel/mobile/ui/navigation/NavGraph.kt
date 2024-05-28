@@ -27,6 +27,8 @@ import com.gotravel.mobile.ui.screen.LandingDestination
 import com.gotravel.mobile.ui.screen.LandingScreen
 import com.gotravel.mobile.ui.screen.PerfilDestination
 import com.gotravel.mobile.ui.screen.PerfilScreen
+import com.gotravel.mobile.ui.screen.ServiciosDestination
+import com.gotravel.mobile.ui.screen.ServiciosScreen
 import com.gotravel.mobile.ui.screen.SuscripcionDestination
 import com.gotravel.mobile.ui.screen.SuscripcionScreen
 import com.gotravel.mobile.ui.screen.ViajeDestination
@@ -230,6 +232,46 @@ fun AppNavHost(
                     // TODO: navController.navigate(("${ServicioDestination.route}/${it}"))
                 },
                 navController = navController
+            )
+        }
+
+        // Pantalla viajes sin busqueda
+        composable(route = ServiciosDestination.route) {
+            val items = listOfNotNull(Screen.Inicio, Screen.Viajes, if(AppUiState.usuario.roles.contains(Rol("Profesional"))) Screen.Servicios else null, Screen.Chats, Screen.Perfil)
+            ServiciosScreen(
+                navController = navController,
+                buscarServicio = { busqueda ->
+                    navController.navigate(ServiciosDestination.route + if(busqueda.isNotBlank()) "/${busqueda}" else "")
+                },
+                onServicioClicked = {
+                    // TODO: navController.navigate("${ServicioDestination.route}/${it}")
+                },
+                elementosDeNavegacion = items,
+                navigateToStart = {
+                    navController.navigate(LandingDestination.route)
+                }
+            )
+        }
+
+        // Pantalla servicios con busqueda
+        composable(
+            route = ServiciosDestination.routeWithArgs,
+            arguments = listOf(
+                navArgument(ViajesDestination.busqueda) { type = NavType.StringType },
+            )) {
+            val items = listOfNotNull(Screen.Inicio, Screen.Viajes, if(AppUiState.usuario.roles.contains(Rol("Profesional"))) Screen.Servicios else null, Screen.Chats, Screen.Perfil)
+            ServiciosScreen(
+                navController = navController,
+                buscarServicio = { busqueda ->
+                    navController.navigate(ServiciosDestination.route + if(busqueda.isNotBlank()) "/${busqueda}" else "")
+                },
+                onServicioClicked = {
+                    // TODO: navController.navigate("${ServicioDestination.route}/${it}")
+                },
+                elementosDeNavegacion = items,
+                navigateToStart = {
+                    navController.navigate(LandingDestination.route)
+                }
             )
         }
 

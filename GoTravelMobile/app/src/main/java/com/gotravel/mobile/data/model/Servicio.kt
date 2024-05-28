@@ -1,10 +1,15 @@
 package com.gotravel.mobile.data.model
 
+import android.os.Build
+import androidx.annotation.RequiresApi
+import com.gotravel.mobile.ui.utils.formatoFinal
+import com.gotravel.mobile.ui.utils.formatoFromDb
 import kotlinx.serialization.Serializable
 import lombok.AllArgsConstructor
 import lombok.Getter
 import lombok.NoArgsConstructor
 import lombok.Setter
+import java.time.LocalDate
 
 @Getter
 @Setter
@@ -22,4 +27,16 @@ data class Servicio (
     val tipoServicio: Tiposervicio,
     val direccion: Direccion,
     val usuario: Usuario? = null
-)
+) {
+    val inicio: String
+        @RequiresApi(Build.VERSION_CODES.O)
+        get() {
+            return LocalDate.parse(fechaInicio, formatoFromDb).format(formatoFinal)
+        }
+
+    val final: String
+        @RequiresApi(Build.VERSION_CODES.O)
+        get() {
+            return if (fechaFinal == null) "" else LocalDate.parse(fechaFinal, formatoFromDb).format(formatoFinal)
+        }
+}
