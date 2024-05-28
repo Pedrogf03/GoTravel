@@ -241,7 +241,8 @@ fun CrearViajeScreen(
 
             Text(
                 text = mensajeUi.value,
-                modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
+                color = MaterialTheme.colorScheme.error
             )
 
         }

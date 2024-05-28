@@ -14,6 +14,7 @@ public class Servicio {
     @Id
     @Column(name = "id_servicio", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Expose
     private Integer id;
 
     @Column(name = "nombre", nullable = false, length = 45)
@@ -56,6 +57,6 @@ public class Servicio {
 
     @Lob
     @Column(name = "oculto", nullable = false, columnDefinition = "ENUM('0', '1')")
-    private String oculto;
+    private String oculto = "0";
 
 }

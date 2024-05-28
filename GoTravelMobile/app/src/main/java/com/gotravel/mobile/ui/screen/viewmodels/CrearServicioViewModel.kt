@@ -140,73 +140,116 @@ class CrearServicioViewModel : ViewModel() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    suspend fun crearServicio(nombre: String, descripcion: String?, precio: String, fechaInicio: String, fechaFinal: String?, hora: String?, tipoServicio: Tiposervicio?, direccion: Direccion?): Servicio? {
+    suspend fun crearServicio(nombre: String, descripcion: String?, precio: Double, fechaInicio: String, fechaFinal: String?, hora: String?, tipoServicio: Tiposervicio, direccion: Direccion): Servicio? {
 
-        if(nombre.matches(Regex.regexCamposAlfaNum) && nombre.length <= 45) {
+        val inicio = LocalDate.parse(fechaInicio, formatoFinal).format(formatoFromDb)
+        var final : String? = null
+        if(fechaFinal != null) {
+            final = LocalDate.parse(fechaFinal, formatoFinal).format(formatoFromDb)
+        }
 
-            if(descripcion == null || descripcion.matches(Regex.regexCamposAlfaNum)) {
+        val servicio = Servicio(nombre = nombre, descripcion = descripcion, precio = precio, fechaInicio = inicio, fechaFinal = final, hora = hora, tipoServicio = tipoServicio, direccion = direccion)
 
-                val coste = precio.replace(",", ".")
-                val precioFinal = String.format(Locale.US, "%.2f", round(coste.toDouble() * 100) / 100).toDouble()
+        if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+            return withContext(Dispatchers.IO) {
+                val gson = GsonBuilder()
+                    .serializeNulls()
+                    .setLenient()
+                    .create()
+
+                try {
+
+                    AppUiState.salida.writeUTF("save;servicio")
+                    AppUiState.salida.flush()
+
+                    AppUiState.salida.writeUTF(gson.toJson(servicio))
+                    AppUiState.salida.flush()
+
+                    val jsonFromServer = AppUiState.entrada.readUTF()
+                    return@withContext gson.fromJson(jsonFromServer, Servicio::class.java)
+
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                    AppUiState.socket!!.close()
+                    return@withContext null
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+                return@withContext null
+            }
+        } else {
+            return null
+        }
+    }
+
+    fun validarInfoBasica(
+        nombre: String,
+        descripcion: String?,
+        precio: String,
+        tipoServicio: Tiposervicio?
+    ): Boolean {
+
+        if(nombre.isBlank() || precio.isBlank() || tipoServicio == null) {
+            mensajeUi.postValue("Rellena los campos obligatorios")
+            return false
+        } else {
+            if(nombre.matches(Regex.regexCamposAlfaNum) && nombre.length <= 45) {
+
+                if(descripcion == null || descripcion.matches(Regex.regexCamposAlfaNum)) {
+
+                    try {
+                        val coste = precio.replace(",", ".")
+                        coste.toDouble()
+                        mensajeUi.postValue("")
+                        return true
+                    } catch (e: NumberFormatException) {
+                        mensajeUi.postValue("El precio no es válido")
+                        return false
+                    }
+
+                } else {
+                    mensajeUi.postValue("La descripción no es válida")
+                    return false
+                }
+
+            } else {
+                mensajeUi.postValue("El nombre no es válido")
+                return false
+            }
+        }
+
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun validarFechasYHora(
+        fechaInicio: String,
+        fechaFinal: String?,
+        hora: String?
+    ): Boolean {
+
+        if(fechaInicio.isBlank()) {
+            mensajeUi.postValue("El servicio tiene que tener al menos una fecha de inicio")
+            return false
+        } else {
+            if(fechaFinal != null){
 
                 val inicio = LocalDate.parse(fechaInicio, formatoFinal)
                 val fin = LocalDate.parse(fechaFinal, formatoFinal)
 
                 if(fin.isBefore(inicio)) {
                     mensajeUi.postValue("La fecha de final no puede ser antes que la fecha de inicio")
+                    mensajeUi.postValue("")
+                    return false
                 } else {
-                    if(tipoServicio != null && direccion != null) {
-
-                        val servicio = Servicio(nombre = nombre, descripcion = descripcion, precio = precioFinal, fechaInicio = fechaInicio, fechaFinal = fechaFinal, hora = hora, tipoServicio = tipoServicio, direccion = direccion)
-
-                        if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
-                            return withContext(Dispatchers.IO) {
-                                val gson = GsonBuilder()
-                                    .serializeNulls()
-                                    .setLenient()
-                                    .create()
-
-                                try {
-
-                                    AppUiState.salida.writeUTF("save;servicio")
-                                    AppUiState.salida.flush()
-
-                                    AppUiState.salida.writeUTF(gson.toJson(servicio))
-                                    AppUiState.salida.flush()
-
-                                    println(gson.toJson(servicio))
-
-                                    val jsonFromServer = AppUiState.entrada.readUTF()
-                                    return@withContext gson.fromJson(jsonFromServer, Servicio::class.java)
-
-                                } catch (e: IOException) {
-                                    e.printStackTrace()
-                                    AppUiState.socket!!.close()
-                                    return@withContext null
-                                } catch (e: Exception) {
-                                    e.printStackTrace()
-                                }
-
-                                return@withContext null
-                            }
-                        } else {
-                            return null
-                        }
-
-                    } else {
-                        mensajeUi.postValue("El servicio tiene que tener un" + if(tipoServicio == null) " tipo" else "a dirección")
-                    }
+                    return true
                 }
 
             } else {
-                mensajeUi.postValue("La descripción no es válida")
+                mensajeUi.postValue("")
+                return true
             }
-
-        } else {
-            mensajeUi.postValue("El nombre no es válido")
         }
-
-        return null
 
     }
 

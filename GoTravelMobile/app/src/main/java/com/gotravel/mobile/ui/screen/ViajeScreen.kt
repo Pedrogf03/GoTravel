@@ -510,7 +510,8 @@ fun EditarViaje(
 
                 Text(
                     text = mensajeUi.value,
-                    modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                    modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
+                    color = MaterialTheme.colorScheme.error
                 )
 
                 Button(
@@ -710,7 +711,8 @@ fun CrearEtapa(
                 Text(
                     text = mensajeUi.value,
                     modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.error
                 )
 
                 Button(

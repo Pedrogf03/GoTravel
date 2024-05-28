@@ -413,7 +413,8 @@ fun LoginScreen(
             Text(
                 text = mensajeUi.value,
                 modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.error
             )
             
         }
