@@ -13,8 +13,8 @@ import com.google.gson.GsonBuilder
 import com.gotravel.mobile.data.model.Etapa
 import com.gotravel.mobile.data.model.Viaje
 import com.gotravel.mobile.ui.screen.ViajeDestination
-import com.gotravel.mobile.ui.utils.Sesion
 import com.gotravel.mobile.ui.utils.Regex
+import com.gotravel.mobile.ui.utils.Sesion
 import com.gotravel.mobile.ui.utils.formatoFinal
 import com.gotravel.mobile.ui.utils.formatoFromDb
 import kotlinx.coroutines.Dispatchers

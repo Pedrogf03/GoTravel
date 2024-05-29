@@ -6,8 +6,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.gson.GsonBuilder
 import com.gotravel.mobile.data.model.Viaje
-import com.gotravel.mobile.ui.utils.Sesion
 import com.gotravel.mobile.ui.utils.Regex
+import com.gotravel.mobile.ui.utils.Sesion
 import com.gotravel.mobile.ui.utils.formatoFinal
 import com.gotravel.mobile.ui.utils.formatoFromDb
 import kotlinx.coroutines.Dispatchers

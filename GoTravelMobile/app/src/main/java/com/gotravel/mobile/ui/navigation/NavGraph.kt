@@ -27,6 +27,8 @@ import com.gotravel.mobile.ui.screen.LandingDestination
 import com.gotravel.mobile.ui.screen.LandingScreen
 import com.gotravel.mobile.ui.screen.PerfilDestination
 import com.gotravel.mobile.ui.screen.PerfilScreen
+import com.gotravel.mobile.ui.screen.ServicioDestination
+import com.gotravel.mobile.ui.screen.ServicioScreen
 import com.gotravel.mobile.ui.screen.ServiciosDestination
 import com.gotravel.mobile.ui.screen.ServiciosScreen
 import com.gotravel.mobile.ui.screen.SuscripcionDestination
@@ -151,7 +153,7 @@ fun AppNavHost(
                 navArgument(ViajeDestination.idViaje) { type = NavType.IntType },
             )) {
             ViajeScreen(
-                navigateUp = { navController.popBackStack(ViajesDestination.route, inclusive = false) },
+                navigateUp = { navController.navigateUp() },
                 actualizarPagina = {
                     navController.navigate("${ViajeDestination.route}/${it}")
                 },
@@ -229,13 +231,13 @@ fun AppNavHost(
         composable(route = CrearServicioDestination.route) {
             CrearServicioScreen(
                 navigateToServicio = {
-                    // TODO: navController.navigate(("${ServicioDestination.route}/${it}"))
+                    navController.navigate(("${ServicioDestination.route}/${it}"))
                 },
                 navController = navController
             )
         }
 
-        // Pantalla viajes sin busqueda
+        // Pantalla servicios sin busqueda
         composable(route = ServiciosDestination.route) {
             val items = listOfNotNull(Screen.Inicio, Screen.Viajes, if(Sesion.usuario.roles.contains(Rol("Profesional"))) Screen.Servicios else null, Screen.Chats, Screen.Perfil)
             ServiciosScreen(
@@ -244,7 +246,7 @@ fun AppNavHost(
                     navController.navigate(ServiciosDestination.route + if(busqueda.isNotBlank()) "/${busqueda}" else "")
                 },
                 onServicioClicked = {
-                    // TODO: navController.navigate("${ServicioDestination.route}/${it}")
+                    navController.navigate("${ServicioDestination.route}/${it}")
                 },
                 elementosDeNavegacion = items,
                 navigateToStart = {
@@ -266,9 +268,26 @@ fun AppNavHost(
                     navController.navigate(ServiciosDestination.route + if(busqueda.isNotBlank()) "/${busqueda}" else "")
                 },
                 onServicioClicked = {
-                    // TODO: navController.navigate("${ServicioDestination.route}/${it}")
+                    navController.navigate("${ServicioDestination.route}/${it}")
                 },
                 elementosDeNavegacion = items,
+                navigateToStart = {
+                    navController.navigate(LandingDestination.route)
+                }
+            )
+        }
+
+        // Pantalla de un servicio
+        composable(
+            route = ServicioDestination.routeWithArgs,
+            arguments = listOf(
+                navArgument(ServicioDestination.idServicio) { type = NavType.IntType },
+            )) {
+            ServicioScreen(
+                navigateUp = { navController.navigateUp() },
+                actualizarPagina = {
+                    navController.navigate("${ServicioDestination.route}/${it}")
+                },
                 navigateToStart = {
                     navController.navigate(LandingDestination.route)
                 }

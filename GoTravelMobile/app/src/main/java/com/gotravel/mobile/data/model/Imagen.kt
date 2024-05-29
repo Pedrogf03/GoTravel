@@ -1,5 +1,8 @@
 package com.gotravel.mobile.data.model
 
+import android.graphics.BitmapFactory
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import kotlinx.serialization.Serializable
 import lombok.AllArgsConstructor
 import lombok.Getter
@@ -13,6 +16,10 @@ import lombok.Setter
 @Serializable
 data class Imagen (
     val id: Int,
-    val servicio: Servicio,
-    val imagen: ByteArray
-)
+    var imagen: ByteArray
+) {
+    val foto: ImageBitmap
+        get() {
+            return BitmapFactory.decodeByteArray(imagen, 0, imagen.size).asImageBitmap()
+        }
+}

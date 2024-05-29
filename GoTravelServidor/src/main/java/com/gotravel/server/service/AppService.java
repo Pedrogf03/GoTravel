@@ -7,8 +7,14 @@ import com.gotravel.server.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -157,10 +163,44 @@ public class AppService {
     }
 
     public Servicio findServicioById(int id) {
-        return servicioRepository.findById(id).orElse(null);
+        return servicioRepository.findByIdAndOculto(id, "0").orElse(null);
     }
 
     public List<Servicio> findServiciosByUsuarioId(int idUsuario) {
-        return servicioRepository.findAllByUsuarioId(idUsuario);
+        List<Servicio> servicios = servicioRepository.findAllByUsuarioIdAndOculto(idUsuario, "0");
+        List<Servicio> devolver = new ArrayList<>();
+        DateTimeFormatter f = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter h = DateTimeFormatter.ofPattern("HH:mm:ss");
+        for (Servicio s : servicios) {
+            if(s.getFechaFinal() != null) {
+                LocalDate fechaFinal = LocalDate.parse(s.getFechaFinal(), f);
+                if(fechaFinal.isBefore(LocalDate.now())) {
+                    s.setPublicado("0");
+                }
+            } else {
+                LocalDate fechaInicio = LocalDate.parse(s.getFechaInicio(), f);
+                LocalTime hora = LocalTime.parse(s.getHora(), h);
+                if(fechaInicio.isBefore(LocalDate.now())) {
+                    s.setPublicado("0");
+                } else if (fechaInicio.isEqual(LocalDate.now()) || hora.isBefore(LocalTime.now())) {
+                    s.setPublicado("0");
+                }
+            }
+            devolver.add(saveServicio(s));
+        }
+
+        return devolver;
     }
+
+    @Autowired
+    private ImagenRepository imagenRepository;
+
+    public Imagen findFirstImageFromServicioId(int idServicio) {
+        return imagenRepository.findFirstByServicioId(idServicio).orElse(null);
+    }
+
+    public List<Imagen> findAllImagesFromServicioId(int idServicio) {
+        return imagenRepository.findAllByServicioId(idServicio);
+    }
+
 }

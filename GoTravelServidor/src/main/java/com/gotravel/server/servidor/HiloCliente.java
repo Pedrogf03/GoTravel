@@ -234,6 +234,11 @@ public class HiloCliente extends Thread {
                                 Viaje v = service.findViajeById(idViaje);
                                 jsonFromServer = gson.toJson(v);
                             }
+                            if(tabla.equalsIgnoreCase("servicio")) {
+                                int idServicio = Integer.parseInt(fromCliente[2]);
+                                Servicio s = service.findServicioById(idServicio);
+                                jsonFromServer = gson.toJson(s);
+                            }
                             yield jsonFromServer;
                         }
                         case "findByUserId" -> {
@@ -256,6 +261,30 @@ public class HiloCliente extends Thread {
                                 jsonFromServer = gson.toJson(servicios);
                             }
                             yield jsonFromServer;
+                        }
+                        case "findImagesFromServicioId" -> {
+                            int idServicio = Integer.parseInt(fromCliente[1]);
+                            String numImagenes = fromCliente[2];
+                            if(numImagenes.equals("one")) {
+                                Imagen i = service.findFirstImageFromServicioId(idServicio);
+                                sesion.getSalida().writeUTF(gson.toJson(i));
+                                if(i != null) {
+                                    sesion.getSalida().writeInt(i.getImagen().length); // Envía la longitud del ByteArray
+                                    sesion.getSalida().write(i.getImagen()); // Envía el ByteArray
+                                    sesion.getSalida().flush();
+                                }
+                            } else if(numImagenes.equals("all")){
+                                List<Imagen> imagenes = service.findAllImagesFromServicioId(idServicio);
+
+                                sesion.getSalida().writeUTF(gson.toJson(imagenes));
+
+                                for(Imagen i : imagenes) {
+                                    sesion.getSalida().writeInt(i.getImagen().length); // Envía la longitud del ByteArray
+                                    sesion.getSalida().write(i.getImagen()); // Envía el ByteArray
+                                    sesion.getSalida().flush();
+                                }
+                            }
+                            yield "";
                         }
                         case "findAll" -> {
                             String tabla = fromCliente[1];
@@ -321,7 +350,11 @@ public class HiloCliente extends Thread {
                         default -> "";
                     };
 
+                    if(!json.equals("null") && !json.isEmpty()) {
+                        LOG.info("{}: {}", opcion, json);
+                    }
                     sesion.getSalida().writeUTF(json);
+                    sesion.getSalida().flush();
                 } else if (output.equals("finHilo")) {
                     terminar = true;
                     clientesConectados.remove(this);

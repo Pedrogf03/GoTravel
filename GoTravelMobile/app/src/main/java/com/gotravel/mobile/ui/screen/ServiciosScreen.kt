@@ -19,16 +19,13 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CardElevation
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,7 +45,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.gotravel.gotravel.R
 import com.gotravel.mobile.data.model.Servicio
-import com.gotravel.mobile.data.model.Viaje
 import com.gotravel.mobile.ui.AppBottomBar
 import com.gotravel.mobile.ui.AppTopBar
 import com.gotravel.mobile.ui.AppViewModelProvider
@@ -56,8 +52,6 @@ import com.gotravel.mobile.ui.Screen
 import com.gotravel.mobile.ui.navigation.NavDestination
 import com.gotravel.mobile.ui.screen.viewmodels.ServiciosUiState
 import com.gotravel.mobile.ui.screen.viewmodels.ServiciosViewModel
-import com.gotravel.mobile.ui.screen.viewmodels.ViajesUiState
-import com.gotravel.mobile.ui.screen.viewmodels.ViajesViewModel
 
 object ServiciosDestination : NavDestination {
     override val route = "servicios"
@@ -86,8 +80,8 @@ fun ServiciosScreen(
         is ServiciosUiState.Success -> {
             ServiciosContent(
                 navController = navController,
-                servicios = uiState.servicios,
-                serviciosPasados = uiState.serviciosPasados,
+                serviciosPublicados = uiState.serviciosPublicados,
+                serviciosOcultos = uiState.serviciosOcultos,
                 buscarServicio = buscarServicio,
                 onServicioClicked = onServicioClicked,
                 elementosDeNavegacion = elementosDeNavegacion
@@ -102,8 +96,8 @@ fun ServiciosScreen(
 @Composable
 fun ServiciosContent(
     navController: NavHostController,
-    servicios: List<Servicio>,
-    serviciosPasados: List<Servicio>,
+    serviciosPublicados: List<Servicio>,
+    serviciosOcultos: List<Servicio>,
     buscarServicio: (String) -> Unit,
     onServicioClicked: (Int) -> Unit,
     modifier: Modifier = Modifier,
@@ -127,7 +121,7 @@ fun ServiciosContent(
         modifier = modifier
     ) {
 
-        if(serviciosPasados.isEmpty() && servicios.isEmpty()) {
+        if(serviciosOcultos.isEmpty() && serviciosPublicados.isEmpty()) {
             SinServicios(
                 modifier = Modifier.padding(it),
                 color = MaterialTheme.colorScheme.onSurface,
@@ -135,8 +129,8 @@ fun ServiciosContent(
             )
         } else {
             GridServicios(
-                servicios = servicios,
-                serviciosPasados = serviciosPasados,
+                serviciosPublicados = serviciosPublicados,
+                serviciosOcultos = serviciosOcultos,
                 buscarServicio = buscarServicio,
                 modifier = Modifier.padding(it),
                 onServicioClicked = onServicioClicked
@@ -150,8 +144,8 @@ fun ServiciosContent(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun GridServicios(
-    servicios: List<Servicio>,
-    serviciosPasados: List<Servicio>,
+    serviciosPublicados: List<Servicio>,
+    serviciosOcultos: List<Servicio>,
     buscarServicio: (String) -> Unit,
     onServicioClicked: (Int) -> Unit,
     modifier: Modifier = Modifier
@@ -182,7 +176,7 @@ fun GridServicios(
             label = "servicios"
         )
         
-        val opciones = listOf("finalizados", "actuales")
+        val opciones = listOf("ocultos", "publicados")
         
         var eleccion by remember { mutableStateOf(opciones[1]) }
 
@@ -201,7 +195,7 @@ fun GridServicios(
                 Button(
                     onClick = { eleccion = opciones[0] },
                 ) {
-                    Text(text = "FINALIZADOS", style = MaterialTheme.typography.titleMedium)
+                    Text(text = "OCULTOS", style = MaterialTheme.typography.titleMedium)
                 }
                 Spacer(modifier = Modifier.padding(8.dp))
                 Button(
@@ -209,7 +203,7 @@ fun GridServicios(
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimary)
                 ) {
                     Text(
-                        text = "ACTUALES",
+                        text = "PUBLICADOS",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -221,17 +215,12 @@ fun GridServicios(
             LazyColumn(
                 contentPadding = PaddingValues(4.dp)
             ) {
-                var numViajes = 0
-                items(items = if(eleccion == opciones[0]) serviciosPasados else servicios) {servicio ->
-                    numViajes++
-                    if(numViajes > 2) {
-                        numViajes = 1
-                    }
+                items(items = if(eleccion == opciones[0]) serviciosOcultos else serviciosPublicados) {servicio ->
                     ServicioCard(
                         servicio = servicio,
                         onServicioClicked = onServicioClicked,
                         modifier = Modifier.padding(4.dp),
-                        color = if(numViajes != 1) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
+                        color = if(eleccion == opciones[0]) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
                         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                     )
                 }

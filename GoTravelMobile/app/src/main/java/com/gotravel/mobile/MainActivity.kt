@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.Service
 import android.content.Intent
 import android.content.pm.ActivityInfo
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
@@ -25,8 +24,6 @@ import com.gotravel.mobile.ui.screen.HomeDestination
 import com.gotravel.mobile.ui.screen.SuscripcionDestination
 import com.gotravel.mobile.ui.theme.GoTravelTheme
 import com.gotravel.mobile.ui.utils.Sesion
-import com.gotravel.mobile.ui.utils.PayPalSubscriptions
-import com.gotravel.mobile.ui.utils.addRolProfesional
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope

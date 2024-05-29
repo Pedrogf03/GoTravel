@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
+import com.gotravel.mobile.data.model.Imagen
 import com.gotravel.mobile.data.model.Servicio
 import com.gotravel.mobile.ui.screen.ViajesDestination
 import com.gotravel.mobile.ui.utils.Sesion
@@ -21,7 +22,7 @@ import java.io.IOException
 import java.time.LocalDate
 
 sealed interface ServiciosUiState {
-    data class Success(val serviciosPasados: List<Servicio>, val servicios: List<Servicio>) : ServiciosUiState
+    data class Success(val serviciosOcultos: List<Servicio>, val serviciosPublicados: List<Servicio>) : ServiciosUiState
     object Error : ServiciosUiState
     object Loading : ServiciosUiState
 }
@@ -46,46 +47,26 @@ class ServiciosViewModel(
             try {
                 val allServicios = findServiciosByUsuarioId()
                 if (allServicios != null) {
-                    val serviciosPasados = mutableListOf<Servicio>()
+                    val serviciosOcultos = mutableListOf<Servicio>()
                     val servicios = mutableListOf<Servicio>()
                     if(busqueda != null) {
                         for(servicio in allServicios) {
-                            if(servicio.fechaFinal != null) {
-                                if(servicio.nombre.lowercase().contains(busqueda.lowercase())){
-                                    if(LocalDate.parse(servicio.final, formatoFinal).isBefore(LocalDate.now())) { // Si el final del servicio es antes del dia de hoy
-                                        serviciosPasados.add(servicio)
-                                    } else {
-                                        servicios.add(servicio)
-                                    }
-                                }
-                            } else {
-                                if(servicio.nombre.lowercase().contains(busqueda.lowercase())){
-                                    if(LocalDate.parse(servicio.inicio, formatoFinal).isBefore(LocalDate.now())) { // Si no tiene fecha de fin y el inicio del servicio es antes del dia de hoy
-                                        serviciosPasados.add(servicio)
-                                    } else {
-                                        servicios.add(servicio)
-                                    }
-                                }
+                            if(servicio.nombre == busqueda && servicio.publicado == "0") {
+                                serviciosOcultos.add(servicio)
+                            } else if(servicio.nombre == busqueda && servicio.publicado == "1") {
+                                servicios.add(servicio)
                             }
                         }
                     } else {
                         for(servicio in allServicios) {
-                            if(servicio.fechaFinal != null) {
-                                if(LocalDate.parse(servicio.final, formatoFinal).isBefore(LocalDate.now())) { // Si el final del servicio es antes del dia de hoy
-                                    serviciosPasados.add(servicio)
-                                } else {
-                                    servicios.add(servicio)
-                                }
-                            } else {
-                                if(LocalDate.parse(servicio.inicio, formatoFinal).isBefore(LocalDate.now())) { // Si no tiene fecha de fin y el inicio del servicio es antes del dia de hoy
-                                    serviciosPasados.add(servicio)
-                                } else {
-                                    servicios.add(servicio)
-                                }
+                            if(servicio.publicado == "0") {
+                                serviciosOcultos.add(servicio)
+                            } else if(servicio.publicado == "1") {
+                                servicios.add(servicio)
                             }
                         }
                     }
-                    uiState = ServiciosUiState.Success(serviciosPasados = serviciosPasados, servicios = servicios)
+                    uiState = ServiciosUiState.Success(serviciosOcultos = serviciosOcultos, serviciosPublicados = servicios)
                 } else {
                     uiState = ServiciosUiState.Error
                 }
@@ -111,7 +92,14 @@ class ServiciosViewModel(
 
                     val jsonFromServer = Sesion.entrada.readUTF()
                     val type = object : TypeToken<List<Servicio>>() {}.type
-                    return@withContext gson.fromJson<List<Servicio>?>(jsonFromServer, type)
+                    val servicios =  gson.fromJson<List<Servicio>>(jsonFromServer, type)
+
+                    for(s in servicios){
+                        val firstImage = getFirstImagenFromServicio(s.id!!)
+                        s.imagenes = listOfNotNull(firstImage)
+                    }
+
+                    return@withContext servicios
 
                 } catch (e: IOException) {
                     e.printStackTrace()
@@ -122,6 +110,50 @@ class ServiciosViewModel(
                 }
 
                 return@withContext listOf<Servicio>()
+            }
+        } else {
+            return null
+        }
+
+    }
+
+    private suspend fun getFirstImagenFromServicio(id: Int): Imagen? {
+
+        if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
+            return withContext(Dispatchers.IO) {
+                val gson = GsonBuilder()
+                    .serializeNulls()
+                    .setLenient()
+                    .create()
+
+                try {
+
+                    Sesion.salida.writeUTF("findImagesFromServicioId;$id;one")
+                    Sesion.salida.flush()
+
+                    val jsonFromServer = Sesion.entrada.readUTF()
+                    val imagen = gson.fromJson(jsonFromServer, Imagen::class.java)
+
+                    if(imagen != null) {
+                        val length = Sesion.entrada.readInt() // Lee la longitud del ByteArray
+                        val byteArray = ByteArray(length)
+                        Sesion.entrada.readFully(byteArray) // Lee el ByteArray
+                        imagen.imagen = byteArray
+                    }
+
+                    Sesion.entrada.readUTF()
+
+                    return@withContext imagen
+
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                    Sesion.socket!!.close()
+                    return@withContext null
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+                return@withContext null
             }
         } else {
             return null

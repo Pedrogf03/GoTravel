@@ -218,17 +218,12 @@ fun GridViajes(
             LazyColumn(
                 contentPadding = PaddingValues(4.dp)
             ) {
-                var numViajes = 0
                 items(items = if(eleccion == opciones[0]) viajesPasados else viajes) {viaje ->
-                    numViajes++
-                    if(numViajes > 2) {
-                        numViajes = 1
-                    }
                     ViajeCard(
                         viaje = viaje,
                         onViajeClicked = onViajeClicked,
                         modifier = Modifier.padding(4.dp),
-                        color = if(numViajes != 1) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
+                        color = if(eleccion == opciones[0]) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
                         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                     )
                 }
@@ -350,7 +345,9 @@ fun ViajeCard(
 
             Column {
                 Text(text = viaje.nombre, color = textColor, style = MaterialTheme.typography.titleMedium)
-                Text(text = viaje.inicio + " - " + viaje.final, fontSize = 8.sp, color = textColor)
+                viaje.descripcion?.let { Text(text = it.take(50) + if(it.length > 50) "..." else "", fontSize = 12.sp, color = textColor)}
+                Text(text = viaje.inicio + " - " + viaje.final, fontSize = 12.sp, color = textColor)
+                Text(text = "Etapas: " + viaje.etapas.size, fontSize = 12.sp, color = textColor)
             }
             Spacer(modifier = Modifier.weight(1f))
             Icon(imageVector = Icons.Default.ArrowForward, contentDescription = "ver viaje", tint = textColor)

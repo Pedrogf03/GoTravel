@@ -26,7 +26,9 @@ data class Servicio (
     val hora: String?,
     val tipoServicio: Tiposervicio,
     val direccion: Direccion,
-    val usuario: Usuario? = null
+    val usuario: Usuario? = null,
+    var imagenes: List<Imagen> = listOf(),
+    val publicado: String? = null
 ) {
     val inicio: String
         @RequiresApi(Build.VERSION_CODES.O)

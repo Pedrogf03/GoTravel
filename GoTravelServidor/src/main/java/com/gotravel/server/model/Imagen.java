@@ -1,5 +1,6 @@
 package com.gotravel.server.model;
 
+import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,11 +12,12 @@ import lombok.Setter;
 public class Imagen {
 
     @Id
-    @Column(name = "id_servicio", nullable = false)
+    @Column(name = "id_imagen", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Expose
     private Integer id;
 
-    @MapsId
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_servicio", nullable = false)
     private Servicio servicio;
 

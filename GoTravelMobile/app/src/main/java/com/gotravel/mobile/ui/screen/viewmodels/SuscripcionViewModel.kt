@@ -16,10 +16,8 @@ import com.gotravel.mobile.data.model.Suscripcion
 import com.gotravel.mobile.data.model.Usuario
 import com.gotravel.mobile.ui.screen.SuscripcionDestination
 import com.gotravel.mobile.ui.utils.Sesion
-import com.gotravel.mobile.ui.utils.PayPalSubscriptions
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException

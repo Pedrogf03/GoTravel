@@ -13,8 +13,8 @@ import com.google.gson.reflect.TypeToken
 import com.gotravel.mobile.data.model.Direccion
 import com.gotravel.mobile.data.model.Servicio
 import com.gotravel.mobile.data.model.Tiposervicio
-import com.gotravel.mobile.ui.utils.Sesion
 import com.gotravel.mobile.ui.utils.Regex
+import com.gotravel.mobile.ui.utils.Sesion
 import com.gotravel.mobile.ui.utils.formatoFinal
 import com.gotravel.mobile.ui.utils.formatoFromDb
 import kotlinx.coroutines.Dispatchers

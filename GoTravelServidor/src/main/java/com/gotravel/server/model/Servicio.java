@@ -4,11 +4,15 @@ import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
+
+import java.util.List;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "servicio")
+@ToString
 public class Servicio {
 
     @Id
@@ -41,12 +45,12 @@ public class Servicio {
     @Expose
     private String hora;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "tipo_servicio", nullable = false)
     @Expose
     private Tiposervicio tipoServicio;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.ALL)
+    @OneToOne(fetch = FetchType.EAGER, optional = false, cascade = CascadeType.ALL)
     @JoinColumn(name = "id_direccion", nullable = false)
     @Expose
     private Direccion direccion;
@@ -55,8 +59,17 @@ public class Servicio {
     @JoinColumn(name = "id_usuario", nullable = false)
     private Usuario usuario;
 
+    @OneToMany(mappedBy = "servicio", fetch = FetchType.EAGER)
+    private List<Imagen> imagenes;
+
     @Lob
     @Column(name = "oculto", nullable = false, columnDefinition = "ENUM('0', '1')")
+    @Expose
     private String oculto = "0";
+
+    @Lob
+    @Column(name = "publicado", nullable = false, columnDefinition = "ENUM('0', '1')")
+    @Expose
+    private String publicado = "0";
 
 }
