@@ -1,17 +1,13 @@
 package com.gotravel.mobile.ui.screen.viewmodels
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.gson.GsonBuilder
 import com.gotravel.mobile.data.model.Usuario
-import com.gotravel.mobile.data.model.Viaje
-import com.gotravel.mobile.ui.utils.AppUiState
+import com.gotravel.mobile.ui.utils.Sesion
 import com.gotravel.mobile.ui.utils.Regex
-import com.gotravel.mobile.ui.utils.formatoFromDb
 import com.gotravel.mobile.ui.utils.sha256
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -32,7 +28,7 @@ class PerfilViewModel : ViewModel() {
 
                     if(usuario.tfno != null && usuario.tfno!!.matches(Regex.regexTfno) ) {
 
-                        if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+                        if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
                             return withContext(Dispatchers.IO) {
                                 val gson = GsonBuilder()
                                     .serializeNulls()
@@ -43,18 +39,18 @@ class PerfilViewModel : ViewModel() {
 
                                 try {
 
-                                    AppUiState.salida.writeUTF("update;usuario")
-                                    AppUiState.salida.flush()
+                                    Sesion.salida.writeUTF("update;usuario")
+                                    Sesion.salida.flush()
 
                                     val json = gson.toJson(usuario)
-                                    AppUiState.salida.writeUTF(json)
-                                    AppUiState.salida.flush()
+                                    Sesion.salida.writeUTF(json)
+                                    Sesion.salida.flush()
 
-                                    val jsonFromServer = AppUiState.entrada.readUTF()
+                                    val jsonFromServer = Sesion.entrada.readUTF()
                                     usuarioFromServer = gson.fromJson(jsonFromServer, Usuario::class.java)
 
                                     if (usuarioFromServer != null) {
-                                        AppUiState.usuario = usuarioFromServer.copy(foto = AppUiState.usuario.foto) // Al recibir el usuario se le vuelve a poner la foto que tenía
+                                        Sesion.usuario = usuarioFromServer.copy(foto = Sesion.usuario.foto) // Al recibir el usuario se le vuelve a poner la foto que tenía
                                         return@withContext true
                                     } else {
                                         return@withContext false
@@ -62,7 +58,7 @@ class PerfilViewModel : ViewModel() {
 
                                 } catch (e: IOException) {
                                     e.printStackTrace()
-                                    AppUiState.socket!!.close()
+                                    Sesion.socket!!.close()
                                     mensajeUi.postValue("No se puede conectar con el servidor")
                                     return@withContext false
                                 } catch (e: Exception) {
@@ -107,27 +103,27 @@ class PerfilViewModel : ViewModel() {
                 }
                 val byteArray = byteArrayOutputStream.toByteArray()
 
-                if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+                if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
                     return withContext(Dispatchers.IO) {
                         try {
 
-                            AppUiState.salida.writeUTF("uploadFoto;usuario")
-                            AppUiState.salida.flush()
+                            Sesion.salida.writeUTF("uploadFoto;usuario")
+                            Sesion.salida.flush()
 
-                            AppUiState.salida.writeInt(byteArray.size) // Envía el tamaño del array de bytes
-                            AppUiState.salida.write(byteArray) // Envía el array de bytes
-                            AppUiState.salida.flush()
+                            Sesion.salida.writeInt(byteArray.size) // Envía el tamaño del array de bytes
+                            Sesion.salida.write(byteArray) // Envía el array de bytes
+                            Sesion.salida.flush()
 
                             val gson = GsonBuilder()
                                 .serializeNulls()
                                 .setLenient()
                                 .create()
 
-                            val jsonFromServer = AppUiState.entrada.readUTF()
+                            val jsonFromServer = Sesion.entrada.readUTF()
                             val usuario = gson.fromJson(jsonFromServer, Usuario::class.java)
 
                             if (usuario != null) {
-                                AppUiState.usuario.foto = byteArray
+                                Sesion.usuario.foto = byteArray
                                 return@withContext true
                             } else {
                                 mensajeUi.postValue("Lo sentimos, la foto que has seleccionado es demasiado grande")
@@ -136,7 +132,7 @@ class PerfilViewModel : ViewModel() {
 
                         } catch (e: IOException) {
                             e.printStackTrace()
-                            AppUiState.socket!!.close()
+                            Sesion.socket!!.close()
                             mensajeUi.postValue("No se puede conectar con el servidor")
                             return@withContext false
                         } catch (e: Exception) {
@@ -172,7 +168,7 @@ class PerfilViewModel : ViewModel() {
                     mensajeUi.postValue("Las contraseñas no coinciden")
                 } else {
 
-                    if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+                    if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
                         return withContext(Dispatchers.IO) {
                             val gson = GsonBuilder()
                                 .serializeNulls()
@@ -183,14 +179,14 @@ class PerfilViewModel : ViewModel() {
 
                             try {
 
-                                AppUiState.salida.writeUTF("updateContrasena;${contrasenaActualHash};${contrasenaNuevaHash}")
-                                AppUiState.salida.flush()
+                                Sesion.salida.writeUTF("updateContrasena;${contrasenaActualHash};${contrasenaNuevaHash}")
+                                Sesion.salida.flush()
 
-                                val jsonFromServer = AppUiState.entrada.readUTF()
+                                val jsonFromServer = Sesion.entrada.readUTF()
                                 usuarioFromServer = gson.fromJson(jsonFromServer, Usuario::class.java)
 
                                 if (usuarioFromServer != null) {
-                                    AppUiState.usuario = usuarioFromServer.copy(foto = AppUiState.usuario.foto)
+                                    Sesion.usuario = usuarioFromServer.copy(foto = Sesion.usuario.foto)
                                     return@withContext true
                                 } else {
                                     mensajeUi.postValue("Contraseña incorrecta")
@@ -199,7 +195,7 @@ class PerfilViewModel : ViewModel() {
 
                             } catch (e: IOException) {
                                 e.printStackTrace()
-                                AppUiState.socket!!.close()
+                                Sesion.socket!!.close()
                                 mensajeUi.postValue("No se puede conectar con el servidor")
                                 return@withContext false
                             } catch (e: Exception) {
@@ -228,17 +224,17 @@ class PerfilViewModel : ViewModel() {
 
     fun cerrarSesion() {
 
-        if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+        if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
             try{
-                AppUiState.salida.writeUTF("cerrarSesion")
-                AppUiState.salida.flush()
+                Sesion.salida.writeUTF("cerrarSesion")
+                Sesion.salida.flush()
 
-                AppUiState.salida.close()
-                AppUiState.entrada.close()
-                AppUiState.socket!!.close()
+                Sesion.salida.close()
+                Sesion.entrada.close()
+                Sesion.socket!!.close()
             } catch (e: IOException) {
                 e.printStackTrace()
-                AppUiState.socket!!.close()
+                Sesion.socket!!.close()
             }
         }
 
@@ -246,17 +242,17 @@ class PerfilViewModel : ViewModel() {
 
     fun cerrarServidor() {
 
-        if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+        if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
             try{
-                AppUiState.salida.writeUTF("cerrarServidor")
-                AppUiState.salida.flush()
+                Sesion.salida.writeUTF("cerrarServidor")
+                Sesion.salida.flush()
 
-                AppUiState.salida.close()
-                AppUiState.entrada.close()
-                AppUiState.socket!!.close()
+                Sesion.salida.close()
+                Sesion.entrada.close()
+                Sesion.socket!!.close()
             } catch (e: IOException) {
                 e.printStackTrace()
-                AppUiState.socket!!.close()
+                Sesion.socket!!.close()
             }
         }
 

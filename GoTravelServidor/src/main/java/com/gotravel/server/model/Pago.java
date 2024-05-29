@@ -20,6 +20,11 @@ public class Pago {
         this.fecha = fecha;
     }
 
+    public Pago(Double coste, String fecha) {
+        this.coste = coste;
+        this.fecha = fecha;
+    }
+
     @Id
     @Column(name = "id_pago", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)

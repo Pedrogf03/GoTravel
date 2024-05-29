@@ -1,5 +1,8 @@
 package com.gotravel.server;
 
+import com.gotravel.server.Paypal.Subscriptions;
+import com.gotravel.server.Paypal.TokenClient;
+import com.gotravel.server.model.Usuario;
 import com.gotravel.server.service.AppService;
 import com.gotravel.server.servidor.HiloCliente;
 import org.slf4j.Logger;
@@ -46,7 +49,7 @@ public class ServerApplication {
 
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		ConfigurableApplicationContext context = SpringApplication.run(ServerApplication.class, args);
 
 		try {

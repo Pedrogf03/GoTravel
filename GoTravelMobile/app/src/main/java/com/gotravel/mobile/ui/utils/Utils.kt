@@ -16,7 +16,7 @@ import java.security.MessageDigest
 import java.time.format.DateTimeFormatter
 
 // Valores por defecto que se cambian al iniciar sesion
-object AppUiState {
+object Sesion {
     var segundoPlano: Boolean = false
     var socket: Socket? = null
     lateinit var usuario: Usuario
@@ -52,13 +52,13 @@ suspend fun addRolProfesional(suscripcion: Suscripcion) {
 
         try {
 
-            AppUiState.salida.writeUTF("suscripcion;crear;" + gson.toJson(suscripcion))
+            Sesion.salida.writeUTF("suscripcion;crear;" + gson.toJson(suscripcion))
 
-            val jsonFromServer = AppUiState.entrada.readUTF()
+            val jsonFromServer = Sesion.entrada.readUTF()
             val usuario : Usuario? = gson.fromJson(jsonFromServer, Usuario::class.java)
 
             if(usuario != null) {
-                AppUiState.usuario = usuario.copy(foto = AppUiState.usuario.foto)
+                Sesion.usuario = usuario.copy(foto = Sesion.usuario.foto)
             }
 
         } catch (e: IOException) {

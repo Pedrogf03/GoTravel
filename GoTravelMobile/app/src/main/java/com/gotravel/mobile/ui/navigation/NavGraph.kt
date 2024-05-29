@@ -35,7 +35,7 @@ import com.gotravel.mobile.ui.screen.ViajeDestination
 import com.gotravel.mobile.ui.screen.ViajeScreen
 import com.gotravel.mobile.ui.screen.ViajesDestination
 import com.gotravel.mobile.ui.screen.ViajesScreen
-import com.gotravel.mobile.ui.utils.AppUiState
+import com.gotravel.mobile.ui.utils.Sesion
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -85,7 +85,7 @@ fun AppNavHost(
 
         // Pantalla home
         composable(route = HomeDestination.route) {
-            val items = listOfNotNull(Screen.Inicio, Screen.Viajes, if(AppUiState.usuario.roles.contains(Rol("Profesional"))) Screen.Servicios else null, Screen.Chats, Screen.Perfil)
+            val items = listOfNotNull(Screen.Inicio, Screen.Viajes, if(Sesion.usuario.roles.contains(Rol("Profesional"))) Screen.Servicios else null, Screen.Chats, Screen.Perfil)
             HomeScreen(
                 navController = navController,
                 onViajeClicked = {
@@ -106,7 +106,7 @@ fun AppNavHost(
 
         // Pantalla viajes sin busqueda
         composable(route = ViajesDestination.route) {
-            val items = listOfNotNull(Screen.Inicio, Screen.Viajes, if(AppUiState.usuario.roles.contains(Rol("Profesional"))) Screen.Servicios else null, Screen.Chats, Screen.Perfil)
+            val items = listOfNotNull(Screen.Inicio, Screen.Viajes, if(Sesion.usuario.roles.contains(Rol("Profesional"))) Screen.Servicios else null, Screen.Chats, Screen.Perfil)
             ViajesScreen(
                 navController = navController,
                 buscarViaje = { busqueda ->
@@ -128,7 +128,7 @@ fun AppNavHost(
             arguments = listOf(
                 navArgument(ViajesDestination.busqueda) { type = NavType.StringType },
             )) {
-            val items = listOfNotNull(Screen.Inicio, Screen.Viajes, if(AppUiState.usuario.roles.contains(Rol("Profesional"))) Screen.Servicios else null, Screen.Chats, Screen.Perfil)
+            val items = listOfNotNull(Screen.Inicio, Screen.Viajes, if(Sesion.usuario.roles.contains(Rol("Profesional"))) Screen.Servicios else null, Screen.Chats, Screen.Perfil)
             ViajesScreen(
                 navController = navController,
                 buscarViaje = { busqueda ->
@@ -163,7 +163,7 @@ fun AppNavHost(
 
         // Pantalla perfil
         composable(route = PerfilDestination.route) {
-            val items = listOfNotNull(Screen.Inicio, Screen.Viajes, if(AppUiState.usuario.roles.contains(Rol("Profesional"))) Screen.Servicios else null, Screen.Chats, Screen.Perfil)
+            val items = listOfNotNull(Screen.Inicio, Screen.Viajes, if(Sesion.usuario.roles.contains(Rol("Profesional"))) Screen.Servicios else null, Screen.Chats, Screen.Perfil)
             PerfilScreen(
                 navController = navController,
                 navigateToEditarPerfil = {
@@ -237,7 +237,7 @@ fun AppNavHost(
 
         // Pantalla viajes sin busqueda
         composable(route = ServiciosDestination.route) {
-            val items = listOfNotNull(Screen.Inicio, Screen.Viajes, if(AppUiState.usuario.roles.contains(Rol("Profesional"))) Screen.Servicios else null, Screen.Chats, Screen.Perfil)
+            val items = listOfNotNull(Screen.Inicio, Screen.Viajes, if(Sesion.usuario.roles.contains(Rol("Profesional"))) Screen.Servicios else null, Screen.Chats, Screen.Perfil)
             ServiciosScreen(
                 navController = navController,
                 buscarServicio = { busqueda ->
@@ -259,7 +259,7 @@ fun AppNavHost(
             arguments = listOf(
                 navArgument(ViajesDestination.busqueda) { type = NavType.StringType },
             )) {
-            val items = listOfNotNull(Screen.Inicio, Screen.Viajes, if(AppUiState.usuario.roles.contains(Rol("Profesional"))) Screen.Servicios else null, Screen.Chats, Screen.Perfil)
+            val items = listOfNotNull(Screen.Inicio, Screen.Viajes, if(Sesion.usuario.roles.contains(Rol("Profesional"))) Screen.Servicios else null, Screen.Chats, Screen.Perfil)
             ServiciosScreen(
                 navController = navController,
                 buscarServicio = { busqueda ->

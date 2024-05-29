@@ -2,7 +2,9 @@ package com.gotravel.server.model;
 
 import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
@@ -11,7 +13,18 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name = "suscripcion")
+@AllArgsConstructor
+@NoArgsConstructor
 public class Suscripcion {
+
+    public Suscripcion(String id, List<Pago> pagos, String renovar, String estado, String fechaInicio, String fechaFinal) {
+        this.id = id;
+        this.pagos = pagos;
+        this.renovar = renovar;
+        this.estado = estado;
+        this.fechaInicio = fechaInicio;
+        this.fechaFinal = fechaFinal;
+    }
 
     @Id
     @Column(name = "id_suscripcion", nullable = false, length = 50)

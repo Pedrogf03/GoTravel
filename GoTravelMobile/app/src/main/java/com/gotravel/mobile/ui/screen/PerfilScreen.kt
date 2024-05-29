@@ -37,7 +37,7 @@ import com.gotravel.mobile.ui.AppViewModelProvider
 import com.gotravel.mobile.ui.Screen
 import com.gotravel.mobile.ui.navigation.NavDestination
 import com.gotravel.mobile.ui.screen.viewmodels.PerfilViewModel
-import com.gotravel.mobile.ui.utils.AppUiState
+import com.gotravel.mobile.ui.utils.Sesion
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -94,7 +94,7 @@ fun PerfilScreen(
             PerfilScreenContent(modifier = Modifier
                 .fillMaxSize()
                 .weight(0.75f),
-                esProfesional = AppUiState.usuario.roles.contains(Rol("Profesional")),
+                esProfesional = Sesion.usuario.roles.contains(Rol("Profesional")),
                 navigateToEditarPerfil = navigateToEditarPerfil,
                 navigateToPagos = navigateToPagos,
                 navigateToContrataciones = navigateToContrataciones,
@@ -221,7 +221,7 @@ fun PerfilScreenContent(
 
             Spacer(modifier = Modifier.padding(8.dp))
 
-            if(AppUiState.usuario.roles.contains(Rol("Administrador"))) {
+            if(Sesion.usuario.roles.contains(Rol("Administrador"))) {
                 Button(
                     onClick = {
                         GlobalScope.launch {

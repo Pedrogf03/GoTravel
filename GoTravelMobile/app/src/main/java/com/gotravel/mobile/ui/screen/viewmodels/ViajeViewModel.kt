@@ -10,11 +10,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.GsonBuilder
-import com.google.gson.reflect.TypeToken
 import com.gotravel.mobile.data.model.Etapa
 import com.gotravel.mobile.data.model.Viaje
 import com.gotravel.mobile.ui.screen.ViajeDestination
-import com.gotravel.mobile.ui.utils.AppUiState
+import com.gotravel.mobile.ui.utils.Sesion
 import com.gotravel.mobile.ui.utils.Regex
 import com.gotravel.mobile.ui.utils.formatoFinal
 import com.gotravel.mobile.ui.utils.formatoFromDb
@@ -62,7 +61,7 @@ class ViajeViewModel(
 
     private suspend fun findViajeById(idViaje: Int) : Viaje? {
 
-        if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+        if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
             return withContext(Dispatchers.IO) {
                 val gson = GsonBuilder()
                     .serializeNulls()
@@ -71,15 +70,15 @@ class ViajeViewModel(
 
                 try {
 
-                    AppUiState.salida.writeUTF("findById;viaje;${idViaje}")
-                    AppUiState.salida.flush()
+                    Sesion.salida.writeUTF("findById;viaje;${idViaje}")
+                    Sesion.salida.flush()
 
-                    val jsonFromServer = AppUiState.entrada.readUTF()
+                    val jsonFromServer = Sesion.entrada.readUTF()
                     return@withContext gson.fromJson(jsonFromServer, Viaje::class.java)
 
                 } catch (e: IOException) {
                     e.printStackTrace()
-                    AppUiState.socket!!.close()
+                    Sesion.socket!!.close()
                     return@withContext null
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -133,7 +132,7 @@ class ViajeViewModel(
                                 }
                             }
 
-                            if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+                            if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
                                 return withContext(Dispatchers.IO) {
                                     val gson = GsonBuilder()
                                         .serializeNulls()
@@ -144,21 +143,21 @@ class ViajeViewModel(
 
                                     try {
 
-                                        AppUiState.salida.writeUTF("save;etapa;${idViaje}")
-                                        AppUiState.salida.flush()
+                                        Sesion.salida.writeUTF("save;etapa;${idViaje}")
+                                        Sesion.salida.flush()
 
                                         val json = gson.toJson(etapa)
-                                        AppUiState.salida.writeUTF(json)
-                                        AppUiState.salida.flush()
+                                        Sesion.salida.writeUTF(json)
+                                        Sesion.salida.flush()
 
-                                        val jsonFromServer = AppUiState.entrada.readUTF()
+                                        val jsonFromServer = Sesion.entrada.readUTF()
                                         etapaFromServer = gson.fromJson(jsonFromServer, Etapa::class.java)
 
                                         return@withContext etapaFromServer != null
 
                                     } catch (e: IOException) {
                                         e.printStackTrace()
-                                        AppUiState.socket!!.close()
+                                        Sesion.socket!!.close()
                                         mensajeUi.postValue("No se puede conectar con el servidor")
                                         return@withContext false
                                     } catch (e: Exception) {
@@ -214,7 +213,7 @@ class ViajeViewModel(
             } else {
 
 
-                if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+                if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
                     return withContext(Dispatchers.IO) {
                         val viajeActualizado = viaje.copy(nombre = nombre, descripcion = descripcion.ifBlank { null }, fechaInicio = inicio.format(formatoFromDb), fechaFin = fin.format(formatoFromDb))
 
@@ -227,21 +226,21 @@ class ViajeViewModel(
 
                         try {
 
-                            AppUiState.salida.writeUTF("update;viaje")
-                            AppUiState.salida.flush()
+                            Sesion.salida.writeUTF("update;viaje")
+                            Sesion.salida.flush()
 
                             val json = gson.toJson(viajeActualizado)
-                            AppUiState.salida.writeUTF(json)
-                            AppUiState.salida.flush()
+                            Sesion.salida.writeUTF(json)
+                            Sesion.salida.flush()
 
-                            val jsonFromServer = AppUiState.entrada.readUTF()
+                            val jsonFromServer = Sesion.entrada.readUTF()
                             viajeFromServer = gson.fromJson(jsonFromServer, Viaje::class.java)
 
                             return@withContext viajeFromServer != null
 
                         } catch (e: IOException) {
                             e.printStackTrace()
-                            AppUiState.socket!!.close()
+                            Sesion.socket!!.close()
                             mensajeUi.postValue("No se puede conectar con el servidor")
                             return@withContext false
                         } catch (e: Exception) {

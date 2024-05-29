@@ -57,7 +57,7 @@ import com.gotravel.mobile.ui.AppTopBar
 import com.gotravel.mobile.ui.AppViewModelProvider
 import com.gotravel.mobile.ui.navigation.NavDestination
 import com.gotravel.mobile.ui.screen.viewmodels.PerfilViewModel
-import com.gotravel.mobile.ui.utils.AppUiState
+import com.gotravel.mobile.ui.utils.Sesion
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -124,9 +124,9 @@ fun EditarPerfilScreen(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ){
 
-                    if(AppUiState.usuario.foto != null) {
+                    if(Sesion.usuario.foto != null) {
                         Image(
-                            bitmap = AppUiState.usuario.imagen,
+                            bitmap = Sesion.usuario.imagen,
                             contentDescription = "",
                             modifier = Modifier
                                 .clip(CircleShape)
@@ -174,14 +174,14 @@ fun EditarPerfilScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ){
 
-                var nombre by remember { mutableStateOf(AppUiState.usuario.nombre) }
-                var apellidos by remember { mutableStateOf(AppUiState.usuario.getApellidos) }
-                var email by remember { mutableStateOf(AppUiState.usuario.email) }
-                var tfno by remember { mutableStateOf(AppUiState.usuario.getTfno) }
+                var nombre by remember { mutableStateOf(Sesion.usuario.nombre) }
+                var apellidos by remember { mutableStateOf(Sesion.usuario.getApellidos) }
+                var email by remember { mutableStateOf(Sesion.usuario.email) }
+                var tfno by remember { mutableStateOf(Sesion.usuario.getTfno) }
 
                 var campoEditado by remember { mutableStateOf(false) }
 
-                if(AppUiState.usuario.nombre != nombre || AppUiState.usuario.email != email || AppUiState.usuario.getApellidos != apellidos || AppUiState.usuario.getTfno != tfno) {
+                if(Sesion.usuario.nombre != nombre || Sesion.usuario.email != email || Sesion.usuario.getApellidos != apellidos || Sesion.usuario.getTfno != tfno) {
                     campoEditado = true
                 } else {
                     campoEditado = false
@@ -222,7 +222,7 @@ fun EditarPerfilScreen(
                 Button(
                     onClick = {
                         GlobalScope.launch {
-                            if (viewModel.updateUsuario(AppUiState.usuario.copy(nombre = nombre, apellidos = apellidos.ifBlank { null }, email = email, tfno = tfno.ifBlank { null }, foto = null))) {
+                            if (viewModel.updateUsuario(Sesion.usuario.copy(nombre = nombre, apellidos = apellidos.ifBlank { null }, email = email, tfno = tfno.ifBlank { null }, foto = null))) {
                                 withContext(Dispatchers.Main) {
                                     navController.navigate(PerfilDestination.route)
                                 }

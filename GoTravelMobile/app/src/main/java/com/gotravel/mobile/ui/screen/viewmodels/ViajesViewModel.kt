@@ -10,10 +10,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
-import com.gotravel.mobile.data.model.Suscripcion
 import com.gotravel.mobile.data.model.Viaje
 import com.gotravel.mobile.ui.screen.ViajesDestination
-import com.gotravel.mobile.ui.utils.AppUiState
+import com.gotravel.mobile.ui.utils.Sesion
 import com.gotravel.mobile.ui.utils.formatoFinal
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -80,7 +79,7 @@ class ViajesViewModel(
 
     private suspend fun findViajesByUsuarioId() : List<Viaje>? {
 
-        if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+        if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
             return withContext(Dispatchers.IO) {
                 val gson = GsonBuilder()
                     .serializeNulls()
@@ -89,16 +88,16 @@ class ViajesViewModel(
 
                 try {
 
-                    AppUiState.salida.writeUTF("findByUserId;viaje")
-                    AppUiState.salida.flush()
+                    Sesion.salida.writeUTF("findByUserId;viaje")
+                    Sesion.salida.flush()
 
-                    val jsonFromServer = AppUiState.entrada.readUTF()
+                    val jsonFromServer = Sesion.entrada.readUTF()
                     val type = object : TypeToken<List<Viaje>>() {}.type
                     return@withContext gson.fromJson<List<Viaje>?>(jsonFromServer, type)
 
                 } catch (e: IOException) {
                     e.printStackTrace()
-                    AppUiState.socket!!.close()
+                    Sesion.socket!!.close()
                     return@withContext null
                 } catch (e: Exception) {
                     e.printStackTrace()

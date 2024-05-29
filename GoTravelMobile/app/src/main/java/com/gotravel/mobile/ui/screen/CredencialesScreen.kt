@@ -58,7 +58,7 @@ import com.gotravel.mobile.ui.AppTopBar
 import com.gotravel.mobile.ui.AppViewModelProvider
 import com.gotravel.mobile.ui.navigation.NavDestination
 import com.gotravel.mobile.ui.screen.viewmodels.CredencialesViewModel
-import com.gotravel.mobile.ui.utils.AppUiState
+import com.gotravel.mobile.ui.utils.Sesion
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -90,7 +90,7 @@ fun CredencialesScreen(
 
     val sesionIniciada = remember { mutableStateOf(true) }
 
-    if (!AppUiState.segundoPlano && sesionIniciada.value && viewModel.opcion == "login") {
+    if (!Sesion.segundoPlano && sesionIniciada.value && viewModel.opcion == "login") {
         if (!email.isNullOrBlank() && !contrasena.isNullOrBlank()) {
             LaunchedEffect(Unit) {
                 GlobalScope.launch {

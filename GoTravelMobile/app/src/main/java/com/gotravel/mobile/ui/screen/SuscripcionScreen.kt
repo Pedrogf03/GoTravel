@@ -170,7 +170,7 @@ fun MiSuscripcionScreen(
                             onClick = {
                                 if(suscripcion.renovar == "1") {
                                     GlobalScope.launch {
-                                        viewModel.cancelSubscription(context, suscripcion.id)
+                                        viewModel.cancelarSuscripcion(suscripcion.id)
                                     }
                                 } else {
                                     GlobalScope.launch {

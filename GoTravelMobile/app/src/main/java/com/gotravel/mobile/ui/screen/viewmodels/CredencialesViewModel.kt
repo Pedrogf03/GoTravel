@@ -9,7 +9,7 @@ import com.google.gson.GsonBuilder
 import com.gotravel.mobile.ClosingService
 import com.gotravel.mobile.data.model.Usuario
 import com.gotravel.mobile.ui.screen.CredencialesDestination
-import com.gotravel.mobile.ui.utils.AppUiState
+import com.gotravel.mobile.ui.utils.Sesion
 import com.gotravel.mobile.ui.utils.Regex
 import com.gotravel.mobile.ui.utils.sha256
 import java.io.DataInputStream
@@ -73,19 +73,19 @@ class CredencialesViewModel(
                 val tiempoDeEspera = 1000 // Tiempo de espera en milisegundos
 
                 cliente.connect(socketAddress, tiempoDeEspera)
-                AppUiState.socket = cliente
+                Sesion.socket = cliente
 
-                AppUiState.salida = DataOutputStream(AppUiState.socket!!.getOutputStream())
-                AppUiState.entrada = DataInputStream(AppUiState.socket!!.getInputStream())
+                Sesion.salida = DataOutputStream(Sesion.socket!!.getOutputStream())
+                Sesion.entrada = DataInputStream(Sesion.socket!!.getInputStream())
 
                 // Una vez iniciado el socket y flujos, se lanza el servicio de cerrar la aplicacion
                 val intent = Intent(context, ClosingService::class.java)
                 context.startService(intent)
 
-                AppUiState.salida.writeUTF(peticion) // El mensaje envíado dependerá de si se ha solicitado un inicio de sesión o un registro
-                AppUiState.salida.flush()
+                Sesion.salida.writeUTF(peticion) // El mensaje envíado dependerá de si se ha solicitado un inicio de sesión o un registro
+                Sesion.salida.flush()
 
-                val fromServer = AppUiState.entrada.readUTF()
+                val fromServer = Sesion.entrada.readUTF()
                 if(fromServer.equals("reintentar")) {
                     if(peticion.contains("login")) {
                         mensajeUi.postValue("Email o contraseña incorrectos")
@@ -103,14 +103,14 @@ class CredencialesViewModel(
                     usuario = gson.fromJson(fromServer, Usuario::class.java)
 
                     mensajeUi.postValue("Sesión iniciada correctamente")
-                    AppUiState.usuario = usuario
+                    Sesion.usuario = usuario
 
                     // Si se recibe un true (es decir, el usuario tiene foto asociada en la bbdd)
-                    if(AppUiState.entrada.readBoolean()) {
-                        val length = AppUiState.entrada.readInt() // Lee la longitud del ByteArray
+                    if(Sesion.entrada.readBoolean()) {
+                        val length = Sesion.entrada.readInt() // Lee la longitud del ByteArray
                         val byteArray = ByteArray(length)
-                        AppUiState.entrada.readFully(byteArray) // Lee el ByteArray
-                        AppUiState.usuario.foto = byteArray
+                        Sesion.entrada.readFully(byteArray) // Lee el ByteArray
+                        Sesion.usuario.foto = byteArray
                     }
 
                     return true

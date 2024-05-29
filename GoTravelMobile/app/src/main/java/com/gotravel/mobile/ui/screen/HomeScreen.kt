@@ -51,7 +51,7 @@ import com.gotravel.mobile.ui.Screen
 import com.gotravel.mobile.ui.navigation.NavDestination
 import com.gotravel.mobile.ui.screen.viewmodels.HomeUiState
 import com.gotravel.mobile.ui.screen.viewmodels.HomeViewModel
-import com.gotravel.mobile.ui.utils.AppUiState
+import com.gotravel.mobile.ui.utils.Sesion
 
 object HomeDestination : NavDestination {
     override val route = "home"
@@ -80,7 +80,7 @@ fun HomeScreen(
         }
         is HomeUiState.Success -> {
 
-            val esProfesional = AppUiState.usuario.roles.contains(Rol("Profesional"))
+            val esProfesional = Sesion.usuario.roles.contains(Rol("Profesional"))
 
             Scaffold(
                 topBar = {
@@ -163,9 +163,9 @@ fun InformacionUsuario(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.Center
                     ){
-                        Text(text = AppUiState.usuario.nombre, fontSize = 24.sp, modifier = Modifier.height(28.dp))
-                        if(AppUiState.usuario.apellidos != null) {
-                            Text(text = AppUiState.usuario.apellidos!!)
+                        Text(text = Sesion.usuario.nombre, fontSize = 24.sp, modifier = Modifier.height(28.dp))
+                        if(Sesion.usuario.apellidos != null) {
+                            Text(text = Sesion.usuario.apellidos!!)
                         }
                     }
                 }
@@ -176,18 +176,18 @@ fun InformacionUsuario(
                 ){
                     Icon(imageVector = Icons.Default.Email, contentDescription = "")
                     Spacer(modifier = Modifier.padding(4.dp))
-                    Text(text = AppUiState.usuario.email)
+                    Text(text = Sesion.usuario.email)
                 }
 
 
-                if(AppUiState.usuario.tfno != null) {
+                if(Sesion.usuario.tfno != null) {
                     Row (
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ){
                         Icon(imageVector = Icons.Default.Phone, contentDescription = "")
                         Spacer(modifier = Modifier.padding(4.dp))
-                        Text(text = AppUiState.usuario.tfno!!)
+                        Text(text = Sesion.usuario.tfno!!)
                     }
                 }
 
@@ -197,7 +197,7 @@ fun InformacionUsuario(
                 ){
                     Icon(imageVector = Icons.Default.Info, contentDescription = "")
                     Spacer(modifier = Modifier.padding(4.dp))
-                    Text(text = AppUiState.usuario.roles[0].nombre)
+                    Text(text = Sesion.usuario.roles[0].nombre)
                 }
 
             }
@@ -206,9 +206,9 @@ fun InformacionUsuario(
                 .weight(0.25f),
                 verticalArrangement = Arrangement.Center
             ){
-                if(AppUiState.usuario.foto != null) {
+                if(Sesion.usuario.foto != null) {
                     Image(
-                        bitmap = AppUiState.usuario.imagen,
+                        bitmap = Sesion.usuario.imagen,
                         contentDescription = "",
                         modifier = Modifier
                             .fillMaxWidth()

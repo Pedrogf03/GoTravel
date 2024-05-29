@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Service
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
@@ -17,11 +18,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.google.gson.GsonBuilder
+import com.gotravel.mobile.data.model.Usuario
 import com.gotravel.mobile.ui.App
 import com.gotravel.mobile.ui.screen.HomeDestination
 import com.gotravel.mobile.ui.screen.SuscripcionDestination
 import com.gotravel.mobile.ui.theme.GoTravelTheme
-import com.gotravel.mobile.ui.utils.AppUiState
+import com.gotravel.mobile.ui.utils.Sesion
 import com.gotravel.mobile.ui.utils.PayPalSubscriptions
 import com.gotravel.mobile.ui.utils.addRolProfesional
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -65,15 +68,45 @@ class MainActivity : ComponentActivity() {
             when (uri.host) {
                 "returnurl" -> {
 
+                    // Se obtiene el id de la suscripcion de la url de devolucion de paypal
                     val subscriptionId = uri.getQueryParameter("subscription_id")
-                    val context = this;
 
                     GlobalScope.launch {
-                        val suscripcion = PayPalSubscriptions(context = context).getSuscription(subscriptionId!!)
-                        addRolProfesional(suscripcion!!)
-                        withContext(Dispatchers.Main) {
-                            navController.navigate(HomeDestination.route)
+
+                        if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
+                            withContext(Dispatchers.IO) {
+                                val gson = GsonBuilder()
+                                    .serializeNulls()
+                                    .setLenient()
+                                    .create()
+
+                                try {
+
+                                    // Se le envia el id al servidor
+                                    Sesion.salida.writeUTF("$subscriptionId")
+                                    Sesion.salida.flush()
+
+                                    // El servidor devuelve el usuario actualizado, con el rol y la suscripcion
+                                    val jsonFromServer = Sesion.entrada.readUTF()
+                                    val usuario : Usuario? = gson.fromJson(jsonFromServer, Usuario::class.java)
+
+                                    if(usuario != null) {
+                                        Sesion.usuario = usuario.copy(foto = Sesion.usuario.foto)
+                                        withContext(Dispatchers.Main) {
+                                            navController.navigate(HomeDestination.route)
+                                        }
+                                    }
+
+                                } catch (e: IOException) {
+                                    e.printStackTrace()
+                                    Sesion.socket!!.close()
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+
+                            }
                         }
+
                     }
 
                 }
@@ -112,13 +145,13 @@ class ClosingService : Service() {
 
     private fun closeNetworkResources() {
         try{
-            if(AppUiState.socket != null) {
-                AppUiState.salida.writeUTF("cerrarSesion")
-                AppUiState.salida.flush()
+            if(Sesion.socket != null) {
+                Sesion.salida.writeUTF("cerrarSesion")
+                Sesion.salida.flush()
 
-                AppUiState.salida.close()
-                AppUiState.entrada.close()
-                AppUiState.socket?.close()
+                Sesion.salida.close()
+                Sesion.entrada.close()
+                Sesion.socket?.close()
             }
         } catch (e: IOException) {
             // IGNORE

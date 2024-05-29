@@ -6,7 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.gson.GsonBuilder
 import com.gotravel.mobile.data.model.Viaje
-import com.gotravel.mobile.ui.utils.AppUiState
+import com.gotravel.mobile.ui.utils.Sesion
 import com.gotravel.mobile.ui.utils.Regex
 import com.gotravel.mobile.ui.utils.formatoFinal
 import com.gotravel.mobile.ui.utils.formatoFromDb
@@ -48,7 +48,7 @@ class CrearViajeViewModel : ViewModel() {
 
     private suspend fun guardarViaje(viaje: Viaje) : Viaje? {
 
-        if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+        if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
             return withContext(Dispatchers.IO) {
                 val gson = GsonBuilder()
                     .serializeNulls()
@@ -57,14 +57,14 @@ class CrearViajeViewModel : ViewModel() {
 
                 try {
 
-                    AppUiState.salida.writeUTF("save;viaje")
-                    AppUiState.salida.flush()
+                    Sesion.salida.writeUTF("save;viaje")
+                    Sesion.salida.flush()
 
                     val json = gson.toJson(viaje)
-                    AppUiState.salida.writeUTF(json)
-                    AppUiState.salida.flush()
+                    Sesion.salida.writeUTF(json)
+                    Sesion.salida.flush()
 
-                    val jsonFromServer = AppUiState.entrada.readUTF()
+                    val jsonFromServer = Sesion.entrada.readUTF()
                     val viajeFromServer = gson.fromJson(jsonFromServer, Viaje::class.java)
 
                     if (viajeFromServer != null) {
@@ -75,7 +75,7 @@ class CrearViajeViewModel : ViewModel() {
 
                 } catch (e: IOException) {
                     e.printStackTrace()
-                    AppUiState.socket!!.close()
+                    Sesion.socket!!.close()
                     mensajeUi.postValue("No se puede conectar con el servidor")
                     return@withContext null
                 } catch (e: Exception) {

@@ -5,7 +5,6 @@ import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,8 +13,7 @@ import com.google.gson.reflect.TypeToken
 import com.gotravel.mobile.data.model.Direccion
 import com.gotravel.mobile.data.model.Servicio
 import com.gotravel.mobile.data.model.Tiposervicio
-import com.gotravel.mobile.data.model.Viaje
-import com.gotravel.mobile.ui.utils.AppUiState
+import com.gotravel.mobile.ui.utils.Sesion
 import com.gotravel.mobile.ui.utils.Regex
 import com.gotravel.mobile.ui.utils.formatoFinal
 import com.gotravel.mobile.ui.utils.formatoFromDb
@@ -24,8 +22,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.time.LocalDate
-import java.util.Locale
-import kotlin.math.round
 
 sealed interface CrearServicioUiState {
     data class Success(val tiposServicio: List<Tiposervicio>) : CrearServicioUiState
@@ -60,7 +56,7 @@ class CrearServicioViewModel : ViewModel() {
 
     private suspend fun findAllTipoServicio(): List<Tiposervicio>? {
 
-        if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+        if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
             return withContext(Dispatchers.IO) {
                 val gson = GsonBuilder()
                     .serializeNulls()
@@ -69,16 +65,16 @@ class CrearServicioViewModel : ViewModel() {
 
                 try {
 
-                    AppUiState.salida.writeUTF("findAll;tipoServicio")
-                    AppUiState.salida.flush()
+                    Sesion.salida.writeUTF("findAll;tipoServicio")
+                    Sesion.salida.flush()
 
-                    val jsonFromServer = AppUiState.entrada.readUTF()
+                    val jsonFromServer = Sesion.entrada.readUTF()
                     val type = object : TypeToken<List<Tiposervicio>>() {}.type
                     return@withContext gson.fromJson<List<Tiposervicio>>(jsonFromServer, type)
 
                 } catch (e: IOException) {
                     e.printStackTrace()
-                    AppUiState.socket!!.close()
+                    Sesion.socket!!.close()
                     return@withContext null
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -150,7 +146,7 @@ class CrearServicioViewModel : ViewModel() {
 
         val servicio = Servicio(nombre = nombre, descripcion = descripcion, precio = precio, fechaInicio = inicio, fechaFinal = final, hora = hora, tipoServicio = tipoServicio, direccion = direccion)
 
-        if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+        if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
             return withContext(Dispatchers.IO) {
                 val gson = GsonBuilder()
                     .serializeNulls()
@@ -159,18 +155,18 @@ class CrearServicioViewModel : ViewModel() {
 
                 try {
 
-                    AppUiState.salida.writeUTF("save;servicio")
-                    AppUiState.salida.flush()
+                    Sesion.salida.writeUTF("save;servicio")
+                    Sesion.salida.flush()
 
-                    AppUiState.salida.writeUTF(gson.toJson(servicio))
-                    AppUiState.salida.flush()
+                    Sesion.salida.writeUTF(gson.toJson(servicio))
+                    Sesion.salida.flush()
 
-                    val jsonFromServer = AppUiState.entrada.readUTF()
+                    val jsonFromServer = Sesion.entrada.readUTF()
                     return@withContext gson.fromJson(jsonFromServer, Servicio::class.java)
 
                 } catch (e: IOException) {
                     e.printStackTrace()
-                    AppUiState.socket!!.close()
+                    Sesion.socket!!.close()
                     return@withContext null
                 } catch (e: Exception) {
                     e.printStackTrace()

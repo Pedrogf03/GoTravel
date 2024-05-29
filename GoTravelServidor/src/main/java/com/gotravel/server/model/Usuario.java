@@ -21,6 +21,7 @@ public class Usuario implements Serializable {
         this.nombre = nombre;
         this.email = email;
         this.contrasena = contrasena;
+        this.oculto = "0";
     }
 
     public Usuario(Integer id, String nombre, String apellidos, String email, String contrasena, String tfno, byte[] foto, List<Rol> roles) {

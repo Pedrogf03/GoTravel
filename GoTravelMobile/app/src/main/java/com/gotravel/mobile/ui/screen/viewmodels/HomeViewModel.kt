@@ -9,7 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.gson.GsonBuilder
 import com.gotravel.mobile.data.AppRepository
 import com.gotravel.mobile.data.model.Viaje
-import com.gotravel.mobile.ui.utils.AppUiState
+import com.gotravel.mobile.ui.utils.Sesion
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -45,7 +45,7 @@ class HomeViewModel(
 
     private suspend fun findProximoViajeByUsuarioId() : Viaje? {
 
-        if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+        if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
             return withContext(Dispatchers.IO) {
                 val gson = GsonBuilder()
                     .serializeNulls()
@@ -54,15 +54,15 @@ class HomeViewModel(
 
                 try {
 
-                    AppUiState.salida.writeUTF("findByUserId;proximoViaje")
-                    AppUiState.salida.flush()
+                    Sesion.salida.writeUTF("findByUserId;proximoViaje")
+                    Sesion.salida.flush()
 
-                    val jsonFromServer = AppUiState.entrada.readUTF()
+                    val jsonFromServer = Sesion.entrada.readUTF()
                     return@withContext gson.fromJson(jsonFromServer, Viaje::class.java)
 
                 } catch (e: IOException) {
                     e.printStackTrace()
-                    AppUiState.socket!!.close()
+                    Sesion.socket!!.close()
                     return@withContext null
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -78,7 +78,7 @@ class HomeViewModel(
 
     private suspend fun findViajeActualByUsuarioId() : Viaje? {
 
-        if(AppUiState.socket != null && !AppUiState.socket!!.isClosed) {
+        if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
             return withContext(Dispatchers.IO) {
 
                 val gson = GsonBuilder()
@@ -87,8 +87,8 @@ class HomeViewModel(
                     .create()
 
                 try {
-                    val salida = DataOutputStream(AppUiState.socket!!.getOutputStream())
-                    val entrada = DataInputStream(AppUiState.socket!!.getInputStream())
+                    val salida = DataOutputStream(Sesion.socket!!.getOutputStream())
+                    val entrada = DataInputStream(Sesion.socket!!.getInputStream())
 
                     salida.writeUTF("findByUserId;viajeActual")
                     salida.flush()
@@ -103,7 +103,7 @@ class HomeViewModel(
 
                 } catch (e: IOException) {
                     e.printStackTrace()
-                    AppUiState.socket!!.close()
+                    Sesion.socket!!.close()
                     return@withContext null
                 } catch (e: Exception) {
                     e.printStackTrace()

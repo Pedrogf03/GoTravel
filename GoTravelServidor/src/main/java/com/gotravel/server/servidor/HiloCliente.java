@@ -2,6 +2,7 @@ package com.gotravel.server.servidor;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.gotravel.server.Paypal.Subscriptions;
 import com.gotravel.server.ServerApplication;
 import com.gotravel.server.model.Suscripcion;
 import com.gotravel.server.model.*;
@@ -268,8 +269,17 @@ public class HiloCliente extends Thread {
                         case "suscripcion" -> {
                             String eleccion = fromCliente[1];
                             String jsonFromServer = "";
+                            Subscriptions paypal = new Subscriptions();
                             if(eleccion.equals("crear")) {
-                                Suscripcion s = gson.fromJson(fromCliente[2], Suscripcion.class);
+
+                                Usuario u = gson.fromJson(fromCliente[2], Usuario.class);
+
+                                String url = paypal.crearSuscripcion(u);
+
+                                sesion.getSalida().writeUTF(url);
+
+                                String subscriptionId = sesion.getEntrada().readUTF();
+                                Suscripcion s = paypal.getSubscription(subscriptionId);
 
                                 s.setUsuario(sesion.getUsuario());
                                 s.getPagos().get(0).setUsuario(sesion.getUsuario());
@@ -278,23 +288,32 @@ public class HiloCliente extends Thread {
                                 sesion.getUsuario().getRoles().add(service.findRol("Profesional"));
                                 sesion.setUsuario(service.saveUsuario(sesion.getUsuario()));
                                 jsonFromServer =  gson.toJson(sesion.getUsuario());
+
                             } else if (eleccion.equals("renovar")) {
                                 String idSuscripcion = fromCliente[2];
 
                                 Suscripcion s = service.findSuscripcionById(idSuscripcion);
-                                s.setRenovar("1");
-                                s.setEstado("ACTIVE");
-                                LocalDate fechaFinal = LocalDate.parse(s.getFechaFinal(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                                if(fechaFinal.isAfter(LocalDate.now()) || fechaFinal.isEqual(LocalDate.now())) {
-                                    // Si está renovando una suscripción que ya ha caducado, se le pone a la fecha final un mes desde el día de hoy
-                                    s.setFechaFinal(LocalDate.now().plusMonths(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+
+                                if(paypal.activateSubscription(idSuscripcion)) {
+                                    s.setRenovar("1");
+                                    s.setEstado("ACTIVE");
+                                    LocalDate fechaFinal = LocalDate.parse(s.getFechaFinal(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                                    if(fechaFinal.isAfter(LocalDate.now()) || fechaFinal.isEqual(LocalDate.now())) {
+                                        // Si está renovando una suscripción que ya ha caducado, se le pone a la fecha final un mes desde el día de hoy
+                                        s.setFechaFinal(LocalDate.now().plusMonths(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+                                    }
                                 }
+
                                 jsonFromServer = gson.toJson(service.saveSuscripcion(s));
                             } else if (eleccion.equals("cancelar")) {
                                 String idSuscripcion = fromCliente[2];
 
                                 Suscripcion s = service.findSuscripcionById(idSuscripcion);
-                                s.setRenovar("0");
+
+                                if(paypal.cancelSubscription(idSuscripcion)) {
+                                    s.setRenovar("0");
+                                }
+
                                 jsonFromServer = gson.toJson(service.saveSuscripcion(s));
                             }
                             yield jsonFromServer;
