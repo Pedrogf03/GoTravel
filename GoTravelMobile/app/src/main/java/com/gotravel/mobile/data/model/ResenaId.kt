@@ -14,20 +14,17 @@ import java.util.Objects
 @Serializable
 data class ResenaId(
     val idUsuario: Int,
-    val idContratacion: Int
+    val idServicio: Int
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || this.javaClass != other.javaClass) return false
         val entity = other as ResenaId
-        return idUsuario == entity.idUsuario && idContratacion == entity.idContratacion
+        return idUsuario == entity.idUsuario && idServicio == entity.idServicio
     }
 
     override fun hashCode(): Int {
-        return Objects.hash(idUsuario, idContratacion)
+        return Objects.hash(idUsuario, idServicio)
     }
 
-    companion object {
-        private const val serialVersionUID = 5465454492221406391L
-    }
 }

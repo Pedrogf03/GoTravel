@@ -42,33 +42,6 @@ val formatoFromDb = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 @RequiresApi(Build.VERSION_CODES.O)
 val formatoFinal: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
-suspend fun addRolProfesional(suscripcion: Suscripcion) {
-
-    return withContext(Dispatchers.IO) {
-        val gson = GsonBuilder()
-            .serializeNulls()
-            .setLenient()
-            .create()
-
-        try {
-
-            Sesion.salida.writeUTF("suscripcion;crear;" + gson.toJson(suscripcion))
-
-            val jsonFromServer = Sesion.entrada.readUTF()
-            val usuario : Usuario? = gson.fromJson(jsonFromServer, Usuario::class.java)
-
-            if(usuario != null) {
-                Sesion.usuario = usuario.copy(foto = Sesion.usuario.foto)
-            }
-
-        } catch (e: IOException) {
-            e.printStackTrace()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-}
 
 
 

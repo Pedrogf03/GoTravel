@@ -33,6 +33,10 @@ public class AppService {
         return usuarioRepository.findByEmail(email);
     }
 
+    public Usuario findUsuarioByServicioId(int idServicio) {
+        return usuarioRepository.findByServicioId(idServicio);
+    }
+
     public Usuario saveUsuario(Usuario usuario) {
         try {
             usuario = usuarioRepository.save(usuario);
@@ -203,4 +207,16 @@ public class AppService {
         return imagenRepository.findAllByServicioId(idServicio);
     }
 
+    public boolean deleteImagenById(int idImagen) {
+        imagenRepository.deleteById(idImagen);
+        Imagen i = imagenRepository.findById(idImagen).orElse(null);
+        return i == null;
+    }
+
+    @Autowired
+    private ResenaRepository resenaRepository;
+
+    public List<Resena> findResenasByServicioId(int idServicio) {
+        return resenaRepository.findAllByServicioId(idServicio);
+    }
 }

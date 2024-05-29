@@ -24,6 +24,14 @@ public class Usuario implements Serializable {
         this.oculto = "0";
     }
 
+    public Usuario(int id, String nombre, String email, String contrasena) {
+        this.id = id;
+        this.nombre = nombre;
+        this.email = email;
+        this.contrasena = contrasena;
+        this.oculto = "0";
+    }
+
     public Usuario(Integer id, String nombre, String apellidos, String email, String contrasena, String tfno, byte[] foto, List<Rol> roles) {
         this.id = id;
         this.nombre = nombre;
@@ -33,6 +41,15 @@ public class Usuario implements Serializable {
         this.tfno = tfno;
         this.foto = foto;
         this.roles = roles;
+    }
+
+    public Usuario(Integer id, String nombre, String apellidos, String contrasena, String email, String tfno) {
+        this.id = id;
+        this.nombre = nombre;
+        this.apellidos = apellidos;
+        this.email = email;
+        this.tfno = tfno;
+        this.contrasena = contrasena;
     }
 
     @Id

@@ -198,6 +198,7 @@ fun MyDatePickerDialog(
         },
         dismissButton = {
             Button(onClick = {
+                onDateSelected("")
                 onDismiss()
             }) {
                 Text(text = "Cancelar")
@@ -221,7 +222,9 @@ fun MyTimePickerDialog(
     val hours = (0..23).toList()
     val minutes = (0..59).toList()
 
-    Dialog(onDismissRequest = { onDismiss() }) {
+    Dialog(
+        onDismissRequest = { onDismiss() }
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -295,11 +298,22 @@ fun MyTimePickerDialog(
 
                     Spacer(modifier = Modifier.padding(8.dp))
 
-                    Button(onClick = {
-                        onTimeSelected("${selectedHour.toString().padStart(2, '0')}:${selectedMinute.toString().padStart(2, '0')}")
-                        onDismiss()
-                    }) {
-                        Text(text = "Seleccionar")
+                    Row(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Button(onClick = {
+                            onTimeSelected("")
+                            onDismiss()
+                        }) {
+                            Text(text = "Cancelar")
+                        }
+                        Spacer(modifier = Modifier.padding(16.dp))
+                        Button(onClick = {
+                            onTimeSelected("${selectedHour.toString().padStart(2, '0')}:${selectedMinute.toString().padStart(2, '0')}")
+                            onDismiss()
+                        }) {
+                            Text(text = "Seleccionar")
+                        }
                     }
 
                     Spacer(modifier = Modifier.padding(8.dp))

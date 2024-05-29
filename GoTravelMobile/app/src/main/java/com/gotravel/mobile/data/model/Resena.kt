@@ -14,7 +14,6 @@ import lombok.Setter
 data class Resena (
     val id: ResenaId,
     val usuario: Usuario,
-    val contratacion: Contratacion,
     val puntuacion: Int,
     val contenido: String,
     val oculto: String

@@ -47,17 +47,21 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.gotravel.gotravel.R
+import com.gotravel.mobile.data.model.Servicio
 import com.gotravel.mobile.data.model.Tiposervicio
 import com.gotravel.mobile.ui.AppTopBar
 import com.gotravel.mobile.ui.AppViewModelProvider
 import com.gotravel.mobile.ui.navigation.NavDestination
 import com.gotravel.mobile.ui.screen.viewmodels.CrearServicioUiState
 import com.gotravel.mobile.ui.screen.viewmodels.CrearServicioViewModel
+import com.gotravel.mobile.ui.utils.formatoFinal
+import com.gotravel.mobile.ui.utils.formatoFromDb
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
 
 
 object CrearServicioDestination : NavDestination {
@@ -92,7 +96,7 @@ fun CrearServicioScreen(
 
                 CrearServicioContent(
                     viewModel = viewModel,
-                    modifier = modifier.padding(innerPadding),
+                    modifier = modifier.padding(innerPadding).padding(32.dp),
                     navigateToServicio = navigateToServicio,
                     tiposServicio = uiState.tiposServicio
                 )
@@ -113,46 +117,48 @@ fun CrearServicioScreen(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 @OptIn(DelicateCoroutinesApi::class)
-private fun CrearServicioContent(
+fun CrearServicioContent(
     viewModel: CrearServicioViewModel,
     modifier: Modifier = Modifier,
     navigateToServicio: (Int) -> Unit,
-    tiposServicio: List<Tiposervicio>
+    tiposServicio: List<Tiposervicio>,
+    servicio: Servicio? = null,
+    verticalArrangement: Arrangement.Vertical = Arrangement.Top
 ) {
 
     Column(
         modifier = modifier
-            .padding(32.dp)
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+            .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
+        verticalArrangement = verticalArrangement
     ) {
 
         var seleccionarInfoBasica by remember { mutableStateOf(true) }
-        var nombre by remember { mutableStateOf("") }
-        var descripcion by remember { mutableStateOf("") }
-        var precio by remember { mutableStateOf("") }
-        var tipoServicio by remember { mutableStateOf<Tiposervicio?>(null) }
+        var nombre by remember { mutableStateOf(servicio?.nombre ?: "") }
+        var descripcion by remember { mutableStateOf(servicio?.descripcion ?: "") }
+        var precio by remember { mutableStateOf(servicio?.precio.toString()) }
+        var tipoServicio by remember { mutableStateOf(servicio?.tipoServicio) }
         var seleccionarTiposervicio by remember { mutableStateOf(false) }
 
         var seleccionarFechasYHora by remember { mutableStateOf(false) }
-        var fechaInicio by remember { mutableStateOf("") }
-        var fechaFinal by remember { mutableStateOf("") }
+        var fechaInicio by remember { mutableStateOf(servicio?.inicio ?: "") }
+        var fechaFinal by remember { mutableStateOf(servicio?.final ?: "") }
         var seleccionarFechaInicio by remember { mutableStateOf(false) }
         var seleccionarFechaFinal by remember { mutableStateOf(false) }
-        var hora by remember { mutableStateOf("") }
+        var hora by remember { mutableStateOf(servicio?.hora ?: "") }
         var seleccionarHora by remember { mutableStateOf(false) }
 
         var seleccionarDireccion by remember { mutableStateOf(false) }
 
         val mensajeUi = viewModel.mensajeUi.observeAsState(initial = "")
 
-        Text(
-            text = "Nuevo servicio",
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.primary
-        )
+        if(servicio == null) {
+            Text(
+                text = "Nuevo servicio",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
 
         Spacer(modifier = Modifier.padding(8.dp))
 
@@ -406,9 +412,6 @@ private fun CrearServicioContent(
                     ) {
                         Button(
                             onClick = {
-                                fechaInicio = ""
-                                fechaFinal = ""
-                                hora = ""
                                 seleccionarFechasYHora = false
                                 seleccionarInfoBasica = true
                             },
@@ -446,12 +449,12 @@ private fun CrearServicioContent(
                         color = MaterialTheme.colorScheme.primary
                     )
 
-                    var linea1 by remember { mutableStateOf("") }
-                    var linea2 by remember { mutableStateOf("") }
-                    var ciudad by remember { mutableStateOf("") }
-                    var estado by remember { mutableStateOf("") }
-                    var pais by remember { mutableStateOf("") }
-                    var cp by remember { mutableStateOf("") }
+                    var linea1 by remember { mutableStateOf(servicio?.direccion?.linea1 ?: "") }
+                    var linea2 by remember { mutableStateOf(servicio?.direccion?.linea2 ?: "") }
+                    var ciudad by remember { mutableStateOf(servicio?.direccion?.ciudad ?: "") }
+                    var estado by remember { mutableStateOf(servicio?.direccion?.estado ?: "") }
+                    var pais by remember { mutableStateOf(servicio?.direccion?.pais ?: "") }
+                    var cp by remember { mutableStateOf(servicio?.direccion?.cp ?: "") }
 
                     Spacer(modifier = Modifier.padding(8.dp))
 
@@ -584,12 +587,6 @@ private fun CrearServicioContent(
                     ) {
                         Button(
                             onClick = {
-                                linea1 = ""
-                                linea2 = ""
-                                ciudad = ""
-                                estado = ""
-                                pais = ""
-                                cp = ""
                                 seleccionarDireccion = false
                                 seleccionarFechasYHora = true
                             },
@@ -607,20 +604,51 @@ private fun CrearServicioContent(
                             onClick = {
                                 val direccion = viewModel.validarDireccion(linea1 = linea1, linea2 = linea2.ifBlank { null }, ciudad = ciudad, estado = estado, pais = pais, cp = cp)
                                 if(direccion != null) {
-                                    GlobalScope.launch {
-                                        val servicio = viewModel.crearServicio(
-                                            nombre = nombre,
-                                            descripcion = descripcion.ifBlank { null },
-                                            precio = precio.replace(",", ".").toDouble(),
-                                            fechaInicio = fechaInicio,
-                                            fechaFinal = fechaFinal.ifBlank { null },
-                                            hora = hora.ifBlank { null },
-                                            tipoServicio = tipoServicio!!,
-                                            direccion = direccion
-                                        )
-                                        if (servicio != null) {
-                                            withContext(Dispatchers.Main) {
-                                                navigateToServicio(servicio.id!!)
+                                    if(servicio == null) {
+                                        GlobalScope.launch {
+                                            val nuevoServicio = viewModel.crearServicio(
+                                                nombre = nombre,
+                                                descripcion = descripcion.ifBlank { null },
+                                                precio = precio.replace(",", ".").toDouble(),
+                                                fechaInicio = fechaInicio,
+                                                fechaFinal = fechaFinal.ifBlank { null },
+                                                hora = hora.ifBlank { null },
+                                                tipoServicio = tipoServicio!!,
+                                                direccion = direccion
+                                            )
+                                            if (nuevoServicio != null) {
+                                                withContext(Dispatchers.Main) {
+                                                    navigateToServicio(nuevoServicio.id!!)
+                                                }
+                                            }
+                                        }
+                                    } else {
+
+                                        val inicio = LocalDate.parse(fechaInicio, formatoFinal).format(formatoFromDb)
+                                        var final : String? = null
+                                        if(fechaFinal.isNotBlank()) {
+                                            final = LocalDate.parse(fechaFinal, formatoFinal).format(formatoFromDb)
+                                        }
+
+                                        GlobalScope.launch {
+                                            val servicioActualizado = viewModel.actualizarServicio(
+                                                servicio = servicio.copy(
+                                                    nombre = nombre,
+                                                    descripcion = descripcion.ifBlank { null },
+                                                    precio = precio.replace(",", ".").toDouble(),
+                                                    fechaInicio = inicio,
+                                                    fechaFinal = final,
+                                                    hora = hora.ifBlank { null },
+                                                    tipoServicio = tipoServicio!!,
+                                                    direccion = direccion,
+                                                    imagenes = listOf(),
+                                                    resenas = listOf()
+                                                )
+                                            )
+                                            if (servicioActualizado != null) {
+                                                withContext(Dispatchers.Main) {
+                                                    navigateToServicio(servicio.id!!)
+                                                }
                                             }
                                         }
                                     }

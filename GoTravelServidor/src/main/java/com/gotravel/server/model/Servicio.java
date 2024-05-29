@@ -25,7 +25,7 @@ public class Servicio {
     @Expose
     private String nombre;
 
-    @Column(name = "descripcion", nullable = false, length = 500)
+    @Column(name = "descripcion", length = 500)
     @Expose
     private String descripcion;
 
@@ -55,11 +55,11 @@ public class Servicio {
     @Expose
     private Direccion direccion;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "id_usuario", nullable = false)
     private Usuario usuario;
 
-    @OneToMany(mappedBy = "servicio", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "servicio", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<Imagen> imagenes;
 
     @Lob

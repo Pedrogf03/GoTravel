@@ -22,9 +22,9 @@ data class Etapa(
     val fechaInicio: String,
     val fechaFinal: String,
     val costeTotal: Double,
-    val tipo: String
+    val tipo: String,
+    val contrataciones: List<Servicio>? = null
 ) {
-    val contrataciones: List<Contratacion>? = null
 
     val inicio: String
         @RequiresApi(Build.VERSION_CODES.O)

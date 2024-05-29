@@ -225,10 +225,20 @@ class CrearServicioViewModel : ViewModel() {
     ): Boolean {
 
         if(fechaInicio.isBlank()) {
-            mensajeUi.postValue("El servicio tiene que tener al menos una fecha de inicio")
+            mensajeUi.postValue("El servicio tiene que tener la fecha de inicio")
             return false
         } else {
-            if(fechaFinal != null){
+            if(fechaFinal == null && hora == null){
+
+                mensajeUi.postValue("El servicio tiene que tener la fecha de final o la hora")
+                return false
+
+            } else if (fechaFinal != null && hora != null){
+
+                mensajeUi.postValue("El servicio no puede tener ambas fecha de final y hora")
+                return false
+
+            } else if(fechaFinal != null){
 
                 val inicio = LocalDate.parse(fechaInicio, formatoFinal)
                 val fin = LocalDate.parse(fechaFinal, formatoFinal)
@@ -241,10 +251,49 @@ class CrearServicioViewModel : ViewModel() {
                     return true
                 }
 
-            } else {
-                mensajeUi.postValue("")
+            } else if(hora != null) {
                 return true
             }
+        }
+
+        return false
+
+    }
+
+    suspend fun actualizarServicio(servicio: Servicio): Servicio? {
+
+        if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
+            return withContext(Dispatchers.IO) {
+                val gson = GsonBuilder()
+                    .serializeNulls()
+                    .setLenient()
+                    .create()
+
+                try {
+
+                    Sesion.salida.writeUTF("update;servicio")
+                    Sesion.salida.flush()
+
+                    Sesion.salida.writeUTF(gson.toJson(servicio))
+                    Sesion.salida.flush()
+
+                    println(gson.toJson(servicio))
+
+                    val jsonFromServer = Sesion.entrada.readUTF()
+                    return@withContext gson.fromJson(jsonFromServer, Servicio::class.java)
+
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                    Sesion.socket!!.close()
+                    return@withContext null
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+                return@withContext null
+            }
+        } else {
+            return null
         }
 
     }

@@ -1,6 +1,10 @@
 package com.gotravel.mobile.ui.screen
 
+import android.net.Uri
 import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -32,6 +36,7 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
@@ -62,6 +67,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -78,6 +84,8 @@ import com.gotravel.mobile.data.model.Viaje
 import com.gotravel.mobile.ui.AppTopBar
 import com.gotravel.mobile.ui.AppViewModelProvider
 import com.gotravel.mobile.ui.navigation.NavDestination
+import com.gotravel.mobile.ui.screen.viewmodels.CrearServicioUiState
+import com.gotravel.mobile.ui.screen.viewmodels.CrearServicioViewModel
 import com.gotravel.mobile.ui.screen.viewmodels.ServicioUiState
 import com.gotravel.mobile.ui.screen.viewmodels.ServicioViewModel
 import com.gotravel.mobile.ui.screen.viewmodels.ViajeUiState
@@ -113,9 +121,6 @@ fun ServicioScreen(
         }
         is ServicioUiState.Success -> {
 
-            var finalizado = false
-
-            if(LocalDate.parse(uiState.servicio.final, formatoFinal).isBefore(LocalDate.now())) finalizado = true
 
             Scaffold (
                 topBar = {
@@ -125,20 +130,22 @@ fun ServicioScreen(
                         navigateUp = { navigateUp() }
                     )
                 }
-            ){
+            ){ innerPadding ->
 
                 InformacionServicio(
                     servicio = uiState.servicio,
-                    actualizarPagina = {
-                        actualizarPagina(uiState.servicio.id!!)
+                    navigateToServicio = {
+                        actualizarPagina(it)
                     },
-                    finalizado = finalizado,
                     viewModel = viewModel,
                     modifier = Modifier
                         .wrapContentHeight()
-                        .padding(horizontal = 8.dp)
-                        .padding(it)
-                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .fillMaxSize(),
+                    miServicio = uiState.servicio.usuario!!.id == Sesion.usuario.id,
+                    navigateToStart = {
+                        navigateToStart()
+                    }
                 )
 
             }
@@ -149,26 +156,67 @@ fun ServicioScreen(
 
 }
 
+@OptIn(DelicateCoroutinesApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun InformacionServicio(
     modifier: Modifier = Modifier,
     servicio: Servicio,
-    finalizado: Boolean,
     viewModel: ServicioViewModel,
-    actualizarPagina: () -> Unit
+    miServicio: Boolean,
+    navigateToStart: () -> Unit,
+    navigateToServicio: (Int) -> Unit
 ) {
 
     var editarServicio by remember { mutableStateOf(false) }
 
     if (editarServicio) {
         Dialog(onDismissRequest = { editarServicio = false }) {
-            EditarServicio(
-                viewModel = viewModel,
-                cerrarDialogo = { editarServicio = !editarServicio },
-                actualizarPagina = actualizarPagina,
-                servicio = servicio
-            )
+
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .wrapContentHeight()
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    val crearServicioViewModel : CrearServicioViewModel = viewModel(factory = AppViewModelProvider.Factory)
+
+                    when (val uiState = crearServicioViewModel.uiState) {
+                        is CrearServicioUiState.Loading -> {
+                            LandingLoadingScreen()
+                        }
+                        is CrearServicioUiState.Success -> {
+                            CrearServicioContent(
+                                viewModel = crearServicioViewModel,
+                                navigateToServicio = navigateToServicio,
+                                tiposServicio = uiState.tiposServicio,
+                                servicio = servicio,
+                                verticalArrangement = Arrangement.Center,
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        }
+                        else -> ErrorScreen(
+                            navigateToStart = {
+                                navigateToStart()
+                            }
+                        )
+                    }
+                }
+            }
+
+        }
+    }
+
+    val context = LocalContext.current
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+    ) { uri: Uri? ->
+        GlobalScope.launch {
+            viewModel.subirFoto(context, uri)
         }
     }
 
@@ -188,6 +236,8 @@ fun InformacionServicio(
                 if (servicio.imagenes.isNotEmpty()) {
                     var imagen by remember { mutableIntStateOf(0) }
 
+                    println(imagen)
+
                     Image(
                         bitmap = servicio.imagenes[imagen].foto,
                         contentDescription = "",
@@ -197,64 +247,71 @@ fun InformacionServicio(
                         contentScale = ContentScale.Crop
                     )
 
-                    if(imagen > 0) {
-                        Button(
-                            onClick = {
-                                /*
-                                if((imagen++) > servicio.imagenes.size) {
-                                    imagen = 0
-                                } else {
-                                    imagen++
-                                }
-                                 */
-                            },
-                            modifier = Modifier
-                                .align(Alignment.CenterStart)
-                                .padding(8.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.ArrowBack,
-                                contentDescription = "",
-                                modifier = Modifier
-                                    .size(24.dp)
-                            )
-                        }
-                    }
-
-                    val xd = listOf("s", "s")
-
-                    Row(
+                    IconButton(
+                        onClick = {
+                            var index = imagen
+                            index--
+                            if(index < 0) {
+                                imagen = servicio.imagenes.size - 1
+                            } else {
+                                imagen--
+                            }
+                        },
                         modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(8.dp)
+                            .align(Alignment.CenterStart)
+                            .padding(4.dp)
                     ) {
-                        xd.forEachIndexed  { index, _ ->
-                            Text(
-                                text = ".",
-                                style = MaterialTheme.typography.titleLarge,
-                                color = if(index == imagen) Color.Black else Color.DarkGray
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "",
+                            modifier = Modifier
+                                .size(12.dp)
+                        )
                     }
 
-                    if(servicio.imagenes.size > 1) {
+                    IconButton(
+                        onClick = {
+                            var index = imagen
+                            index++
+                            if(index == servicio.imagenes.size) {
+                                imagen = 0
+                            } else {
+                                imagen++
+                            }
+                        },
+                        modifier = Modifier
+                            .align(Alignment.CenterEnd)
+                            .padding(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowForward,
+                            contentDescription = "",
+                            modifier = Modifier
+                                .size(12.dp)
+                        )
+                    }
+
+                    if(miServicio) {
                         Button(
                             onClick = {
-                                if((imagen++) > servicio.imagenes.size) {
-                                    imagen = 0
-                                } else {
-                                    imagen++
+                                GlobalScope.launch {
+                                    viewModel.deleteFoto(
+                                        servicio.imagenes[imagen],
+                                        onImageDeleted = {
+                                            imagen = 0
+                                        }
+                                    )
                                 }
                             },
                             modifier = Modifier
-                                .align(Alignment.CenterEnd)
-                                .padding(8.dp)
+                                .align(Alignment.TopEnd)
+                                .padding(4.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.ArrowForward,
+                                imageVector = Icons.Default.Delete,
                                 contentDescription = "",
                                 modifier = Modifier
-                                    .size(24.dp)
+                                    .size(12.dp)
                             )
                         }
                     }
@@ -268,9 +325,13 @@ fun InformacionServicio(
                         shape = RoundedCornerShape(0.dp)
                     ) {
                         Column (
-                            modifier = Modifier.fillMaxSize().clickable {
-                                // TODO
-                            },
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clickable {
+                                    photoPickerLauncher.launch(
+                                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                    )
+                                },
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ){
@@ -288,7 +349,100 @@ fun InformacionServicio(
                 .weight(0.75f),
             shape = RoundedCornerShape(0.dp)
         ) {
-            Text("fas")
+            Column (
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(vertical = 8.dp, horizontal = 16.dp)
+            ){
+
+                if(miServicio) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Button(onClick = {
+                            photoPickerLauncher.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            )
+                        }) {
+                            Text(text = "Añadir foto", fontSize = 12.sp)
+                        }
+                        Spacer(modifier = Modifier.padding(8.dp))
+                        Button(onClick = {
+                            editarServicio = true
+                        }) {
+                            Text(text = "Editar", fontSize = 12.sp)
+                        }
+                        Spacer(modifier = Modifier.padding(8.dp))
+                        Button(onClick = {
+                            GlobalScope.launch {
+                                // TODO: viewModel.publicarServicio()
+                            }
+                        }) {
+                            Text(text = "Publicar", fontSize = 12.sp)
+                        }
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(servicio.nombre, style = MaterialTheme.typography.titleLarge)
+                    Text(text = "" + servicio.precio + "€", style = MaterialTheme.typography.titleMedium)
+                }
+                Spacer(modifier = Modifier.padding(4.dp))
+                servicio.descripcion?.let {
+                    Text(it)
+                    Spacer(modifier = Modifier.padding(4.dp))
+                }
+                Text(text = servicio.inicio + " - " + servicio.final.ifBlank { servicio.hora })
+                Spacer(modifier = Modifier.padding(4.dp))
+                Text(text = servicio.tipoServicio.nombre)
+                Spacer(modifier = Modifier.padding(8.dp))
+                Text(text = "Dirección: ", style = MaterialTheme.typography.titleLarge)
+                Spacer(modifier = Modifier.padding(4.dp))
+                Text(text = servicio.direccion.linea1 + if(servicio.direccion.linea2 != null) ", " + servicio.direccion.linea2 else "")
+                Spacer(modifier = Modifier.padding(4.dp))
+                Text(text = servicio.direccion.ciudad + ", " + servicio.direccion.estado + ", " + servicio.direccion.pais)
+                Spacer(modifier = Modifier.padding(4.dp))
+                Text(text = servicio.direccion.cp)
+                Spacer(modifier = Modifier.padding(4.dp))
+                if(!miServicio){
+                    Text(
+                        text = servicio.usuario!!.nombre + servicio.usuario!!.apellidos,
+                        modifier = Modifier.clickable {
+                            // TODO
+                        }
+                    )
+                }
+
+                Card(
+                    modifier = Modifier
+                        .wrapContentHeight()
+                        .fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    if(servicio.resenas.isEmpty()) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Info,
+                                contentDescription = ""
+                            )
+                            Text(text = "Aún no hay reseñas")
+                        }
+                    }
+                }
+
+            }
         }
     }
 

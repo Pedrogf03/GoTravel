@@ -1,5 +1,7 @@
 package com.gotravel.mobile.ui.screen.viewmodels
 
+import android.content.Context
+import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
@@ -13,7 +15,9 @@ import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import com.gotravel.mobile.data.model.Etapa
 import com.gotravel.mobile.data.model.Imagen
+import com.gotravel.mobile.data.model.Resena
 import com.gotravel.mobile.data.model.Servicio
+import com.gotravel.mobile.data.model.Usuario
 import com.gotravel.mobile.data.model.Viaje
 import com.gotravel.mobile.ui.screen.ServicioDestination
 import com.gotravel.mobile.ui.screen.ViajeDestination
@@ -24,6 +28,7 @@ import com.gotravel.mobile.ui.utils.formatoFromDb
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.time.LocalDate
 
@@ -76,13 +81,32 @@ class ServicioViewModel(
                     Sesion.salida.writeUTF("findById;servicio;${idServicio}")
                     Sesion.salida.flush()
 
-                    val jsonFromServer = Sesion.entrada.readUTF()
-                    println("json " + jsonFromServer)
-                    val servicio =  gson.fromJson(jsonFromServer, Servicio::class.java)
+                    val servicioFromServer = Sesion.entrada.readUTF()
+                    val servicio =  gson.fromJson(servicioFromServer, Servicio::class.java)
+                    println("servicio " + servicioFromServer)
 
                     if(servicio != null) {
-                        servicio.imagenes = getAllImagenesFromServicio(servicio.id)!!
+                        servicio.imagenes = getAllImagenesFromServicio()!!
                     }
+
+                    Sesion.salida.writeUTF("findUsuarioByServicio;${idServicio}")
+                    Sesion.salida.flush()
+
+                    val usuarioFromServer = Sesion.entrada.readUTF()
+                    val usuario = gson.fromJson(usuarioFromServer, Usuario::class.java)
+
+                    if(usuario != null) {
+                        servicio.usuario = usuario
+                    }
+
+                    Sesion.salida.writeUTF("findResenasByServicio;${idServicio}")
+                    Sesion.salida.flush()
+
+                    val resenasFromServer = Sesion.entrada.readUTF()
+                    val type = object : TypeToken<List<Resena>>() {}.type
+                    val resenas =  gson.fromJson<List<Resena>>(resenasFromServer, type)
+
+                    servicio.resenas = resenas
 
                     return@withContext servicio
 
@@ -102,7 +126,7 @@ class ServicioViewModel(
 
     }
 
-    private suspend fun getAllImagenesFromServicio(id: Int?): List<Imagen>? {
+    private suspend fun getAllImagenesFromServicio(): List<Imagen>? {
 
         if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
             return withContext(Dispatchers.IO) {
@@ -127,7 +151,7 @@ class ServicioViewModel(
                         imagen.imagen = byteArray
                     }
 
-                    Sesion.entrada.readUTF()
+                    //Sesion.entrada.readUTF()
 
                     return@withContext imagenes
 
@@ -147,49 +171,44 @@ class ServicioViewModel(
 
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    suspend fun actualizarViaje(nombre: String, descripcion: String, fechaInicio: String, fechaFin: String, viaje: Viaje): Boolean {
+    suspend fun subirFoto(context: Context, selectedImageUri: Uri?): Boolean {
 
-        if(nombre.isBlank() || fechaInicio.isBlank() || fechaFin.isBlank()) {
-            mensajeUi.postValue("Por favor rellena todos los campos obligatorios")
-        } else {
-
-            val inicio = LocalDate.parse(fechaInicio, formatoFinal)
-            val fin = LocalDate.parse(fechaFin, formatoFinal)
-
-            if(!nombre.matches(Regex.regexCamposAlfaNum) || nombre.length >= 45) {
-                mensajeUi.postValue("El nombre no es válido")
-            } else if(descripcion.isNotBlank() && !descripcion.matches(Regex.regexCamposAlfaNum)) {
-                mensajeUi.postValue("La descripción no es válida")
-            } else if (fin.isBefore(inicio)) {
-                mensajeUi.postValue("La fecha de final no puede ser antes que la fecha de inicio")
-            } else {
-
+        selectedImageUri?.let { uri ->
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                val byteArrayOutputStream = ByteArrayOutputStream()
+                val buffer = ByteArray(1024)
+                var length: Int
+                while (inputStream.read(buffer).also { length = it } != -1) {
+                    byteArrayOutputStream.write(buffer, 0, length)
+                }
+                val byteArray = byteArrayOutputStream.toByteArray()
 
                 if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
                     return withContext(Dispatchers.IO) {
-                        val viajeActualizado = viaje.copy(nombre = nombre, descripcion = descripcion.ifBlank { null }, fechaInicio = inicio.format(formatoFromDb), fechaFin = fin.format(formatoFromDb))
-
-                        val gson = GsonBuilder()
-                            .serializeNulls()
-                            .setLenient()
-                            .create()
-
-                        val viajeFromServer : Viaje?
-
                         try {
 
-                            Sesion.salida.writeUTF("update;viaje")
+                            Sesion.salida.writeUTF("uploadFoto;servicio;${idServicio}")
                             Sesion.salida.flush()
 
-                            val json = gson.toJson(viajeActualizado)
-                            Sesion.salida.writeUTF(json)
+                            Sesion.salida.writeInt(byteArray.size) // Envía el tamaño del array de bytes
+                            Sesion.salida.write(byteArray) // Envía el array de bytes
                             Sesion.salida.flush()
+
+                            val gson = GsonBuilder()
+                                .serializeNulls()
+                                .setLenient()
+                                .create()
 
                             val jsonFromServer = Sesion.entrada.readUTF()
-                            viajeFromServer = gson.fromJson(jsonFromServer, Viaje::class.java)
+                            val servicio = gson.fromJson(jsonFromServer, Servicio::class.java)
 
-                            return@withContext viajeFromServer != null
+                            if (servicio != null) {
+                                getServicio()
+                                return@withContext true
+                            } else {
+                                mensajeUi.postValue("Lo sentimos, la foto que has seleccionado es demasiado grande")
+                                return@withContext false
+                            }
 
                         } catch (e: IOException) {
                             e.printStackTrace()
@@ -212,5 +231,41 @@ class ServicioViewModel(
         return false
 
     }
+
+    suspend fun deleteFoto(imagen: Imagen, onImageDeleted: () -> Unit) {
+
+        if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
+            withContext(Dispatchers.IO) {
+                val gson = GsonBuilder()
+                    .serializeNulls()
+                    .setLenient()
+                    .create()
+
+                try {
+
+                    Sesion.salida.writeUTF("delete;imagen;${imagen.id}")
+                    Sesion.salida.flush()
+
+                    val confirm = Sesion.entrada.readBoolean()
+
+                    if(confirm) {
+                        onImageDeleted()
+                        getServicio()
+                    }
+
+                    //Sesion.entrada.readUTF()
+
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                    Sesion.socket!!.close()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+            }
+        }
+
+    }
+
 
 }

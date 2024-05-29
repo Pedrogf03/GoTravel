@@ -141,7 +141,7 @@ class ServiciosViewModel(
                         imagen.imagen = byteArray
                     }
 
-                    Sesion.entrada.readUTF()
+                    //Sesion.entrada.readUTF()
 
                     return@withContext imagen
 

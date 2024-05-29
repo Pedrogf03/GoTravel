@@ -143,7 +143,7 @@ public class HiloCliente extends Thread {
 
                 String[] fromCliente = sesion.getEntrada().readUTF().split(";");
 
-                System.out.println(Arrays.toString(fromCliente));
+                System.out.println("FromCliente " + Arrays.toString(fromCliente));
 
                 String opcion = fromCliente[0];
 
@@ -172,6 +172,12 @@ public class HiloCliente extends Thread {
                                 etapaFromUser.setViaje(service.findViajeById(idViaje));
                                 etapaFromUser = service.saveEtapa(etapaFromUser);
                                 jsonFromServer = gson.toJson(etapaFromUser);
+                            } else if (tabla.equalsIgnoreCase("servicio")) {
+                                Servicio servicioFromUser = gson.fromJson(jsonFromUser, Servicio.class);
+                                System.out.println(gson.fromJson(jsonFromUser, Servicio.class));
+                                servicioFromUser.setUsuario(sesion.getUsuario());
+                                servicioFromUser = service.saveServicio(servicioFromUser);
+                                jsonFromServer = gson.toJson(servicioFromUser);
                             }
                             yield jsonFromServer;
                         }
@@ -198,6 +204,12 @@ public class HiloCliente extends Thread {
                                 u = service.saveUsuario(u);
                                 sesion.setUsuario(u);
                                 yield gson.toJson(u);
+                            } else if(tabla.equalsIgnoreCase("servicio")) {
+                                int idServicio = Integer.parseInt(fromCliente[2]);
+                                Servicio s = service.findServicioById(idServicio);
+                                s.getImagenes().add(new Imagen(byteArray, s));
+                                s = service.saveServicio(s);
+                                yield gson.toJson(s);
                             }
                             yield "";
                         }
@@ -240,6 +252,16 @@ public class HiloCliente extends Thread {
                                 jsonFromServer = gson.toJson(s);
                             }
                             yield jsonFromServer;
+                        }
+                        case "findUsuarioByServicio" -> {
+                            int idServicio = Integer.parseInt(fromCliente[1]);
+                            Usuario u = service.findUsuarioByServicioId(idServicio);
+                            yield gson.toJson(u);
+                        }
+                        case "findResenasByServicio" -> {
+                            int idServicio = Integer.parseInt(fromCliente[1]);
+                            List<Resena> resenas = service.findResenasByServicioId(idServicio);
+                            yield gson.toJson(resenas);
                         }
                         case "findByUserId" -> {
                             String tabla = fromCliente[1];
@@ -347,14 +369,26 @@ public class HiloCliente extends Thread {
                             }
                             yield jsonFromServer;
                         }
+                        case "delete" -> {
+                            String tabla = fromCliente[1];
+                            String jsonFromServer = "";
+                            if(tabla.equalsIgnoreCase("imagen")) {
+                                int idImagen = Integer.parseInt(fromCliente[2]);
+                                sesion.getSalida().writeBoolean(service.deleteImagenById(idImagen));
+                            }
+                            yield jsonFromServer;
+                        }
                         default -> "";
                     };
 
                     if(!json.equals("null") && !json.isEmpty()) {
-                        LOG.info("{}: {}", opcion, json);
+                        //LOG.info("{}: {}", opcion, json);
                     }
-                    sesion.getSalida().writeUTF(json);
-                    sesion.getSalida().flush();
+                    System.out.println("FromServer " + json);
+                    if(!json.isEmpty()) {
+                        sesion.getSalida().writeUTF(json);
+                        sesion.getSalida().flush();
+                    }
                 } else if (output.equals("finHilo")) {
                     terminar = true;
                     clientesConectados.remove(this);
