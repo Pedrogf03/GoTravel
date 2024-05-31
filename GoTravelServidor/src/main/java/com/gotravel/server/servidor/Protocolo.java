@@ -54,7 +54,8 @@ public class Protocolo {
             case ATENDIENDO_PETICIONES:
 
                 if(entrada.equals("chat")) {
-                    //TODO
+                    estado = Estado.CHATEANDO;
+                    mensaje = "chateando";
                 } else if(entrada.equals("cerrarSesion")) {
                     estado = Estado.FINALIZADO;
                     mensaje = "finHilo";
@@ -63,6 +64,16 @@ public class Protocolo {
                     mensaje = "finServer";
                 } else {
                     mensaje = "peticion";
+                }
+
+                break;
+            case CHATEANDO:
+
+                if(entrada.equals("dejarChat")) {
+                    estado = Estado.ATENDIENDO_PETICIONES;
+                    mensaje = "peticion";
+                } else {
+                    mensaje = "chat";
                 }
 
                 break;

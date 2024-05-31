@@ -54,7 +54,6 @@ fun PerfilScreen(
     modifier: Modifier = Modifier,
     navController: NavHostController,
     navigateToEditarPerfil: () -> Unit,
-    navigateToPagos: () -> Unit,
     navigateToContrataciones: () -> Unit,
     navigateToSuscripcion: (Boolean) -> Unit,
     navigateToStart: () -> Unit,
@@ -96,7 +95,6 @@ fun PerfilScreen(
                 .weight(0.75f),
                 esProfesional = Sesion.usuario.roles.contains(Rol("Profesional")),
                 navigateToEditarPerfil = navigateToEditarPerfil,
-                navigateToPagos = navigateToPagos,
                 navigateToContrataciones = navigateToContrataciones,
                 navigateToSuscripcion = navigateToSuscripcion,
                 cerrarSesion = {
@@ -122,7 +120,6 @@ fun PerfilScreenContent(
     modifier: Modifier = Modifier,
     esProfesional: Boolean,
     navigateToEditarPerfil: () -> Unit,
-    navigateToPagos: () -> Unit,
     navigateToContrataciones: () -> Unit,
     navigateToSuscripcion: (Boolean) -> Unit,
     cerrarSesion: () -> Unit,
@@ -132,36 +129,23 @@ fun PerfilScreenContent(
     Card (
         modifier = modifier,
         elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
-        shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp, bottomEnd = 0.dp, bottomStart = 0.dp)
+        shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp, bottomEnd = 0.dp, bottomStart = 0.dp),
     ){
         Column (
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceEvenly
         ) {
 
             Button(
                 onClick = { navigateToEditarPerfil() },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary)
+                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.onPrimary)
             ) {
                 Text(
                     text = "EDITAR PERFIL",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
-            }
-
-            Spacer(modifier = Modifier.padding(8.dp))
-
-            Button(
-                onClick = { navigateToPagos() },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimary)
-            ) {
-                Text(
-                    text = "PAGOS",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -261,5 +245,6 @@ fun PerfilScreenContent(
             }
 
         }
+
     }
 }

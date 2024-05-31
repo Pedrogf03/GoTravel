@@ -47,8 +47,20 @@ public class AppService {
         }
     }
 
-    public byte[] getFotoFromUsuarioId(Integer id) {
-        return usuarioRepository.findById(id).get().getFoto();
+    public Usuario findMinimalUserInfoById(int idUsuario) {
+        Usuario u = usuarioRepository.findById(idUsuario).orElse(null);
+
+        if(u != null) {
+            u.setContrataciones(null);
+            u.setMensajesEnviados(null);
+            u.setMensajesRecibidos(null);
+            u.setPagos(null);
+            u.setServicios(null);
+            u.setViajes(null);
+        }
+
+        return u;
+
     }
 
     @Autowired
@@ -296,4 +308,28 @@ public class AppService {
         return contratacionRepository.findById(id).orElse(null);
     }
 
+    @Autowired
+    private MensajeRepository mensajeRepository;
+
+    public List<Mensaje> findAllMensajesByUsuarioId(int idUsuario) {
+        return mensajeRepository.findAllMensajesByUsuario(idUsuario);
+    }
+
+    public List<Mensaje> findAllMensajesBetweenUsers(int idUsuario, int idOtroUsuario) {
+        return mensajeRepository.findAllMensajesBetweenUsers(idUsuario, idOtroUsuario);
+    }
+
+    public Mensaje saveMensaje(Mensaje mensaje) {
+        try {
+            mensaje = mensajeRepository.save(mensaje);
+            return findMensajeById(mensaje.getId());
+        } catch (Exception e) {
+            LOG.error("Error: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    private Mensaje findMensajeById(Integer id) {
+        return mensajeRepository.findById(id).orElse(null);
+    }
 }

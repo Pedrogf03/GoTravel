@@ -20,9 +20,9 @@ data class Usuario(
     var tfno: String? = null,
     var foto: ByteArray? = null
 ) {
-    val imagen: ImageBitmap
+    val imagen: ImageBitmap?
         get() {
-            return BitmapFactory.decodeByteArray(foto!!, 0, foto!!.size).asImageBitmap()
+            return foto?.let { BitmapFactory.decodeByteArray(foto, 0, it.size).asImageBitmap() }
         }
 
     val getApellidos : String

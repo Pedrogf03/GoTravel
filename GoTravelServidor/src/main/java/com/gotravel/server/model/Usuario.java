@@ -109,20 +109,10 @@ public class Usuario implements Serializable {
     @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Suscripcion suscripcion;
 
-    @OneToMany(mappedBy = "usuario1", fetch = FetchType.EAGER)
-    private List<Chat> chatsComoUsuario1;
+    @OneToMany(mappedBy = "emisor")
+    List<Mensaje> mensajesEnviados;
 
-    @OneToMany(mappedBy = "usuario2", fetch = FetchType.EAGER)
-    private List<Chat> chatsComoUsuario2;
-
-    public List<Chat> getChats() {
-        List<Chat> todosLosChats = new ArrayList<>();
-        todosLosChats.addAll(chatsComoUsuario1);
-        todosLosChats.addAll(chatsComoUsuario2);
-        return todosLosChats;
-    }
-
-    @OneToMany(mappedBy = "emisor", fetch = FetchType.EAGER)
-    private List<Mensaje> mensajes;
+    @OneToMany(mappedBy = "receptor")
+    List<Mensaje> mensajesRecibidos;
 
 }

@@ -12,10 +12,11 @@ import lombok.Setter
 @AllArgsConstructor
 @Serializable
 data class Mensaje (
-    val id: Int,
-    val contenido: String,
+    val id: Int? = null,
+    val emisor: Usuario? = null,
+    val receptor: Usuario? = null,
+    val texto: String,
     val fecha: String,
     val hora: String,
-    val emisor: Usuario,
-    val chat: Chat
+    val leido: String
 )

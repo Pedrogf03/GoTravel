@@ -9,6 +9,7 @@ import com.gotravel.server.ServerApplication;
 import com.gotravel.server.model.Suscripcion;
 import com.gotravel.server.model.*;
 import com.gotravel.server.service.AppService;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cglib.core.Local;
@@ -19,12 +20,11 @@ import java.io.IOException;
 import java.net.Socket;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class HiloCliente extends Thread {
 
+    @Getter
     private final Protocolo protocolo;
     private final AppService service;
     private final Sesion sesion;
@@ -172,343 +172,421 @@ public class HiloCliente extends Thread {
 
                 String output = protocolo.procesarMensaje(opcion);
 
-                switch (output) {
-                    case "peticion" -> {
-                        int idUsuario = sesion.getUsuario().getId();
-                        String json = switch (opcion) {
-                            case "update" -> {
-                                String tabla = fromCliente[1];
-                                String jsonFromUser = sesion.getEntrada().readUTF();
-                                String jsonFromServer = "";
-                                if (tabla.equalsIgnoreCase("usuario")) {
-                                    Usuario usuarioFromUser = gson.fromJson(jsonFromUser, Usuario.class);
-                                    usuarioFromUser = service.saveUsuario(usuarioFromUser);
-                                    sesion.setUsuario(usuarioFromUser);
-                                    jsonFromServer = gson.toJson(usuarioFromUser);
-                                } else if (tabla.equalsIgnoreCase("viaje")) {
-                                    Viaje viajeFromUser = gson.fromJson(jsonFromUser, Viaje.class);
-                                    viajeFromUser.setUsuario(sesion.getUsuario());
-                                    viajeFromUser = service.saveViaje(viajeFromUser);
-                                    jsonFromServer = gson.toJson(viajeFromUser);
-                                } else if (tabla.equalsIgnoreCase("etapa")) {
-                                    int idViaje = Integer.parseInt(fromCliente[2]);
-                                    Etapa etapaFromUser = gson.fromJson(jsonFromUser, Etapa.class);
-                                    etapaFromUser.setViaje(service.findViajeById(idViaje));
-                                    etapaFromUser = service.saveEtapa(etapaFromUser);
-                                    jsonFromServer = gson.toJson(etapaFromUser);
-                                } else if (tabla.equalsIgnoreCase("servicio")) {
-                                    Servicio servicioFromUser = gson.fromJson(jsonFromUser, Servicio.class);
-                                    servicioFromUser.setUsuario(sesion.getUsuario());
-                                    servicioFromUser = service.saveServicio(servicioFromUser);
-                                    jsonFromServer = gson.toJson(servicioFromUser);
-                                }
-                                yield jsonFromServer;
+                if(output.equals("chateando")) {
+
+                    int idOtroUsuario = Integer.parseInt(fromCliente[1]);
+
+                    String jsonFromUser;
+                    while (protocolo.procesarMensaje((jsonFromUser = sesion.getEntrada().readUTF())).equals("chat")) {
+                        Mensaje mensajeFromUser = gson.fromJson(jsonFromUser, Mensaje.class);
+                        mensajeFromUser.setEmisor(sesion.getUsuario());
+                        mensajeFromUser.setReceptor(service.findUsuarioById(idOtroUsuario));
+                        mensajeFromUser = service.saveMensaje(mensajeFromUser);
+                        sesion.getSalida().writeUTF(gson.toJson(mensajeFromUser));
+                        for (HiloCliente hc : clientesConectados) {
+                            if(hc.sesion.getUsuario().getId() == idOtroUsuario && hc.getProtocolo().estado == Estado.CHATEANDO){
+                                hc.sesion.getSalida().writeUTF(gson.toJson(mensajeFromUser));
+                                break;
                             }
-                            case "updateContrasena" -> {
-                                String contrasenaActual = fromCliente[1];
-                                String contrasenaNueva = fromCliente[2];
-                                Usuario u = service.findUsuarioById(idUsuario);
-                                if (u.getContrasena().equals(contrasenaActual)) {
-                                    u.setContrasena(contrasenaNueva);
-                                    service.saveUsuario(u);
-                                    sesion.setUsuario(u);
-                                    yield gson.toJson(u);
+                        }
+                    }
+
+                    sesion.getSalida().writeUTF("fin");
+
+
+                } else {
+                    switch (output) {
+                        case "peticion" -> {
+                            int idUsuario = sesion.getUsuario().getId();
+                            String json = switch (opcion) {
+                                case "update" -> {
+                                    String tabla = fromCliente[1];
+                                    String jsonFromUser = sesion.getEntrada().readUTF();
+                                    String jsonFromServer = "";
+                                    if (tabla.equalsIgnoreCase("usuario")) {
+                                        Usuario usuarioFromUser = gson.fromJson(jsonFromUser, Usuario.class);
+                                        usuarioFromUser = service.saveUsuario(usuarioFromUser);
+                                        sesion.setUsuario(usuarioFromUser);
+                                        jsonFromServer = gson.toJson(usuarioFromUser);
+                                    } else if (tabla.equalsIgnoreCase("viaje")) {
+                                        Viaje viajeFromUser = gson.fromJson(jsonFromUser, Viaje.class);
+                                        viajeFromUser.setUsuario(sesion.getUsuario());
+                                        viajeFromUser = service.saveViaje(viajeFromUser);
+                                        jsonFromServer = gson.toJson(viajeFromUser);
+                                    } else if (tabla.equalsIgnoreCase("etapa")) {
+                                        int idViaje = Integer.parseInt(fromCliente[2]);
+                                        Etapa etapaFromUser = gson.fromJson(jsonFromUser, Etapa.class);
+                                        etapaFromUser.setViaje(service.findViajeById(idViaje));
+                                        etapaFromUser = service.saveEtapa(etapaFromUser);
+                                        jsonFromServer = gson.toJson(etapaFromUser);
+                                    } else if (tabla.equalsIgnoreCase("servicio")) {
+                                        Servicio servicioFromUser = gson.fromJson(jsonFromUser, Servicio.class);
+                                        servicioFromUser.setUsuario(sesion.getUsuario());
+                                        servicioFromUser = service.saveServicio(servicioFromUser);
+                                        jsonFromServer = gson.toJson(servicioFromUser);
+                                    }
+                                    yield jsonFromServer;
                                 }
-                                yield "";
-                            }
-                            case "uploadFoto" -> {
-                                String tabla = fromCliente[1];
-                                int length = sesion.getEntrada().readInt(); // Lee el tamaño del array de bytes
-                                byte[] byteArray = new byte[length];
-                                sesion.getEntrada().readFully(byteArray); // Lee el array de bytes
-                                if (tabla.equalsIgnoreCase("usuario")) {
+                                case "updateContrasena" -> {
+                                    String contrasenaActual = fromCliente[1];
+                                    String contrasenaNueva = fromCliente[2];
                                     Usuario u = service.findUsuarioById(idUsuario);
-                                    u.setFoto(byteArray);
-                                    u = service.saveUsuario(u);
-                                    sesion.setUsuario(u);
+                                    if (u.getContrasena().equals(contrasenaActual)) {
+                                        u.setContrasena(contrasenaNueva);
+                                        service.saveUsuario(u);
+                                        sesion.setUsuario(u);
+                                        yield gson.toJson(u);
+                                    }
+                                    yield "";
+                                }
+                                case "uploadFoto" -> {
+                                    String tabla = fromCliente[1];
+                                    int length = sesion.getEntrada().readInt(); // Lee el tamaño del array de bytes
+                                    byte[] byteArray = new byte[length];
+                                    sesion.getEntrada().readFully(byteArray); // Lee el array de bytes
+                                    if (tabla.equalsIgnoreCase("usuario")) {
+                                        Usuario u = service.findUsuarioById(idUsuario);
+                                        u.setFoto(byteArray);
+                                        u = service.saveUsuario(u);
+                                        sesion.setUsuario(u);
+                                        yield gson.toJson(u);
+                                    } else if (tabla.equalsIgnoreCase("servicio")) {
+                                        int idServicio = Integer.parseInt(fromCliente[2]);
+                                        Servicio s = service.findServicioById(idServicio);
+                                        s.getImagenes().add(new Imagen(byteArray, s));
+                                        s = service.saveServicio(s);
+                                        yield gson.toJson(s);
+                                    }
+                                    yield "";
+                                }
+                                case "save" -> {
+                                    String tabla = fromCliente[1];
+                                    String jsonFromUser = sesion.getEntrada().readUTF();
+                                    String jsonFromServer = "";
+                                    if (tabla.equalsIgnoreCase("viaje")) {
+                                        Viaje viajeFromUser = gson.fromJson(jsonFromUser, Viaje.class);
+                                        viajeFromUser.setUsuario(service.findUsuarioById(idUsuario));
+                                        Viaje v = service.saveViaje(viajeFromUser);
+                                        jsonFromServer = gson.toJson(v);
+                                    } else if (tabla.equalsIgnoreCase("etapa")) {
+                                        int idViaje = Integer.parseInt(fromCliente[2]);
+                                        Viaje v = service.findViajeById(idViaje);
+                                        Etapa etapaFromUser = gson.fromJson(jsonFromUser, Etapa.class);
+                                        etapaFromUser.setViaje(v);
+                                        etapaFromUser = service.saveEtapa(etapaFromUser);
+                                        jsonFromServer = gson.toJson(etapaFromUser);
+                                    } else if (tabla.equalsIgnoreCase("servicio")) {
+                                        Servicio servicioFromUser = gson.fromJson(jsonFromUser, Servicio.class);
+                                        servicioFromUser.setUsuario(sesion.getUsuario());
+                                        servicioFromUser = service.saveServicio(servicioFromUser);
+                                        jsonFromServer = gson.toJson(servicioFromUser);
+                                    } else if (tabla.equalsIgnoreCase("resena")) {
+                                        Resena resenaFromUser = gson.fromJson(jsonFromUser, Resena.class);
+                                        resenaFromUser.setUsuario(sesion.getUsuario());
+                                        resenaFromUser.setServicio(service.findServicioById(resenaFromUser.getId().getIdServicio()));
+                                        resenaFromUser = service.saveResena(resenaFromUser);
+                                        jsonFromServer = gson.toJson(resenaFromUser);
+                                    }
+                                    yield jsonFromServer;
+                                }
+                                case "findById" -> {
+                                    String tabla = fromCliente[1];
+                                    String jsonFromServer = "";
+                                    if (tabla.equalsIgnoreCase("viaje")) {
+                                        int idViaje = Integer.parseInt(fromCliente[2]);
+                                        Viaje v = service.findViajeById(idViaje);
+                                        jsonFromServer = gson.toJson(v);
+                                    }
+                                    if (tabla.equalsIgnoreCase("servicio")) {
+                                        int idServicio = Integer.parseInt(fromCliente[2]);
+                                        Servicio s = service.findServicioById(idServicio);
+                                        jsonFromServer = gson.toJson(s);
+                                    }
+                                    if (tabla.equalsIgnoreCase("usuario")) {
+                                        int idOtroUsuario = Integer.parseInt(fromCliente[2]);
+                                        Usuario u = service.findUsuarioById(idOtroUsuario);
+
+                                        sesion.getSalida().writeUTF(gson.toJson(u));
+
+                                        boolean tieneFoto = u.getFoto() != null;
+
+                                        // Primero envío al usuario una confirmación de si tiene foto asociada o no
+                                        sesion.getSalida().writeBoolean(tieneFoto);
+                                        sesion.getSalida().flush();
+
+                                        // Si la tiene, envía la foto
+                                        if(tieneFoto) {
+                                            sesion.getSalida().writeInt(u.getFoto().length); // Envía la longitud del ByteArray
+                                            sesion.getSalida().write(u.getFoto()); // Envía el ByteArray
+                                            sesion.getSalida().flush();
+                                        }
+
+                                        jsonFromServer = "";
+                                    }
+                                    yield jsonFromServer;
+                                }
+                                case "findUsuarioByServicio" -> {
+                                    int idServicio = Integer.parseInt(fromCliente[1]);
+                                    Usuario u = service.findUsuarioByServicioId(idServicio);
                                     yield gson.toJson(u);
-                                } else if (tabla.equalsIgnoreCase("servicio")) {
-                                    int idServicio = Integer.parseInt(fromCliente[2]);
+                                }
+                                case "findResenasByServicio" -> {
+                                    int idServicio = Integer.parseInt(fromCliente[1]);
+                                    List<Resena> resenas = service.findResenasByServicioId(idServicio);
+                                    sesion.getSalida().writeUTF(gson.toJson(resenas));
+                                    for (Resena r : resenas) {
+                                        boolean usuarioTieneFoto = r.getUsuario().getFoto() != null;
+                                        sesion.getSalida().writeBoolean(usuarioTieneFoto);
+                                        if (usuarioTieneFoto) {
+                                            sesion.getSalida().writeInt(r.getUsuario().getFoto().length); // Envía la longitud del ByteArray
+                                            sesion.getSalida().write(r.getUsuario().getFoto()); // Envía el ByteArray
+                                            sesion.getSalida().flush();
+                                        }
+                                    }
+                                    yield "";
+                                }
+                                case "findByUserId" -> {
+                                    String tabla = fromCliente[1];
+                                    String jsonFromServer = "";
+                                    if (tabla.equalsIgnoreCase("viaje")) {
+                                        List<Viaje> viajes = service.findViajesByUsuarioId(idUsuario);
+                                        jsonFromServer = gson.toJson(viajes);
+                                    } else if (tabla.equalsIgnoreCase("proximoViaje")) {
+                                        Viaje proximoViaje = service.findProximoViajeByUsuarioId(idUsuario);
+                                        jsonFromServer = gson.toJson(proximoViaje);
+                                    } else if (tabla.equalsIgnoreCase("viajeActual")) {
+                                        Viaje viajeActual = service.findViajeActualByUsuarioId(idUsuario);
+                                        yield gson.toJson(viajeActual);
+                                    } else if (tabla.equalsIgnoreCase("suscripcion")) {
+                                        Suscripcion suscripcion = service.findSuscripcionByUsuarioId(idUsuario);
+                                        yield gson.toJson(suscripcion);
+                                    } else if (tabla.equalsIgnoreCase("servicio")) {
+                                        List<Servicio> servicios = service.findServiciosByUsuarioId(idUsuario);
+                                        jsonFromServer = gson.toJson(servicios);
+                                    }
+                                    yield jsonFromServer;
+                                }
+                                case "findImagesFromServicioId" -> {
+                                    int idServicio = Integer.parseInt(fromCliente[1]);
+                                    String numImagenes = fromCliente[2];
+                                    if (numImagenes.equals("one")) {
+                                        Imagen i = service.findFirstImageFromServicioId(idServicio);
+                                        sesion.getSalida().writeUTF(gson.toJson(i));
+                                        if (i != null) {
+                                            sesion.getSalida().writeInt(i.getImagen().length); // Envía la longitud del ByteArray
+                                            sesion.getSalida().write(i.getImagen()); // Envía el ByteArray
+                                            sesion.getSalida().flush();
+                                        }
+                                    } else if (numImagenes.equals("all")) {
+                                        List<Imagen> imagenes = service.findAllImagesFromServicioId(idServicio);
+
+                                        sesion.getSalida().writeUTF(gson.toJson(imagenes));
+
+                                        for (Imagen i : imagenes) {
+                                            sesion.getSalida().writeInt(i.getImagen().length); // Envía la longitud del ByteArray
+                                            sesion.getSalida().write(i.getImagen()); // Envía el ByteArray
+                                            sesion.getSalida().flush();
+                                        }
+                                    }
+                                    yield "";
+                                }
+                                case "findAllServiciosByFechasAndTipo" -> {
+                                    int idEtapa = Integer.parseInt(fromCliente[1]);
+                                    Etapa e = service.findEtapaById(idEtapa);
+                                    List<Servicio> servicios =
+                                            service.findAllServiciosByFechasAndTipo(
+                                                    LocalDate.parse(e.getFechaInicio(), DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                                                    LocalDate.parse(e.getFechaFinal(), DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                                                    e.getTipo());
+                                    yield gson.toJson(servicios);
+                                }
+                                case "findAll" -> {
+                                    String tabla = fromCliente[1];
+                                    String jsonFromServer = "";
+                                    if (tabla.equalsIgnoreCase("tipoServicio")) {
+                                        List<Tiposervicio> tiposServicio = service.findAllTiposServicio();
+                                        jsonFromServer = gson.toJson(tiposServicio);
+                                    }
+                                    yield jsonFromServer;
+                                }
+                                case "findImageFromUserId" -> {
+                                    int idOtroUsuario = Integer.parseInt(fromCliente[1]);
+
+                                    byte[] foto = service.findUsuarioById(idOtroUsuario).getFoto();
+                                    boolean tieneFoto = foto != null;
+                                    sesion.getSalida().writeBoolean(tieneFoto);
+                                    if(tieneFoto) {
+                                        sesion.getSalida().writeInt(foto.length); // Envía la longitud del ByteArray
+                                        sesion.getSalida().write(foto); // Envía el ByteArray
+                                        sesion.getSalida().flush();
+                                    }
+
+                                    yield "";
+                                }
+                                case "isServicioContratado" -> {
+                                    int idServicio = Integer.parseInt(fromCliente[1]);
+                                    Contratacion c = service.findContratacionByServicioAndUsuario(idServicio, idUsuario);
+                                    sesion.getSalida().writeBoolean(c != null);
+                                    yield "";
+                                }
+                                case "contratarServicio" -> {
+                                    Checkout paypal = new Checkout();
+
+                                    int idServicio = Integer.parseInt(fromCliente[1]);
+                                    int idEatapa = Integer.parseInt(fromCliente[2]);
                                     Servicio s = service.findServicioById(idServicio);
-                                    s.getImagenes().add(new Imagen(byteArray, s));
-                                    s = service.saveServicio(s);
-                                    yield gson.toJson(s);
+                                    Etapa e = service.findEtapaById(idEatapa);
+
+                                    String url = paypal.crearPedido(s);
+                                    sesion.getSalida().writeUTF(url);
+
+                                    String idContratacion = sesion.getEntrada().readUTF();
+                                    Contratacion c = paypal.capturarPedido(idContratacion);
+
+                                    c.setUsuario(sesion.getUsuario());
+                                    c.getPago().setUsuario(sesion.getUsuario());
+                                    c.setServicio(s);
+                                    c.setEtapa(e);
+
+                                    service.saveContratacion(c);
+
+                                    yield "" + e.getViaje().getId();
                                 }
-                                yield "";
-                            }
-                            case "save" -> {
-                                String tabla = fromCliente[1];
-                                String jsonFromUser = sesion.getEntrada().readUTF();
-                                String jsonFromServer = "";
-                                if (tabla.equalsIgnoreCase("viaje")) {
-                                    Viaje viajeFromUser = gson.fromJson(jsonFromUser, Viaje.class);
-                                    viajeFromUser.setUsuario(service.findUsuarioById(idUsuario));
-                                    Viaje v = service.saveViaje(viajeFromUser);
-                                    jsonFromServer = gson.toJson(v);
-                                } else if (tabla.equalsIgnoreCase("etapa")) {
-                                    int idViaje = Integer.parseInt(fromCliente[2]);
-                                    Viaje v = service.findViajeById(idViaje);
-                                    Etapa etapaFromUser = gson.fromJson(jsonFromUser, Etapa.class);
-                                    etapaFromUser.setViaje(v);
-                                    etapaFromUser = service.saveEtapa(etapaFromUser);
-                                    jsonFromServer = gson.toJson(etapaFromUser);
-                                } else if (tabla.equalsIgnoreCase("servicio")) {
-                                    Servicio servicioFromUser = gson.fromJson(jsonFromUser, Servicio.class);
-                                    servicioFromUser.setUsuario(sesion.getUsuario());
-                                    servicioFromUser = service.saveServicio(servicioFromUser);
-                                    jsonFromServer = gson.toJson(servicioFromUser);
-                                } else if (tabla.equalsIgnoreCase("resena")) {
-                                    Resena resenaFromUser = gson.fromJson(jsonFromUser, Resena.class);
-                                    resenaFromUser.setUsuario(sesion.getUsuario());
-                                    resenaFromUser.setServicio(service.findServicioById(resenaFromUser.getId().getIdServicio()));
-                                    resenaFromUser = service.saveResena(resenaFromUser);
-                                    jsonFromServer = gson.toJson(resenaFromUser);
+                                case "findContratacionesByEtapa" -> {
+                                    int idEtapa = Integer.parseInt(fromCliente[1]);
+                                    List<Servicio> servicios = service.findServiciosContratadosByEtapa(idEtapa);
+                                    yield gson.toJson(servicios);
                                 }
-                                yield jsonFromServer;
-                            }
-                            case "findById" -> {
-                                String tabla = fromCliente[1];
-                                String jsonFromServer = "";
-                                if (tabla.equalsIgnoreCase("viaje")) {
-                                    int idViaje = Integer.parseInt(fromCliente[2]);
-                                    Viaje v = service.findViajeById(idViaje);
-                                    jsonFromServer = gson.toJson(v);
+                                case "findAllServiciosContratados" -> {
+                                    List<Servicio> servicios = service.findServiciosContratadosByUsuario(idUsuario);
+                                    yield gson.toJson(servicios);
                                 }
-                                if (tabla.equalsIgnoreCase("servicio")) {
-                                    int idServicio = Integer.parseInt(fromCliente[2]);
-                                    Servicio s = service.findServicioById(idServicio);
-                                    jsonFromServer = gson.toJson(s);
-                                }
-                                yield jsonFromServer;
-                            }
-                            case "findUsuarioByServicio" -> {
-                                int idServicio = Integer.parseInt(fromCliente[1]);
-                                Usuario u = service.findUsuarioByServicioId(idServicio);
-                                yield gson.toJson(u);
-                            }
-                            case "findResenasByServicio" -> {
-                                int idServicio = Integer.parseInt(fromCliente[1]);
-                                List<Resena> resenas = service.findResenasByServicioId(idServicio);
-                                sesion.getSalida().writeUTF(gson.toJson(resenas));
-                                for (Resena r : resenas) {
-                                    boolean usuarioTieneFoto = r.getUsuario().getFoto() != null;
-                                    sesion.getSalida().writeBoolean(usuarioTieneFoto);
-                                    if (usuarioTieneFoto) {
-                                        sesion.getSalida().writeInt(r.getUsuario().getFoto().length); // Envía la longitud del ByteArray
-                                        sesion.getSalida().write(r.getUsuario().getFoto()); // Envía el ByteArray
-                                        sesion.getSalida().flush();
-                                    }
-                                }
-                                yield "";
-                            }
-                            case "findByUserId" -> {
-                                String tabla = fromCliente[1];
-                                String jsonFromServer = "";
-                                if (tabla.equalsIgnoreCase("viaje")) {
-                                    List<Viaje> viajes = service.findViajesByUsuarioId(idUsuario);
-                                    jsonFromServer = gson.toJson(viajes);
-                                } else if (tabla.equalsIgnoreCase("proximoViaje")) {
-                                    Viaje proximoViaje = service.findProximoViajeByUsuarioId(idUsuario);
-                                    jsonFromServer = gson.toJson(proximoViaje);
-                                } else if (tabla.equalsIgnoreCase("viajeActual")) {
-                                    Viaje viajeActual = service.findViajeActualByUsuarioId(idUsuario);
-                                    yield gson.toJson(viajeActual);
-                                } else if (tabla.equalsIgnoreCase("suscripcion")) {
-                                    Suscripcion suscripcion = service.findSuscripcionByUsuarioId(idUsuario);
-                                    yield gson.toJson(suscripcion);
-                                } else if (tabla.equalsIgnoreCase("servicio")) {
-                                    List<Servicio> servicios = service.findServiciosByUsuarioId(idUsuario);
-                                    jsonFromServer = gson.toJson(servicios);
-                                }
-                                yield jsonFromServer;
-                            }
-                            case "findImagesFromServicioId" -> {
-                                int idServicio = Integer.parseInt(fromCliente[1]);
-                                String numImagenes = fromCliente[2];
-                                if (numImagenes.equals("one")) {
-                                    Imagen i = service.findFirstImageFromServicioId(idServicio);
-                                    sesion.getSalida().writeUTF(gson.toJson(i));
-                                    if (i != null) {
-                                        sesion.getSalida().writeInt(i.getImagen().length); // Envía la longitud del ByteArray
-                                        sesion.getSalida().write(i.getImagen()); // Envía el ByteArray
-                                        sesion.getSalida().flush();
-                                    }
-                                } else if (numImagenes.equals("all")) {
-                                    List<Imagen> imagenes = service.findAllImagesFromServicioId(idServicio);
+                                case "suscripcion" -> {
+                                    String eleccion = fromCliente[1];
+                                    String jsonFromServer = "";
+                                    Subscriptions paypal = new Subscriptions();
+                                    switch (eleccion) {
+                                        case "crear" -> {
+                                            Usuario u = sesion.getUsuario();
 
-                                    sesion.getSalida().writeUTF(gson.toJson(imagenes));
+                                            String url = paypal.crearSuscripcion(u);
 
-                                    for (Imagen i : imagenes) {
-                                        sesion.getSalida().writeInt(i.getImagen().length); // Envía la longitud del ByteArray
-                                        sesion.getSalida().write(i.getImagen()); // Envía el ByteArray
-                                        sesion.getSalida().flush();
-                                    }
-                                }
-                                yield "";
-                            }
-                            case "findAllServiciosByFechasAndTipo" -> {
-                                int idEtapa = Integer.parseInt(fromCliente[1]);
-                                Etapa e = service.findEtapaById(idEtapa);
-                                List<Servicio> servicios =
-                                        service.findAllServiciosByFechasAndTipo(
-                                                LocalDate.parse(e.getFechaInicio(), DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-                                                LocalDate.parse(e.getFechaFinal(), DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-                                                e.getTipo());
-                                yield gson.toJson(servicios);
+                                            sesion.getSalida().writeUTF(url);
 
-                            }
-                            case "findAll" -> {
-                                String tabla = fromCliente[1];
-                                String jsonFromServer = "";
-                                if (tabla.equalsIgnoreCase("tipoServicio")) {
-                                    List<Tiposervicio> tiposServicio = service.findAllTiposServicio();
-                                    jsonFromServer = gson.toJson(tiposServicio);
-                                }
-                                yield jsonFromServer;
-                            }
-                            case "isServicioContratado" -> {
-                                int idServicio = Integer.parseInt(fromCliente[1]);
-                                Contratacion c = service.findContratacionByServicioAndUsuario(idServicio, idUsuario);
-                                sesion.getSalida().writeBoolean(c != null);
-                                yield "";
-                            }
-                            case "contratarServicio" -> {
-                                Checkout paypal = new Checkout();
+                                            String subscriptionId = sesion.getEntrada().readUTF();
+                                            Suscripcion s = paypal.getSubscription(subscriptionId);
 
-                                int idServicio = Integer.parseInt(fromCliente[1]);
-                                int idEatapa = Integer.parseInt(fromCliente[2]);
-                                Servicio s = service.findServicioById(idServicio);
-                                Etapa e = service.findEtapaById(idEatapa);
+                                            s.setUsuario(sesion.getUsuario());
+                                            s.getPagos().get(0).setUsuario(sesion.getUsuario());
+                                            service.saveSuscripcion(s);
 
-                                String url = paypal.crearPedido(s);
-                                sesion.getSalida().writeUTF(url);
+                                            sesion.getUsuario().getRoles().add(service.findRol("Profesional"));
+                                            sesion.setUsuario(service.saveUsuario(sesion.getUsuario()));
+                                            jsonFromServer = gson.toJson(sesion.getUsuario());
 
-                                String idContratacion = sesion.getEntrada().readUTF();
-                                Contratacion c = paypal.capturarPedido(idContratacion);
+                                        }
+                                        case "renovar" -> {
+                                            String idSuscripcion = fromCliente[2];
 
-                                c.setUsuario(sesion.getUsuario());
-                                c.getPago().setUsuario(sesion.getUsuario());
-                                c.setServicio(s);
-                                c.setEtapa(e);
+                                            Suscripcion s = service.findSuscripcionById(idSuscripcion);
 
-                                service.saveContratacion(c);
-
-                                yield "" + e.getViaje().getId();
-                            }
-                            case "findContratacionesByEtapa" -> {
-                                int idEtapa = Integer.parseInt(fromCliente[1]);
-                                List<Servicio> servicios = service.findServiciosContratadosByEtapa(idEtapa);
-                                yield gson.toJson(servicios);
-                            }
-                            case "findAllServiciosContratados" -> {
-                                List<Servicio> servicios = service.findServiciosContratadosByUsuario(idUsuario);
-                                yield gson.toJson(servicios);
-                            }
-                            case "suscripcion" -> {
-                                String eleccion = fromCliente[1];
-                                String jsonFromServer = "";
-                                Subscriptions paypal = new Subscriptions();
-                                switch (eleccion) {
-                                    case "crear" -> {
-                                        Usuario u = sesion.getUsuario();
-
-                                        String url = paypal.crearSuscripcion(u);
-
-                                        sesion.getSalida().writeUTF(url);
-
-                                        String subscriptionId = sesion.getEntrada().readUTF();
-                                        Suscripcion s = paypal.getSubscription(subscriptionId);
-
-                                        s.setUsuario(sesion.getUsuario());
-                                        s.getPagos().get(0).setUsuario(sesion.getUsuario());
-                                        service.saveSuscripcion(s);
-
-                                        sesion.getUsuario().getRoles().add(service.findRol("Profesional"));
-                                        sesion.setUsuario(service.saveUsuario(sesion.getUsuario()));
-                                        jsonFromServer = gson.toJson(sesion.getUsuario());
-
-                                    }
-                                    case "renovar" -> {
-                                        String idSuscripcion = fromCliente[2];
-
-                                        Suscripcion s = service.findSuscripcionById(idSuscripcion);
-
-                                        if (paypal.activateSubscription(idSuscripcion)) {
-                                            s.setRenovar("1");
-                                            s.setEstado("ACTIVE");
-                                            LocalDate fechaFinal = LocalDate.parse(s.getFechaFinal(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                                            if (fechaFinal.isAfter(LocalDate.now()) || fechaFinal.isEqual(LocalDate.now())) {
-                                                // Si está renovando una suscripción que ya ha caducado, se le pone a la fecha final un mes desde el día de hoy
-                                                s.setFechaFinal(LocalDate.now().plusMonths(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+                                            if (paypal.activateSubscription(idSuscripcion)) {
+                                                s.setRenovar("1");
+                                                s.setEstado("ACTIVE");
+                                                LocalDate fechaFinal = LocalDate.parse(s.getFechaFinal(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                                                if (fechaFinal.isAfter(LocalDate.now()) || fechaFinal.isEqual(LocalDate.now())) {
+                                                    // Si está renovando una suscripción que ya ha caducado, se le pone a la fecha final un mes desde el día de hoy
+                                                    s.setFechaFinal(LocalDate.now().plusMonths(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+                                                }
                                             }
+
+                                            jsonFromServer = gson.toJson(service.saveSuscripcion(s));
                                         }
+                                        case "cancelar" -> {
+                                            String idSuscripcion = fromCliente[2];
 
-                                        jsonFromServer = gson.toJson(service.saveSuscripcion(s));
-                                    }
-                                    case "cancelar" -> {
-                                        String idSuscripcion = fromCliente[2];
+                                            Suscripcion s = service.findSuscripcionById(idSuscripcion);
 
-                                        Suscripcion s = service.findSuscripcionById(idSuscripcion);
+                                            if (paypal.cancelSubscription(idSuscripcion)) {
+                                                s.setRenovar("0");
+                                            }
 
-                                        if (paypal.cancelSubscription(idSuscripcion)) {
-                                            s.setRenovar("0");
+                                            jsonFromServer = gson.toJson(service.saveSuscripcion(s));
                                         }
-
-                                        jsonFromServer = gson.toJson(service.saveSuscripcion(s));
                                     }
+                                    yield jsonFromServer;
                                 }
-                                yield jsonFromServer;
-                            }
-                            case "delete" -> {
-                                String tabla = fromCliente[1];
-                                String jsonFromServer = "";
-                                if (tabla.equalsIgnoreCase("imagen")) {
-                                    int idImagen = Integer.parseInt(fromCliente[2]);
-                                    sesion.getSalida().writeBoolean(service.deleteImagenById(idImagen));
+                                case "delete" -> {
+                                    String tabla = fromCliente[1];
+                                    String jsonFromServer = "";
+                                    if (tabla.equalsIgnoreCase("imagen")) {
+                                        int idImagen = Integer.parseInt(fromCliente[2]);
+                                        sesion.getSalida().writeBoolean(service.deleteImagenById(idImagen));
+                                    }
+                                    yield jsonFromServer;
                                 }
-                                yield jsonFromServer;
-                            }
-                            case "publicarServicio" -> {
-                                int idServicio = Integer.parseInt(fromCliente[1]);
-                                Servicio s = service.findServicioById(idServicio);
-                                s.setPublicado("1");
-                                s = service.saveServicio(s);
-                                sesion.getSalida().writeBoolean(s != null);
-                                yield "";
-                            }
-                            case "ocultarServicio" -> {
-                                int idServicio = Integer.parseInt(fromCliente[1]);
-                                Servicio s = service.findServicioById(idServicio);
-                                s.setPublicado("0");
-                                s = service.saveServicio(s);
-                                sesion.getSalida().writeBoolean(s != null);
-                                yield "";
-                            }
-                            default -> "";
-                        };
+                                case "publicarServicio" -> {
+                                    int idServicio = Integer.parseInt(fromCliente[1]);
+                                    Servicio s = service.findServicioById(idServicio);
+                                    s.setPublicado("1");
+                                    s = service.saveServicio(s);
+                                    sesion.getSalida().writeBoolean(s != null);
+                                    yield "";
+                                }
+                                case "ocultarServicio" -> {
+                                    int idServicio = Integer.parseInt(fromCliente[1]);
+                                    Servicio s = service.findServicioById(idServicio);
+                                    s.setPublicado("0");
+                                    s = service.saveServicio(s);
+                                    sesion.getSalida().writeBoolean(s != null);
+                                    yield "";
+                                }
+                                case "findAllMensajes" -> {
+                                    List<Mensaje> mensajes = service.findAllMensajesByUsuarioId(idUsuario);
 
-                        if (!json.equals("null") && !json.isEmpty()) {
-                            //LOG.info("{}: {}", opcion, json);
+                                    Map<Integer, Mensaje> conversaciones = new HashMap<>();
+                                    for (Mensaje mensaje : mensajes) {
+                                        int idOtroUsuario = mensaje.getEmisor().getId() == idUsuario ? mensaje.getReceptor().getId() : mensaje.getEmisor().getId();
+                                        conversaciones.put(idOtroUsuario, mensaje);
+                                    }
+
+                                    yield gson.toJson(conversaciones);
+                                }
+                                case "findAllMensajesBetweenUsers" -> {
+                                    int idOtroUsuario = Integer.parseInt(fromCliente[1]);
+                                    List<Mensaje> mensajes = service.findAllMensajesBetweenUsers(idUsuario, idOtroUsuario);
+                                    for (Mensaje m : mensajes) {
+                                        m.setEmisor(service.findMinimalUserInfoById(m.getEmisor().getId()));
+                                        m.setReceptor(service.findMinimalUserInfoById(m.getReceptor().getId()));
+                                    }
+                                    yield gson.toJson(mensajes);
+                                }
+                                default -> "";
+                            };
+
+                            if (!json.equals("null") && !json.isEmpty()) {
+                                //LOG.info("{}: {}", opcion, json);
+                            }
+                            System.out.println("FromServer " + json);
+                            if (!json.isEmpty()) {
+                                sesion.getSalida().writeUTF(json);
+                                sesion.getSalida().flush();
+                            }
                         }
-                        System.out.println("FromServer " + json);
-                        if (!json.isEmpty()) {
-                            sesion.getSalida().writeUTF(json);
+                        case "finHilo" -> {
+                            terminar = true;
+                            clientesConectados.remove(this);
+                            LOG.info("Se ha desconectado un usuario");
+                        }
+                        case "finServer" -> {
+                            sesion.getSalida().writeUTF("cerrando");
                             sesion.getSalida().flush();
+                            LOG.info("El servidor se cerrará en 10 segundos");
+                            sleep(10000);
+                            terminar = true;
+                            clientesConectados.remove(this);
+                            server.pararServidor();
                         }
-                    }
-                    case "finHilo" -> {
-                        terminar = true;
-                        clientesConectados.remove(this);
-                        LOG.info("Se ha desconectado un usuario");
-                    }
-                    case "finServer" -> {
-                        sesion.getSalida().writeUTF("cerrando");
-                        sesion.getSalida().flush();
-                        LOG.info("El servidor se cerrará en 10 segundos");
-                        sleep(10000);
-                        terminar = true;
-                        clientesConectados.remove(this);
-                        server.pararServidor();
                     }
                 }
 

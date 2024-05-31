@@ -15,6 +15,10 @@ import com.gotravel.mobile.ui.screen.BuscarServiciosDestination
 import com.gotravel.mobile.ui.screen.BuscarServiciosScreen
 import com.gotravel.mobile.ui.screen.CambiarContrasenaDestination
 import com.gotravel.mobile.ui.screen.CambiarContrasenaScreen
+import com.gotravel.mobile.ui.screen.ChatDestination
+import com.gotravel.mobile.ui.screen.ChatScreen
+import com.gotravel.mobile.ui.screen.ChatsDestination
+import com.gotravel.mobile.ui.screen.ChatsScreen
 import com.gotravel.mobile.ui.screen.ContratacionesDestination
 import com.gotravel.mobile.ui.screen.ContratacionesScreen
 import com.gotravel.mobile.ui.screen.CrearServicioDestination
@@ -184,9 +188,6 @@ fun AppNavHost(
                 navigateToContrataciones = {
                     navController.navigate(ContratacionesDestination.route)
                 },
-                navigateToPagos = {
-                    //TODO
-                },
                 navigateToSuscripcion = {
                     navController.navigate("${SuscripcionDestination.route}/${it}")
                 },
@@ -332,6 +333,9 @@ fun AppNavHost(
                 },
                 navigateToStart = {
                     navController.navigate(LandingDestination.route)
+                },
+                navigateToChat = {
+                    navController.navigate("${ChatDestination.route}/${it}")
                 }
             )
         }
@@ -371,6 +375,38 @@ fun AppNavHost(
                 },
                 actualizarPagina = {
                     navController.navigate("${ServicioDestination.route}/${it}")
+                },
+                navigateToStart = {
+                    navController.navigate(LandingDestination.route)
+                },
+                navigateToChat = {
+                    navController.navigate("${ChatDestination.route}/${it}")
+                }
+            )
+        }
+
+        // Pantalla de todos los chats
+        composable(route = ChatsDestination.route) {
+            val items = listOfNotNull(Screen.Inicio, Screen.Viajes, if(Sesion.usuario.roles.contains(Rol("Profesional"))) Screen.Servicios else null, Screen.Chats, Screen.Perfil)
+            ChatsScreen(
+                navController = navController,
+                elementosDeNavegacion = items,
+                navigateToChat = {
+                    navController.navigate("${ChatDestination.route}/${it}")
+                }
+            )
+        }
+
+        // Pantalla de un chat
+        composable(
+            route = ChatDestination.routeWithArgs,
+            arguments = listOf(
+                navArgument(ChatDestination.idOtroUsuario) { type = NavType.IntType },
+            )
+        ) {
+            ChatScreen(
+                navigateUp = {
+                    navController.navigateUp()
                 },
                 navigateToStart = {
                     navController.navigate(LandingDestination.route)

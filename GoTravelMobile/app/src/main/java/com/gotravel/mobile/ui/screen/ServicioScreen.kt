@@ -98,7 +98,8 @@ fun ServicioScreen(
     viewModel: ServicioViewModel = viewModel(factory = AppViewModelProvider.Factory),
     navigateUp: () -> Unit,
     actualizarPagina: (Int) -> Unit,
-    navigateToStart: () -> Unit
+    navigateToStart: () -> Unit,
+    navigateToChat: (Int) -> Unit
 ) {
 
     when (val uiState = viewModel.uiState) {
@@ -130,7 +131,8 @@ fun ServicioScreen(
                     miServicio = uiState.servicio.usuario!!.id == Sesion.usuario.id,
                     navigateToStart = {
                         navigateToStart()
-                    }
+                    },
+                    navigateToChat = navigateToChat
                 )
 
             }
@@ -150,7 +152,8 @@ fun InformacionServicio(
     viewModel: ServicioViewModel,
     miServicio: Boolean,
     navigateToStart: () -> Unit,
-    navigateToServicio: (Int) -> Unit
+    navigateToServicio: (Int) -> Unit,
+    navigateToChat: (Int) -> Unit
 ) {
 
     var errorPublicar by remember { mutableStateOf(false) }
@@ -446,7 +449,7 @@ fun InformacionServicio(
                             }
                         }
                         Button(onClick = {
-                            // TODO: chatear
+                            navigateToChat(servicio.usuario!!.id!!)
                         }) {
                             Text(text = "Chatear")
                         }
@@ -482,7 +485,7 @@ fun InformacionServicio(
                     Text(
                         text = servicio.usuario!!.nombre + " " + servicio.usuario!!.apellidos,
                         modifier = Modifier.clickable {
-                            // TODO: chatear
+                            navigateToChat(servicio.usuario!!.id!!)
                         }
                     )
                 }
@@ -692,7 +695,7 @@ fun ResenaCard(
                 ){
                     if(resena.usuario!!.foto != null) {
                         Image(
-                            bitmap = resena.usuario.imagen,
+                            bitmap = resena.usuario.imagen!!,
                             contentDescription = "",
                             modifier = Modifier
                                 .size(48.dp)

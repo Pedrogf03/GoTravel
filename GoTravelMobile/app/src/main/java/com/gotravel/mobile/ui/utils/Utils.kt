@@ -2,14 +2,9 @@ package com.gotravel.mobile.ui.utils
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import com.google.gson.GsonBuilder
-import com.gotravel.mobile.data.model.Suscripcion
 import com.gotravel.mobile.data.model.Usuario
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.io.DataInputStream
 import java.io.DataOutputStream
-import java.io.IOException
 import java.math.BigInteger
 import java.net.Socket
 import java.security.MessageDigest

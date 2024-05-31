@@ -62,6 +62,7 @@ object ViajesDestination : NavDestination {
     const val busqueda = "busqueda"
     val routeWithArgs = "$route/{$busqueda}"
 }
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ViajesScreen(

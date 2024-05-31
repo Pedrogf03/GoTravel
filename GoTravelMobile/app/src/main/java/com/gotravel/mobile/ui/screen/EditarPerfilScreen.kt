@@ -126,7 +126,7 @@ fun EditarPerfilScreen(
 
                     if(Sesion.usuario.foto != null) {
                         Image(
-                            bitmap = Sesion.usuario.imagen,
+                            bitmap = Sesion.usuario.imagen!!,
                             contentDescription = "",
                             modifier = Modifier
                                 .clip(CircleShape)
