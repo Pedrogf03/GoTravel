@@ -246,7 +246,7 @@ fun LoginScreen(
                     )
                 },
                 keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Text,
+                    keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next
                 ),
                 colors = TextFieldDefaults.colors(
@@ -282,7 +282,7 @@ fun LoginScreen(
                     }
                 },
                 keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Text,
+                    keyboardType = KeyboardType.Password,
                     imeAction = if(registro) ImeAction.Next else ImeAction.Done
                 ),
                 colors = TextFieldDefaults.colors(
@@ -319,7 +319,7 @@ fun LoginScreen(
                         }
                     },
                     keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Text,
+                        keyboardType = KeyboardType.Password,
                         imeAction = ImeAction.Done
                     ),
                     colors = TextFieldDefaults.colors(
@@ -402,7 +402,7 @@ fun LoginScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            // TODO
+                            // TODO: contraseña olvidada
                         },
                     textAlign = TextAlign.Center
                 )

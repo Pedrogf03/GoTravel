@@ -13,7 +13,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.GsonBuilder
 import com.gotravel.mobile.data.model.Suscripcion
-import com.gotravel.mobile.data.model.Usuario
 import com.gotravel.mobile.ui.screen.SuscripcionDestination
 import com.gotravel.mobile.ui.utils.Sesion
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -44,24 +43,20 @@ class SuscripcionViewModel(
             if(suscripcion != null){
                 activarSuscripcion(suscripcion.id)
             } else {
-                crearSuscripcion(Sesion.usuario, context)
+                crearSuscripcion(context)
             }
         }
 
     }
 
-    private suspend fun crearSuscripcion(usuario: Usuario, context: Context) {
+    private suspend fun crearSuscripcion(context: Context) {
 
         if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
             withContext(Dispatchers.IO) {
-                val gson = GsonBuilder()
-                    .serializeNulls()
-                    .setLenient()
-                    .create()
 
                 try {
 
-                    Sesion.salida.writeUTF("suscripcion;crear;${gson.toJson(usuario.copy(foto = null))}")
+                    Sesion.salida.writeUTF("suscripcion;crear")
                     Sesion.salida.flush()
 
                     val url = Sesion.entrada.readUTF()

@@ -26,20 +26,32 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <!-- Intent filter for handling return_url -->
+            <!-- Intent filter for subscriptions urls -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="gotravel" android:host="returnurl" />
+                <data android:scheme="gotravel" android:host="subscription_returnurl" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="gotravel" android:host="subscription_cancelurl" />
             </intent-filter>
 
-            <!-- Intent filter for handling cancel_url -->
+            <!-- Intent filter for handling checkouturls -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="gotravel" android:host="cancelurl" />
+                <data android:scheme="gotravel" android:host="checkout_returnurl" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="gotravel" android:host="checkout_cancelurl" />
             </intent-filter>
         </activity>
     </application>

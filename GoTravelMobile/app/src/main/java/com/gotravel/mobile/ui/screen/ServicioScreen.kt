@@ -7,7 +7,6 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,13 +17,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,30 +28,23 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
@@ -78,9 +67,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gotravel.gotravel.R
-import com.gotravel.mobile.data.model.Etapa
+import com.gotravel.mobile.data.model.Resena
 import com.gotravel.mobile.data.model.Servicio
-import com.gotravel.mobile.data.model.Viaje
 import com.gotravel.mobile.ui.AppTopBar
 import com.gotravel.mobile.ui.AppViewModelProvider
 import com.gotravel.mobile.ui.navigation.NavDestination
@@ -88,22 +76,20 @@ import com.gotravel.mobile.ui.screen.viewmodels.CrearServicioUiState
 import com.gotravel.mobile.ui.screen.viewmodels.CrearServicioViewModel
 import com.gotravel.mobile.ui.screen.viewmodels.ServicioUiState
 import com.gotravel.mobile.ui.screen.viewmodels.ServicioViewModel
-import com.gotravel.mobile.ui.screen.viewmodels.ViajeUiState
-import com.gotravel.mobile.ui.screen.viewmodels.ViajeViewModel
 import com.gotravel.mobile.ui.utils.Sesion
 import com.gotravel.mobile.ui.utils.formatoFinal
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.time.LocalDate
 
 object ServicioDestination : NavDestination {
     override val route = "servicio"
     override val titleRes = R.string.app_name
     const val idServicio = "idServicio"
-    val routeWithArgs = "$route/{$idServicio}"
+    const val idEtapa = "idEtapa"
+    val routeWith1Arg = "$route/{$idServicio}"
+    val routeWith2Args = "$route/{$idServicio}/{$idEtapa}"
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -120,7 +106,6 @@ fun ServicioScreen(
             LandingLoadingScreen()
         }
         is ServicioUiState.Success -> {
-
 
             Scaffold (
                 topBar = {
@@ -168,6 +153,40 @@ fun InformacionServicio(
     navigateToServicio: (Int) -> Unit
 ) {
 
+    var errorPublicar by remember { mutableStateOf(false) }
+
+    if(errorPublicar) {
+        Dialog(onDismissRequest = { errorPublicar = false }) {
+            Card{
+                Column (
+                    modifier = Modifier.padding(8.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ){
+                    Icon(imageVector = Icons.Default.Info, contentDescription = "")
+                    Text(text = "No puedes publicar un servicio que ya ha finalizado", textAlign = TextAlign.Center)
+                }
+            }
+        }
+    }
+
+    var errorFotos by remember { mutableStateOf(false) }
+
+    if(errorFotos) {
+        Dialog(onDismissRequest = { errorFotos = false }) {
+            Card{
+                Column (
+                    modifier = Modifier.padding(8.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ){
+                    Icon(imageVector = Icons.Default.Info, contentDescription = "")
+                    Text(text = "No puedes publicar un servicio sin imagenes", textAlign = TextAlign.Center)
+                }
+            }
+        }
+    }
+
     var editarServicio by remember { mutableStateOf(false) }
 
     if (editarServicio) {
@@ -183,6 +202,7 @@ fun InformacionServicio(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+
                     val crearServicioViewModel : CrearServicioViewModel = viewModel(factory = AppViewModelProvider.Factory)
 
                     when (val uiState = crearServicioViewModel.uiState) {
@@ -195,6 +215,7 @@ fun InformacionServicio(
                                 navigateToServicio = navigateToServicio,
                                 tiposServicio = uiState.tiposServicio,
                                 servicio = servicio,
+                                closeEditarServicio = { editarServicio = false },
                                 verticalArrangement = Arrangement.Center,
                                 modifier = Modifier.padding(8.dp)
                             )
@@ -225,18 +246,15 @@ fun InformacionServicio(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .weight(0.25f),
+                .fillMaxWidth()
+                .wrapContentHeight()
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
             ) {
-                // Imagen de fondo
                 if (servicio.imagenes.isNotEmpty()) {
                     var imagen by remember { mutableIntStateOf(0) }
-
-                    println(imagen)
 
                     Image(
                         bitmap = servicio.imagenes[imagen].foto,
@@ -247,7 +265,7 @@ fun InformacionServicio(
                         contentScale = ContentScale.Crop
                     )
 
-                    IconButton(
+                    Button(
                         onClick = {
                             var index = imagen
                             index--
@@ -269,7 +287,7 @@ fun InformacionServicio(
                         )
                     }
 
-                    IconButton(
+                    Button(
                         onClick = {
                             var index = imagen
                             index++
@@ -291,7 +309,7 @@ fun InformacionServicio(
                         )
                     }
 
-                    if(miServicio) {
+                    if(miServicio && servicio.publicado != "1") {
                         Button(
                             onClick = {
                                 GlobalScope.launch {
@@ -343,11 +361,10 @@ fun InformacionServicio(
             }
         }
 
-        Card(
+        Column(
             modifier = Modifier
-                .fillMaxSize()
-                .weight(0.75f),
-            shape = RoundedCornerShape(0.dp)
+                .fillMaxWidth()
+                .wrapContentHeight()
         ) {
             Column (
                 modifier = Modifier
@@ -375,12 +392,63 @@ fun InformacionServicio(
                             Text(text = "Editar", fontSize = 12.sp)
                         }
                         Spacer(modifier = Modifier.padding(8.dp))
-                        Button(onClick = {
-                            GlobalScope.launch {
-                                // TODO: viewModel.publicarServicio()
+                        if(servicio.publicado == "0") {
+                            Button(onClick = {
+                                if(servicio.final.isNotBlank()) {
+                                    val final = LocalDate.parse(servicio.final, formatoFinal)
+                                    if(final.isBefore(LocalDate.now())) {
+                                        errorPublicar = true
+                                    } else if (servicio.imagenes.isEmpty()){
+                                        errorFotos = true
+                                    } else {
+                                        GlobalScope.launch {
+                                            viewModel.publicarServicio()
+                                        }
+                                    }
+                                } else {
+                                    val fecha = LocalDate.parse(servicio.inicio, formatoFinal)
+                                    if(fecha.isBefore(LocalDate.now())) {
+                                        errorPublicar = true
+                                    } else if (servicio.imagenes.isEmpty()){
+                                        errorFotos = true
+                                    } else {
+                                        GlobalScope.launch {
+                                            viewModel.publicarServicio()
+                                        }
+                                    }
+                                }
+                            }) {
+                                Text(text = "Publicar", fontSize = 12.sp)
                             }
+                        } else {
+                            Button(onClick = {
+                                GlobalScope.launch {
+                                    viewModel.ocultarServicio()
+                                }
+                            }) {
+                                Text(text = "Ocultar", fontSize = 12.sp)
+                            }
+                        }
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if(!servicio.contratado){
+                            Button(onClick = {
+                                GlobalScope.launch {
+                                    viewModel.contratarServicio(context)
+                                }
+                            }) {
+                                Text(text = "Contratar")
+                            }
+                        }
+                        Button(onClick = {
+                            // TODO: chatear
                         }) {
-                            Text(text = "Publicar", fontSize = 12.sp)
+                            Text(text = "Chatear")
                         }
                     }
                 }
@@ -412,9 +480,9 @@ fun InformacionServicio(
                 Spacer(modifier = Modifier.padding(4.dp))
                 if(!miServicio){
                     Text(
-                        text = servicio.usuario!!.nombre + servicio.usuario!!.apellidos,
+                        text = servicio.usuario!!.nombre + " " + servicio.usuario!!.apellidos,
                         modifier = Modifier.clickable {
-                            // TODO
+                            // TODO: chatear
                         }
                     )
                 }
@@ -425,6 +493,141 @@ fun InformacionServicio(
                         .fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
+
+                    if(!miServicio) {
+
+                        var addResena by remember { mutableStateOf(false) }
+
+                        if(addResena) {
+                            Dialog(onDismissRequest = { addResena = false }) {
+                                Card (
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onPrimary),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 16.dp)
+                                ){
+
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.End
+                                    ) {
+                                        IconButton(onClick = { addResena = false }) {
+                                            Icon(imageVector = Icons.Default.Close, contentDescription = "")
+                                        }
+                                    }
+
+                                    Column(
+                                        modifier = Modifier
+                                            .wrapContentHeight()
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 24.dp, vertical = 16.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+
+                                        val mensajeUi = viewModel.mensajeUi.observeAsState(initial = "")
+
+                                        Text("Añade una reseña", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+
+                                        var nota by remember { mutableStateOf("") }
+                                        var comentario by remember { mutableStateOf("") }
+                                        var seleccionarPuntuacion by remember { mutableStateOf(false) }
+
+                                        TextField(
+                                            value = nota,
+                                            onValueChange = { nota = it },
+                                            label = { Text("Puntuación") },
+                                            singleLine = true,
+                                            trailingIcon = {
+                                                IconButton(onClick = { seleccionarPuntuacion = !seleccionarPuntuacion }) {
+                                                    Icon(imageVector = Icons.Default.Star, contentDescription = "")
+                                                }
+                                            },
+                                            keyboardOptions = KeyboardOptions.Default.copy(
+                                                keyboardType = KeyboardType.Text,
+                                                imeAction = ImeAction.Done
+                                            ),
+                                            colors = TextFieldDefaults.colors(
+                                                focusedContainerColor = Color.Transparent,
+                                                unfocusedContainerColor = Color.Transparent,
+                                                disabledContainerColor = Color.Transparent,
+                                            ),
+                                            readOnly = true,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+
+                                        )
+
+                                        if (seleccionarPuntuacion) {
+                                            MyPuntuacionSelector(
+                                                onPuntuacionSelected = { nota = it },
+                                                onDismiss = { seleccionarPuntuacion = !seleccionarPuntuacion }
+                                            )
+                                        }
+
+                                        Spacer(modifier = Modifier.padding(8.dp))
+
+                                        TextField(
+                                            value = comentario,
+                                            onValueChange = { comentario = it },
+                                            label = { Text("Comentario*") },
+                                            singleLine = false,
+                                            keyboardOptions = KeyboardOptions.Default.copy(
+                                                keyboardType = KeyboardType.Text,
+                                                imeAction = ImeAction.Next
+                                            ),
+                                            colors = TextFieldDefaults.colors(
+                                                focusedContainerColor = Color.Transparent,
+                                                unfocusedContainerColor = Color.Transparent,
+                                                disabledContainerColor = Color.Transparent,
+                                            ),
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(100.dp)
+                                        )
+
+                                        Spacer(modifier = Modifier.padding(4.dp))
+
+                                        Text(
+                                            text = mensajeUi.value,
+                                            modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
+                                            color = MaterialTheme.colorScheme.error
+                                        )
+
+                                        Spacer(modifier = Modifier.padding(4.dp))
+
+                                        Button(
+                                            onClick = {
+                                                GlobalScope.launch {
+                                                    if(viewModel.addResena(nota = nota, comentario = comentario)) {
+                                                        addResena = false
+                                                    }
+                                                }
+                                            }
+                                        ) {
+                                            Text(text = "Publicar")
+                                        }
+
+                                    }
+
+                                }
+                            }
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+
+                            Button(
+                                onClick = {
+                                    addResena = true
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimary)
+                            ) {
+                                Text(text = "Añadir reseña", color = MaterialTheme.colorScheme.primary)
+                            }
+
+                        }
+                    }
+
                     if(servicio.resenas.isEmpty()) {
                         Column(
                             modifier = Modifier
@@ -439,6 +642,14 @@ fun InformacionServicio(
                             )
                             Text(text = "Aún no hay reseñas")
                         }
+                    } else {
+                        Column {
+                            servicio.resenas.forEach {resena ->
+                                ResenaCard(
+                                    resena = resena
+                                )
+                            }
+                        }
                     }
                 }
 
@@ -447,333 +658,77 @@ fun InformacionServicio(
     }
 
 
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun MostrarResenas(
-    modifier: Modifier = Modifier,
-    etapas: List<Etapa>,
-    viewModel: ViajeViewModel,
-    actualizarPagina: () -> Unit,
-    finalizado: Boolean
-) {
-
-    var nuevaEtapa by remember { mutableStateOf(false) }
-
-    if (nuevaEtapa) {
-        Dialog(onDismissRequest = { nuevaEtapa = false }) {
-            CrearEtapa(
-                viewModel = viewModel,
-                cerrarDialogo = { nuevaEtapa = !nuevaEtapa },
-                actualizarPagina = actualizarPagina
-            )
-        }
-    }
-
-    Card (
-        modifier = modifier,
-        elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
-        shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp, bottomEnd = 0.dp, bottomStart = 0.dp)
-    ){
-        Column (
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            if(!finalizado) {
-                Row (
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ){
-                    Button(
-                        onClick = { nuevaEtapa = !nuevaEtapa },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(text = "NUEVA ETAPA", style = MaterialTheme.typography.titleMedium)
-                    }
-                }
-            }
-
-            if(etapas.isEmpty()) {
-                Column (
-                    modifier = modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ){
-                    Icon(
-                        imageVector = Icons.Filled.Info,
-                        contentDescription = "",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(text = "Este viaje aún no tiene etapas", color = MaterialTheme.colorScheme.onSurface)
-                }
-            } else {
-
-                val fechaActual = LocalDate.now()
-                var indiceEtapaActual = etapas.indexOfFirst { etapa ->
-                    val inicio = LocalDate.parse(etapa.inicio, formatoFinal)
-                    val final = LocalDate.parse(etapa.final, formatoFinal)
-                    !fechaActual.isBefore(inicio) && !fechaActual.isAfter(final)
-                }
-
-                // Si no se encuentra una etapa en curso, busca la próxima etapa
-                if (indiceEtapaActual == -1) {
-                    indiceEtapaActual = etapas.indexOfFirst { etapa ->
-                        val inicio = LocalDate.parse(etapa.inicio, formatoFinal)
-                        fechaActual.isBefore(inicio)
-                    }
-                }
-
-                val state = rememberLazyListState()
-
-                LazyColumn(state = state) {
-                    itemsIndexed(items = etapas) { index, etapa ->
-                        ResenaCard(
-                            etapa = etapa,
-                            color = if(index == indiceEtapaActual) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
-                    }
-                }
-
-                LaunchedEffect(key1 = true) {
-                    state.animateScrollToItem(index = indiceEtapaActual)
-                }
-            }
-
-        }
-    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ResenaCard(
-    etapa: Etapa,
-    color: Color,
+    resena: Resena,
     modifier: Modifier = Modifier
 ) {
     Card (
-        colors = CardDefaults.cardColors(containerColor = color),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onPrimary),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-        modifier = modifier
+        modifier = modifier.padding(8.dp)
     ){
-        Row (
+        Column (
             modifier = Modifier
                 .padding(8.dp)
-            ,
-            verticalAlignment = Alignment.CenterVertically
+                .wrapContentHeight(),
+            verticalArrangement = Arrangement.Center
         ){
 
-            var textColor = MaterialTheme.colorScheme.onPrimary
-
-            if(color == MaterialTheme.colorScheme.onPrimary) {
-                textColor = MaterialTheme.colorScheme.primary
-            }
-
-            Column {
-                Text(text = etapa.nombre, color = textColor)
-                Text(text = "Tipo " + etapa.tipo, color = textColor, fontSize = 12.sp)
-                Text(text = etapa.inicio + " - " + etapa.final, fontSize = 8.sp, color = textColor)
-            }
-            Spacer(modifier = Modifier.weight(1f))
-            Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = "", tint = textColor)
-
-        }
-    }
-}
-
-@OptIn(DelicateCoroutinesApi::class)
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun EditarServicio(
-    viewModel: ServicioViewModel,
-    cerrarDialogo: () -> Unit,
-    actualizarPagina: () -> Unit,
-    servicio: Servicio
-) {
-
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-
-        var nombre by remember { mutableStateOf(servicio.nombre) }
-        var descripcion by remember { mutableStateOf(servicio.descripcion ?: "") }
-        var fechaInicio by remember { mutableStateOf(servicio.inicio) }
-        var fechaFinal by remember { mutableStateOf(servicio.final) }
-        var seleccionarFechaInicio by remember { mutableStateOf(false) }
-        var seleccionarFechaFinal by remember { mutableStateOf(false) }
-
-        val mensajeUi = viewModel.mensajeUi.observeAsState(initial = "")
-
-        Card (
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-            elevation = CardDefaults.cardElevation(defaultElevation = 16.dp)
-        ){
-            Column(
-                modifier = Modifier
-                    .wrapContentSize()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
 
                 Row (
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
+                    verticalAlignment = Alignment.Bottom,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(0.5f)
                 ){
-                    IconButton(onClick = { cerrarDialogo() }) {
-                        Icon(imageVector = Icons.Default.Close, contentDescription = "")
+                    if(resena.usuario!!.foto != null) {
+                        Image(
+                            bitmap = resena.usuario.imagen,
+                            contentDescription = "",
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .aspectRatio(1f)
+                                .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Image(
+                            painterResource(id = R.drawable.usernofoto),
+                            contentDescription = "",
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                        )
                     }
+                    
+                    Spacer(modifier = Modifier.padding(4.dp))
+
+                    Text(text = resena.usuario.nombre + " " + resena.usuario.getApellidos, color = MaterialTheme.colorScheme.primary, fontSize = 20.sp)
                 }
 
-                Text(
-                    text = "Editar viaje",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.primary
-                )
-
-                Spacer(modifier = Modifier.padding(8.dp))
-
-                TextField(
-                    value = nombre,
-                    onValueChange = { nombre = it },
-                    label = { Text("Nombre del viaje*") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Next
-                    ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.padding(8.dp))
-
-                TextField(
-                    value = descripcion,
-                    onValueChange = { descripcion = it },
-                    label = { Text("Descripción del viaje") },
-                    singleLine = false,
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Next
-                    ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.padding(8.dp))
-
-                TextField(
-                    value = fechaInicio,
-                    onValueChange = { fechaInicio = it },
-                    label = { Text("Fecha de inicio*") },
-                    singleLine = true,
-                    trailingIcon = {
-                        IconButton(onClick = { seleccionarFechaInicio = !seleccionarFechaInicio }) {
-                            Icon(imageVector = Icons.Default.DateRange, contentDescription = "")
-                        }
-                    },
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Next
-                    ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                    ),
-                    readOnly = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.padding(8.dp))
-
-                if(seleccionarFechaInicio) {
-                    MyDatePickerDialog(
-                        onDateSelected = { fechaInicio = it },
-                        onDismiss = { seleccionarFechaInicio = !seleccionarFechaInicio }
-                    )
-                }
-
-                TextField(
-                    value = fechaFinal,
-                    onValueChange = { fechaFinal = it },
-                    label = { Text("Fecha de final*") },
-                    singleLine = true,
-                    trailingIcon = {
-                        IconButton(onClick = { seleccionarFechaFinal = !seleccionarFechaFinal }) {
-                            Icon(imageVector = Icons.Default.DateRange, contentDescription = "")
-                        }
-                    },
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Next
-                    ),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                    ),
-                    readOnly = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-
-                )
-
-                Spacer(modifier = Modifier.padding(8.dp))
-
-                if(seleccionarFechaFinal) {
-                    MyDatePickerDialog(
-                        onDateSelected = { fechaFinal = it },
-                        onDismiss = { seleccionarFechaFinal = !seleccionarFechaFinal }
-                    )
-                }
-
-                Spacer(modifier = Modifier.padding(8.dp))
-
-                Text(
-                    text = mensajeUi.value,
-                    modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
-                    color = MaterialTheme.colorScheme.error
-                )
-
-                Button(
-                    onClick = {
-                        GlobalScope.launch {
-
-                        }
-
-                    },
-                    modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(text = "Actualizar")
-                        Spacer(modifier = Modifier.weight(1f))
-                        Icon(imageVector = Icons.Default.ArrowForward, contentDescription = "")
+                Row (
+                    verticalAlignment = Alignment.Top
+                ){
+                    for(s in 1 .. resena.puntuacion) {
+                        Icon(imageVector = Icons.Default.Star, contentDescription = "", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                     }
                 }
 
             }
 
+            Text(text = resena.contenido, modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.primary)
+
         }
-
-
     }
-
 }
-

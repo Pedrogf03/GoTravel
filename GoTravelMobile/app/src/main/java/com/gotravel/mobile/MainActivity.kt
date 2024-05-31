@@ -22,6 +22,7 @@ import com.gotravel.mobile.data.model.Usuario
 import com.gotravel.mobile.ui.App
 import com.gotravel.mobile.ui.screen.HomeDestination
 import com.gotravel.mobile.ui.screen.SuscripcionDestination
+import com.gotravel.mobile.ui.screen.ViajeDestination
 import com.gotravel.mobile.ui.theme.GoTravelTheme
 import com.gotravel.mobile.ui.utils.Sesion
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -63,7 +64,7 @@ class MainActivity : ComponentActivity() {
         val uri = intent.data
         if (uri != null && uri.scheme == "gotravel") {
             when (uri.host) {
-                "returnurl" -> {
+                "subscription_returnurl" -> {
 
                     // Se obtiene el id de la suscripcion de la url de devolucion de paypal
                     val subscriptionId = uri.getQueryParameter("subscription_id")
@@ -107,8 +108,48 @@ class MainActivity : ComponentActivity() {
                     }
 
                 }
-                "cancelurl" -> {
+                "subscription_cancelurl" -> {
                     navController.navigate("${SuscripcionDestination.route}/false")
+                }
+                "checkout_returnurl" -> {
+
+                    val contratacionId = uri.getQueryParameter("token")
+
+                    println(contratacionId)
+
+                    GlobalScope.launch {
+
+                        if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
+                            withContext(Dispatchers.IO) {
+
+                                try {
+
+                                    // Se le envia el id al servidor
+                                    Sesion.salida.writeUTF("$contratacionId")
+                                    Sesion.salida.flush()
+
+                                    // El servidor devuelve el usuario actualizado, con el rol y la suscripcion
+                                    val idViaje = Sesion.entrada.readUTF()
+
+                                    if(idViaje != null) {
+                                        navController.navigate("${ViajeDestination.route}/$idViaje")
+                                    }
+
+                                } catch (e: IOException) {
+                                    e.printStackTrace()
+                                    Sesion.socket!!.close()
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+
+                            }
+                        }
+
+                    }
+
+                }
+                "checkout_cancelurl" -> {
+                    //Ignore
                 }
             }
         }
@@ -142,7 +183,7 @@ class ClosingService : Service() {
 
     private fun closeNetworkResources() {
         try{
-            if(Sesion.socket != null) {
+            if(Sesion.socket != null && Sesion.socket!!.isConnected) {
                 Sesion.salida.writeUTF("cerrarSesion")
                 Sesion.salida.flush()
 

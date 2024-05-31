@@ -55,8 +55,8 @@ public class Subscriptions {
                 "      \"payer_selected\": \"PAYPAL\",\n" +
                 "      \"payee_preferred\": \"IMMEDIATE_PAYMENT_REQUIRED\"\n" +
                 "    },\n" +
-                "    \"return_url\": \"gotravel://returnurl\",\n" +
-                "    \"cancel_url\": \"gotravel://cancelurl\"\n" +
+                "    \"return_url\": \"gotravel://subscription_returnurl\",\n" +
+                "    \"cancel_url\": \"gotravel://subscription_cancelurl\"\n" +
                 "  }\n" +
                 "}";
 

@@ -10,7 +10,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.GsonBuilder
+import com.google.gson.reflect.TypeToken
 import com.gotravel.mobile.data.model.Etapa
+import com.gotravel.mobile.data.model.Imagen
+import com.gotravel.mobile.data.model.Servicio
 import com.gotravel.mobile.data.model.Viaje
 import com.gotravel.mobile.ui.screen.ViajeDestination
 import com.gotravel.mobile.ui.utils.Regex
@@ -73,8 +76,68 @@ class ViajeViewModel(
                     Sesion.salida.writeUTF("findById;viaje;${idViaje}")
                     Sesion.salida.flush()
 
+                    val viajeFromServer = Sesion.entrada.readUTF()
+                    val viaje = gson.fromJson(viajeFromServer, Viaje::class.java)
+
+                    for(e in viaje.etapas) {
+                        Sesion.salida.writeUTF("findContratacionesByEtapa;${e.id}")
+                        Sesion.salida.flush()
+
+                        val contratacionesFromServer = Sesion.entrada.readUTF()
+                        val type = object : TypeToken<List<Servicio>>() {}.type
+                        val servicios =  gson.fromJson<List<Servicio>>(contratacionesFromServer, type)
+
+                        for(s in servicios) {
+                            s.imagenes = listOf(getFirstImagenFromServicio(s.id!!)!!)
+                        }
+
+                        e.contrataciones = servicios
+
+                    }
+
+                    return@withContext viaje
+
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                    Sesion.socket!!.close()
+                    return@withContext null
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+                return@withContext null
+            }
+        } else {
+            return null
+        }
+
+    }
+
+    private suspend fun getFirstImagenFromServicio(id: Int): Imagen? {
+
+        if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
+            return withContext(Dispatchers.IO) {
+                val gson = GsonBuilder()
+                    .serializeNulls()
+                    .setLenient()
+                    .create()
+
+                try {
+
+                    Sesion.salida.writeUTF("findImagesFromServicioId;$id;one")
+                    Sesion.salida.flush()
+
                     val jsonFromServer = Sesion.entrada.readUTF()
-                    return@withContext gson.fromJson(jsonFromServer, Viaje::class.java)
+                    val imagen = gson.fromJson(jsonFromServer, Imagen::class.java)
+
+                    if(imagen != null) {
+                        val length = Sesion.entrada.readInt() // Lee la longitud del ByteArray
+                        val byteArray = ByteArray(length)
+                        Sesion.entrada.readFully(byteArray) // Lee el ByteArray
+                        imagen.imagen = byteArray
+                    }
+
+                    return@withContext imagen
 
                 } catch (e: IOException) {
                     e.printStackTrace()
@@ -120,15 +183,17 @@ class ViajeViewModel(
                         if(!final.isAfter(LocalDate.parse(viaje.final, formatoFinal))) {
 
                             for (etapaExistente in viaje.etapas) {
-                                val inicioExistente = LocalDate.parse(etapaExistente.inicio, formatoFinal)
-                                val finalExistente = LocalDate.parse(etapaExistente.final, formatoFinal)
+                                if(etapaExistente.id != etapa.id) {
+                                    val inicioExistente = LocalDate.parse(etapaExistente.inicio, formatoFinal)
+                                    val finalExistente = LocalDate.parse(etapaExistente.final, formatoFinal)
 
-                                val inicioNueva = LocalDate.parse(fechaInicio, formatoFinal)
-                                val finalNueva = LocalDate.parse(fechaFinal, formatoFinal)
+                                    val inicioNueva = LocalDate.parse(fechaInicio, formatoFinal)
+                                    val finalNueva = LocalDate.parse(fechaFinal, formatoFinal)
 
-                                if (inicioNueva < finalExistente && inicioExistente < finalNueva) {
-                                    mensajeUi.postValue("La nueva etapa se superpone con una etapa existente")
-                                    return false
+                                    if (inicioNueva < finalExistente && inicioExistente < finalNueva) {
+                                        mensajeUi.postValue("La nueva etapa se superpone con una etapa existente")
+                                        return false
+                                    }
                                 }
                             }
 
@@ -143,7 +208,12 @@ class ViajeViewModel(
 
                                     try {
 
-                                        Sesion.salida.writeUTF("save;etapa;${idViaje}")
+                                        if(etapaActualizar != null){
+                                            Sesion.salida.writeUTF("update;etapa;${idViaje}")
+                                            Sesion.salida.writeUTF(gson.toJson(etapa))
+                                        } else{
+                                            Sesion.salida.writeUTF("save;etapa;${idViaje}")
+                                        }
                                         Sesion.salida.flush()
 
                                         val json = gson.toJson(etapa)

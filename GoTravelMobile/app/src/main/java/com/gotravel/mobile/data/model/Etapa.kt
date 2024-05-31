@@ -23,7 +23,7 @@ data class Etapa(
     val fechaFinal: String,
     val costeTotal: Double,
     val tipo: String,
-    val contrataciones: List<Servicio>? = null
+    var contrataciones: List<Servicio> = listOf()
 ) {
 
     val inicio: String

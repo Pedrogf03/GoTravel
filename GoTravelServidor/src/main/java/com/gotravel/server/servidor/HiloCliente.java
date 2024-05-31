@@ -2,6 +2,7 @@ package com.gotravel.server.servidor;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.gotravel.server.Paypal.Checkout;
 import com.gotravel.server.Paypal.Subscriptions;
 import com.gotravel.server.ServerApplication;
 import com.gotravel.server.model.Suscripcion;
@@ -9,6 +10,7 @@ import com.gotravel.server.model.*;
 import com.gotravel.server.service.AppService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cglib.core.Local;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -174,7 +176,6 @@ public class HiloCliente extends Thread {
                                 jsonFromServer = gson.toJson(etapaFromUser);
                             } else if (tabla.equalsIgnoreCase("servicio")) {
                                 Servicio servicioFromUser = gson.fromJson(jsonFromUser, Servicio.class);
-                                System.out.println(gson.fromJson(jsonFromUser, Servicio.class));
                                 servicioFromUser.setUsuario(sesion.getUsuario());
                                 servicioFromUser = service.saveServicio(servicioFromUser);
                                 jsonFromServer = gson.toJson(servicioFromUser);
@@ -230,11 +231,17 @@ public class HiloCliente extends Thread {
                                 etapaFromUser = service.saveEtapa(etapaFromUser);
                                 jsonFromServer = gson.toJson(etapaFromUser);
                             } else if(tabla.equalsIgnoreCase("servicio")) {
-                                System.out.println(jsonFromUser);
                                 Servicio servicioFromUser = gson.fromJson(jsonFromUser, Servicio.class);
                                 servicioFromUser.setUsuario(sesion.getUsuario());
                                 servicioFromUser = service.saveServicio(servicioFromUser);
                                 jsonFromServer = gson.toJson(servicioFromUser);
+                            }
+                            else if(tabla.equalsIgnoreCase("resena")) {
+                                Resena resenaFromUser = gson.fromJson(jsonFromUser, Resena.class);
+                                resenaFromUser.setUsuario(sesion.getUsuario());
+                                resenaFromUser.setServicio(service.findServicioById(resenaFromUser.getId().getIdServicio()));
+                                resenaFromUser = service.saveResena(resenaFromUser);
+                                jsonFromServer = gson.toJson(resenaFromUser);
                             }
                             yield jsonFromServer;
                         }
@@ -261,7 +268,17 @@ public class HiloCliente extends Thread {
                         case "findResenasByServicio" -> {
                             int idServicio = Integer.parseInt(fromCliente[1]);
                             List<Resena> resenas = service.findResenasByServicioId(idServicio);
-                            yield gson.toJson(resenas);
+                            sesion.getSalida().writeUTF(gson.toJson(resenas));
+                            for (Resena r : resenas) {
+                                boolean usuarioTieneFoto = r.getUsuario().getFoto() != null;
+                                sesion.getSalida().writeBoolean(usuarioTieneFoto);
+                                if(usuarioTieneFoto) {
+                                    sesion.getSalida().writeInt(r.getUsuario().getFoto().length); // Envía la longitud del ByteArray
+                                    sesion.getSalida().write(r.getUsuario().getFoto()); // Envía el ByteArray
+                                    sesion.getSalida().flush();
+                                }
+                            }
+                            yield "";
                         }
                         case "findByUserId" -> {
                             String tabla = fromCliente[1];
@@ -308,6 +325,17 @@ public class HiloCliente extends Thread {
                             }
                             yield "";
                         }
+                        case "findAllServiciosByFechasAndTipo" -> {
+                            int idEtapa = Integer.parseInt(fromCliente[1]);
+                            Etapa e = service.findEtapaById(idEtapa);
+                            List<Servicio> servicios =
+                                    service.findAllServiciosByFechasAndTipo(
+                                            LocalDate.parse(e.getFechaInicio(), DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                                            LocalDate.parse(e.getFechaFinal(), DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                                            e.getTipo());
+                            yield gson.toJson(servicios);
+
+                        }
                         case "findAll" -> {
                             String tabla = fromCliente[1];
                             String jsonFromServer = "";
@@ -317,13 +345,46 @@ public class HiloCliente extends Thread {
                             }
                             yield jsonFromServer;
                         }
+                        case "isServicioContratado" -> {
+                            int idServicio = Integer.parseInt(fromCliente[1]);
+                            Contratacion c = service.findContratacionByServicioAndUsuario(idServicio, idUsuario);
+                            sesion.getSalida().writeBoolean(c != null);
+                            yield "";
+                        }
+                        case "contratarServicio" -> {
+                            Checkout paypal = new Checkout();
+
+                            int idServicio = Integer.parseInt(fromCliente[1]);
+                            int idEatapa = Integer.parseInt(fromCliente[2]);
+                            Servicio s = service.findServicioById(idServicio);
+                            Etapa e = service.findEtapaById(idEatapa);
+
+                            String url = paypal.crearPedido(s);
+                            sesion.getSalida().writeUTF(url);
+
+                            String idContratacion = sesion.getEntrada().readUTF();
+                            Contratacion c = paypal.capturarPedido(idContratacion);
+
+                            c.setUsuario(sesion.getUsuario());
+                            c.getPago().setUsuario(sesion.getUsuario());
+                            c.setServicio(s);
+                            c.setEtapa(e);
+
+                            c = service.saveContratacion(c);
+
+                            yield "" + e.getViaje().getId();
+                        }
+                        case "findContratacionesByEtapa" -> {
+                            int idEtapa = Integer.parseInt(fromCliente[1]);
+                            List<Servicio> servicios = service.findServiciosContratadosByEtapa(idEtapa);
+                            yield gson.toJson(servicios);
+                        }
                         case "suscripcion" -> {
                             String eleccion = fromCliente[1];
                             String jsonFromServer = "";
                             Subscriptions paypal = new Subscriptions();
                             if(eleccion.equals("crear")) {
-
-                                Usuario u = gson.fromJson(fromCliente[2], Usuario.class);
+                                Usuario u = sesion.getUsuario();
 
                                 String url = paypal.crearSuscripcion(u);
 
@@ -377,6 +438,22 @@ public class HiloCliente extends Thread {
                                 sesion.getSalida().writeBoolean(service.deleteImagenById(idImagen));
                             }
                             yield jsonFromServer;
+                        }
+                        case "publicarServicio" -> {
+                            int idServicio = Integer.parseInt(fromCliente[1]);
+                            Servicio s = service.findServicioById(idServicio);
+                            s.setPublicado("1");
+                            s = service.saveServicio(s);
+                            sesion.getSalida().writeBoolean(s != null);
+                            yield "";
+                        }
+                        case "ocultarServicio" -> {
+                            int idServicio = Integer.parseInt(fromCliente[1]);
+                            Servicio s = service.findServicioById(idServicio);
+                            s.setPublicado("0");
+                            s = service.saveServicio(s);
+                            sesion.getSalida().writeBoolean(s != null);
+                            yield "";
                         }
                         default -> "";
                     };

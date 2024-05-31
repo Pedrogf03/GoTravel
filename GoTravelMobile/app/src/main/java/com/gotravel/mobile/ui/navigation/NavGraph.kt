@@ -11,6 +11,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.gotravel.mobile.data.model.Rol
 import com.gotravel.mobile.ui.Screen
+import com.gotravel.mobile.ui.screen.BuscarServiciosDestination
+import com.gotravel.mobile.ui.screen.BuscarServiciosScreen
 import com.gotravel.mobile.ui.screen.CambiarContrasenaDestination
 import com.gotravel.mobile.ui.screen.CambiarContrasenaScreen
 import com.gotravel.mobile.ui.screen.CrearServicioDestination
@@ -159,6 +161,12 @@ fun AppNavHost(
                 },
                 navigateToStart = {
                     navController.navigate(LandingDestination.route)
+                },
+                buscarServicios = { idEtapa ->
+                    navController.navigate("${BuscarServiciosDestination.route}/$idEtapa")
+                },
+                onServicioClicked = {
+                    navController.navigate("${ServicioDestination.route}/${it}")
                 }
             )
         }
@@ -210,7 +218,7 @@ fun AppNavHost(
         composable(route = CrearViajeDestination.route) {
             CrearViajeScreen(
                 navigateToViaje = {
-                                  navController.navigate(("${ViajeDestination.route}/${it}"))
+                    navController.navigate(("${ViajeDestination.route}/${it}"))
                 },
                 navController = navController
             )
@@ -277,14 +285,58 @@ fun AppNavHost(
             )
         }
 
-        // Pantalla de un servicio
+        // Pantalla de un servicio (cuando entras desde la barra de navegacion)
         composable(
-            route = ServicioDestination.routeWithArgs,
+            route = ServicioDestination.routeWith1Arg,
             arguments = listOf(
                 navArgument(ServicioDestination.idServicio) { type = NavType.IntType },
             )) {
             ServicioScreen(
-                navigateUp = { navController.navigateUp() },
+                navigateUp = {
+                    navController.navigateUp()
+                },
+                actualizarPagina = {
+                    navController.navigate("${ServicioDestination.route}/${it}")
+                },
+                navigateToStart = {
+                    navController.navigate(LandingDestination.route)
+                }
+            )
+        }
+
+        // Pantalla para buscar servicios
+        composable(
+            route = BuscarServiciosDestination.routeWithArgs,
+            arguments = listOf(
+                navArgument(BuscarServiciosDestination.idEtapa) { type = NavType.IntType }
+            )) {
+            BuscarServiciosScreen(
+                navigateUp = {
+                    navController.navigateUp()
+                },
+                buscarServicio = { busqueda ->
+                    navController.navigate(ServiciosDestination.route + if(busqueda.isNotBlank()) "/${busqueda}" else "")
+                },
+                onServicioClicked = { idServicio, idEtapa ->
+                    navController.navigate("${ServicioDestination.route}/${idServicio}/${idEtapa}")
+                },
+                navigateToStart = {
+                    navController.navigate(LandingDestination.route)
+                }
+            )
+        }
+
+        // Pantalla de un servicio (cuando entras desde la busqueda de servicios por etapa)
+        composable(
+            route = ServicioDestination.routeWith2Args,
+            arguments = listOf(
+                navArgument(ServicioDestination.idServicio) { type = NavType.IntType },
+                navArgument(ServicioDestination.idEtapa) { type = NavType.IntType },
+            )) {
+            ServicioScreen(
+                navigateUp = {
+                    navController.navigateUp()
+                },
                 actualizarPagina = {
                     navController.navigate("${ServicioDestination.route}/${it}")
                 },

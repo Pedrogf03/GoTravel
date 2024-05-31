@@ -29,7 +29,8 @@ data class Servicio (
     var usuario: Usuario? = null,
     var imagenes: List<Imagen> = listOf(),
     var resenas: List<Resena> = listOf(),
-    val publicado: String = "0"
+    val publicado: String = "0",
+    var contratado: Boolean = false
 ) {
     val inicio: String
         @RequiresApi(Build.VERSION_CODES.O)

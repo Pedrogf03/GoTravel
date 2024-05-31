@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,7 +26,10 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -65,6 +70,7 @@ import com.gotravel.mobile.ui.navigation.NavDestination
 import com.gotravel.mobile.ui.screen.viewmodels.ViajeUiState
 import com.gotravel.mobile.ui.screen.viewmodels.ViajeViewModel
 import com.gotravel.mobile.ui.utils.formatoFinal
+import com.gotravel.mobile.ui.utils.formatoFromDb
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -85,7 +91,9 @@ fun ViajeScreen(
     viewModel: ViajeViewModel = viewModel(factory = AppViewModelProvider.Factory),
     navigateUp: () -> Unit,
     actualizarPagina: (Int) -> Unit,
-    navigateToStart: () -> Unit
+    navigateToStart: () -> Unit,
+    buscarServicios: (Int) -> Unit,
+    onServicioClicked: (Int) -> Unit
 ) {
 
     when (val uiState = viewModel.uiState) {
@@ -130,7 +138,9 @@ fun ViajeScreen(
                             actualizarPagina(uiState.viaje.id!!)
                         },
                         viewModel = viewModel,
-                        finalizado = finalizado
+                        finalizado = finalizado,
+                        buscarServicios = buscarServicios,
+                        onServicioClicked = onServicioClicked
                     )
                 }
 
@@ -179,22 +189,6 @@ fun InformacionViaje(
             verticalArrangement = Arrangement.Center
         ){
 
-            if(!finalizado) {
-                Row (
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.Top,
-                    horizontalArrangement = Arrangement.End
-                ){
-                    IconButton(onClick = { editarViaje = !editarViaje }) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = ""
-                        )
-                    }
-                }
-            }
-
             Text(text = viaje.nombre, modifier = Modifier.fillMaxWidth(), style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
 
             Spacer(modifier = Modifier.padding(8.dp))
@@ -210,6 +204,26 @@ fun InformacionViaje(
 
             Text(text = "Precio total: ${viaje.costeTotal}€")
 
+            if(!finalizado) {
+                Row (
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ){
+                    Button(
+                        onClick = { editarViaje = !editarViaje },
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "",
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.padding(8.dp))
+                        Text(text = "EDITAR VIAJE", style = MaterialTheme.typography.titleMedium)
+                    }
+                }
+            }
+
         }
 
     }
@@ -222,7 +236,9 @@ fun MostrarEtapas(
     etapas: List<Etapa>,
     viewModel: ViajeViewModel,
     actualizarPagina: () -> Unit,
-    finalizado: Boolean
+    finalizado: Boolean,
+    buscarServicios: (Int) -> Unit,
+    onServicioClicked: (Int) -> Unit
 ) {
 
     var nuevaEtapa by remember { mutableStateOf(false) }
@@ -295,15 +311,22 @@ fun MostrarEtapas(
 
                 LazyColumn(state = state) {
                     itemsIndexed(items = etapas) { index, etapa ->
+                        val final = LocalDate.parse(etapa.fechaFinal, formatoFromDb)
                         EtapaCard(
                             etapa = etapa,
                             color = if(index == indiceEtapaActual) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(top = 8.dp)
+                            modifier = Modifier.padding(top = 8.dp),
+                            finalizada = final.isBefore(LocalDate.now()),
+                            viewModel = viewModel,
+                            actualizarPagina = actualizarPagina,
+                            buscarServicios = buscarServicios,
+                            onServicioClicked = onServicioClicked
                         )
                     }
                 }
 
                 LaunchedEffect(key1 = true) {
+                    if(indiceEtapaActual < 0) indiceEtapaActual = 0
                     state.animateScrollToItem(index = indiceEtapaActual)
                 }
             }
@@ -317,35 +340,128 @@ fun MostrarEtapas(
 fun EtapaCard(
     etapa: Etapa,
     color: Color,
-    modifier: Modifier = Modifier
+    finalizada: Boolean,
+    modifier: Modifier = Modifier,
+    viewModel: ViajeViewModel,
+    actualizarPagina: () -> Unit,
+    buscarServicios: (Int) -> Unit,
+    onServicioClicked: (Int) -> Unit,
 ) {
+
+    var editarEtapa by remember { mutableStateOf(false) }
+
+    if (editarEtapa) {
+        Dialog(onDismissRequest = { editarEtapa = false }) {
+            CrearEtapa(
+                viewModel = viewModel,
+                cerrarDialogo = { editarEtapa = !editarEtapa },
+                actualizarPagina = actualizarPagina,
+                etapa = etapa
+            )
+        }
+    }
+
+    var expanded by remember { mutableStateOf(false) }
+
+    var textColor = MaterialTheme.colorScheme.onPrimary
+
+    if(color == MaterialTheme.colorScheme.onPrimary) {
+        textColor = MaterialTheme.colorScheme.primary
+    }
+
     Card (
         colors = CardDefaults.cardColors(containerColor = color),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         modifier = modifier
     ){
-        Row (
+        Column (
             modifier = Modifier
-                .padding(8.dp)
-            ,
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxWidth()
+                .wrapContentHeight()
         ){
+            Row (
+                modifier = Modifier
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ){
 
-            var textColor = MaterialTheme.colorScheme.onPrimary
 
-            if(color == MaterialTheme.colorScheme.onPrimary) {
-                textColor = MaterialTheme.colorScheme.primary
+                Column {
+                    Text(text = etapa.nombre, color = textColor)
+                    Text(text = "Tipo " + etapa.tipo, color = textColor, fontSize = 16.sp)
+                    Text(text = etapa.inicio + if(etapa.final != etapa.inicio) " - " + etapa.final else "", fontSize = 12.sp, color = textColor)
+                    Text(text = "Precio de la etapa: " + etapa.costeTotal + "€", fontSize = 12.sp, color = textColor)
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                IconButton(onClick = { expanded = !expanded }) {
+                    Icon(imageVector = if(expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown, contentDescription = "", tint = textColor)
+                }
             }
 
-            Column {
-                Text(text = etapa.nombre, color = textColor)
-                Text(text = "Tipo " + etapa.tipo, color = textColor, fontSize = 12.sp)
-                Text(text = etapa.inicio + " - " + etapa.final, fontSize = 8.sp, color = textColor)
-            }
-            Spacer(modifier = Modifier.weight(1f))
-            Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = "", tint = textColor)
+            if(expanded) {
+                if(!finalizada) {
+                    Row (
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ){
+                        Button(
+                            onClick = { editarEtapa = !editarEtapa },
+                            colors = ButtonDefaults.buttonColors(containerColor = textColor)
+                        ) {
+                            Text(
+                                text = "EDITAR",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = color
+                            )
+                        }
+                        Spacer(modifier = Modifier.padding(8.dp))
+                        Button(
+                            onClick = {
+                                buscarServicios(etapa.id!!)
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = textColor)
+                        ) {
+                            Text(
+                                text = "BUSCAR SERVICIOS",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = color
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.padding(8.dp))
+                }
 
+                if(etapa.contrataciones.isEmpty()) {
+                    Column (
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp, horizontal = 8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ){
+                        Icon(
+                            imageVector = Icons.Filled.Info,
+                            contentDescription = "",
+                            tint = textColor
+                        )
+                        Text(text = "Esta etapa no tiene servicios contratados", color = textColor)
+                    }
+                } else {
+                    LazyColumn (
+                        modifier = Modifier.heightIn(max = 128.dp).padding(8.dp)
+                    ){
+                        itemsIndexed(etapa.contrataciones) {index, servicio ->
+                            ServicioCard(
+                                servicio = servicio,
+                                onServicioClicked = onServicioClicked,
+                                color = textColor
+                            )
+                        }
+                    }
+                }
+
+            }
         }
+        
     }
 }
 
@@ -719,13 +835,13 @@ fun CrearEtapa(
                     onClick = {
 
                         if(etapa != null) {
-                            /*
                             GlobalScope.launch {
-                                if(viewModel.actualizarEtapa(etapa.copy(nombre = nombre, fechaInicio = inicio.format(formatoFromDb), fechaFinal = fin.format(formatoFromDb), tipo = tipo))) {
-                                    actualizarPagina()
+                                if(viewModel.guardarEtapa(nombre = nombre, fechaInicio = fechaInicio, fechaFinal = fechaFinal, tipo = tipo, etapaActualizar = etapa)) {
+                                    withContext(Dispatchers.Main) {
+                                        actualizarPagina()
+                                    }
                                 }
                             }
-                             */
                         } else {
                             GlobalScope.launch {
                                 if(viewModel.guardarEtapa(nombre = nombre, fechaInicio = fechaInicio, fechaFinal = fechaFinal, tipo = tipo)) {
@@ -735,6 +851,7 @@ fun CrearEtapa(
                                 }
                             }
                         }
+
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {

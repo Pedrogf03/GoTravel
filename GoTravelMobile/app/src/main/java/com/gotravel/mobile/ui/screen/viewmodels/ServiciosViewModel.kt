@@ -14,12 +14,10 @@ import com.gotravel.mobile.data.model.Imagen
 import com.gotravel.mobile.data.model.Servicio
 import com.gotravel.mobile.ui.screen.ViajesDestination
 import com.gotravel.mobile.ui.utils.Sesion
-import com.gotravel.mobile.ui.utils.formatoFinal
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
-import java.time.LocalDate
 
 sealed interface ServiciosUiState {
     data class Success(val serviciosOcultos: List<Servicio>, val serviciosPublicados: List<Servicio>) : ServiciosUiState
@@ -140,8 +138,6 @@ class ServiciosViewModel(
                         Sesion.entrada.readFully(byteArray) // Lee el ByteArray
                         imagen.imagen = byteArray
                     }
-
-                    //Sesion.entrada.readUTF()
 
                     return@withContext imagen
 

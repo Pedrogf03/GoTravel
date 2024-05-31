@@ -299,7 +299,8 @@ fun MyTimePickerDialog(
                     Spacer(modifier = Modifier.padding(8.dp))
 
                     Row(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
                         Button(onClick = {
                             onTimeSelected("")
@@ -310,6 +311,103 @@ fun MyTimePickerDialog(
                         Spacer(modifier = Modifier.padding(16.dp))
                         Button(onClick = {
                             onTimeSelected("${selectedHour.toString().padStart(2, '0')}:${selectedMinute.toString().padStart(2, '0')}")
+                            onDismiss()
+                        }) {
+                            Text(text = "Seleccionar")
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.padding(8.dp))
+
+                }
+
+            }
+        }
+    }
+
+}
+
+@Composable
+fun MyPuntuacionSelector(
+    onPuntuacionSelected: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+
+    var puntuacion by remember { mutableStateOf(0) }
+    val notas = (0..5).toList()
+
+    Dialog(
+        onDismissRequest = { onDismiss() }
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .wrapContentSize(Alignment.Center)
+        ) {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onPrimary),
+                elevation = CardDefaults.cardElevation(defaultElevation = 16.dp)
+            ) {
+
+                Column (
+                    modifier = Modifier.wrapContentSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ){
+
+                    Row (
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ){
+                        IconButton(onClick = { onDismiss() }) {
+                            Icon(imageVector = Icons.Default.Close, contentDescription = "")
+                        }
+                    }
+
+                    Text(text = "Selecciona la puntuación", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+
+                    Spacer(modifier = Modifier.padding(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+
+                        var hourDropdownExpanded by remember { mutableStateOf(false) }
+                        Card (
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary)
+                        ){
+                            Text(text = puntuacion.toString(), modifier = Modifier
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                                .clickable { hourDropdownExpanded = true })
+                            DropdownMenu(expanded = hourDropdownExpanded, onDismissRequest = { hourDropdownExpanded = false }) {
+                                notas.forEach { nota ->
+                                    DropdownMenuItem(
+                                        onClick = { puntuacion = nota; hourDropdownExpanded = false },
+                                        text = { Text(text = nota.toString()) }
+                                    )
+                                }
+                            }
+                        }
+
+                    }
+
+                    Spacer(modifier = Modifier.padding(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Button(onClick = {
+                            onPuntuacionSelected("")
+                            onDismiss()
+                        }) {
+                            Text(text = "Cancelar")
+                        }
+                        Spacer(modifier = Modifier.padding(16.dp))
+                        Button(onClick = {
+                            onPuntuacionSelected("$puntuacion")
                             onDismiss()
                         }) {
                             Text(text = "Seleccionar")

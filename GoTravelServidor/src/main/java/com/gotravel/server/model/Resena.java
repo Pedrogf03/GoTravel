@@ -36,6 +36,7 @@ public class Resena {
 
     @Lob
     @Column(name = "oculto", nullable = false, columnDefinition = "ENUM('0', '1')")
+    @Expose
     private String oculto;
 
 }

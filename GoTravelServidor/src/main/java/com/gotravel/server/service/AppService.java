@@ -87,7 +87,7 @@ public class AppService {
         return etapaRepository.findAllByViajeId(idViaje);
     }
 
-    private Etapa findEtapaById(int id) {
+    public Etapa findEtapaById(int id) {
         return etapaRepository.findById(id).orElse(null);
     }
 
@@ -186,7 +186,7 @@ public class AppService {
                 LocalTime hora = LocalTime.parse(s.getHora(), h);
                 if(fechaInicio.isBefore(LocalDate.now())) {
                     s.setPublicado("0");
-                } else if (fechaInicio.isEqual(LocalDate.now()) || hora.isBefore(LocalTime.now())) {
+                } else if (fechaInicio.isEqual(LocalDate.now()) && hora.isBefore(LocalTime.now())) {
                     s.setPublicado("0");
                 }
             }
@@ -194,6 +194,43 @@ public class AppService {
         }
 
         return devolver;
+    }
+
+    public List<Servicio> findAllServiciosByFechasAndTipo(LocalDate fechaInicioE, LocalDate fechaFinalE, String tipo) {
+        List<Servicio> servicios = servicioRepository.findAllByOcultoAndPublicado("0", "1");
+        List<Servicio> devolver = new ArrayList<>();
+
+        for(Servicio s : servicios) {
+
+            if((tipo.equals("transporte") && s.getTipoServicio().getNombre().equalsIgnoreCase(tipo)) || (tipo.equals("estancia") && !s.getTipoServicio().getNombre().equalsIgnoreCase("transporte"))) {
+                LocalDate fechaInicioS = LocalDate.parse(s.getFechaInicio(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+                // Si la fecha de inicio del servicio se encuentra entre la de inicio y final de la etapa
+                if((fechaInicioS.isEqual(fechaInicioE) || fechaInicioS.isAfter(fechaInicioE)) && (fechaInicioS.isBefore(fechaFinalE) || fechaInicioS.isEqual(fechaFinalE))) {
+                    // Si tiene fecha de final y esta también está dentro del rango
+                    if(s.getFechaFinal() != null) {
+                        LocalDate fechaFinalS = LocalDate.parse(s.getFechaFinal(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+                        // Devuelve el servicio
+                        if(fechaFinalS.isBefore(fechaFinalE) || fechaFinalS.isEqual(fechaFinalE)) {
+                            devolver.add(s);
+                        }
+
+                    } else {
+                        // Si no tiene fecha de final, devuelve el servicio
+                        devolver.add(s);
+                    }
+                }
+            }
+
+        }
+
+        return devolver;
+
+    }
+
+    public List<Servicio> findServiciosContratadosByEtapa(int idEtapa) {
+        return servicioRepository.findAllContratadosByEtapa(idEtapa);
     }
 
     @Autowired
@@ -219,4 +256,40 @@ public class AppService {
     public List<Resena> findResenasByServicioId(int idServicio) {
         return resenaRepository.findAllByServicioId(idServicio);
     }
+
+    public Resena saveResena(Resena resena) {
+        try {
+            resena = resenaRepository.save(resena);
+            return findResenaById(resena.getId());
+        } catch (Exception e) {
+            LOG.error("Error: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    public Resena findResenaById(ResenaId id) {
+        return resenaRepository.findById(id).orElse(null);
+    }
+
+    @Autowired
+    private ContratacionRepository contratacionRepository;
+
+    public Contratacion findContratacionByServicioAndUsuario(int idServicio, int idUsuario) {
+        return contratacionRepository.findOneByUsuarioIdAndServicioId(idUsuario, idServicio).orElse(null);
+    }
+
+    public Contratacion saveContratacion(Contratacion contratacion) {
+        try {
+            contratacion = contratacionRepository.save(contratacion);
+            return findContratacionById(contratacion.getId());
+        } catch (Exception e) {
+            LOG.error("Error: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    private Contratacion findContratacionById(String id) {
+        return contratacionRepository.findById(id).orElse(null);
+    }
+
 }

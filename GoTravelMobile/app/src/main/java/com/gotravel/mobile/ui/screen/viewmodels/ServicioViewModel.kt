@@ -1,9 +1,8 @@
 package com.gotravel.mobile.ui.screen.viewmodels
 
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -13,24 +12,19 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
-import com.gotravel.mobile.data.model.Etapa
 import com.gotravel.mobile.data.model.Imagen
 import com.gotravel.mobile.data.model.Resena
+import com.gotravel.mobile.data.model.ResenaId
 import com.gotravel.mobile.data.model.Servicio
 import com.gotravel.mobile.data.model.Usuario
-import com.gotravel.mobile.data.model.Viaje
 import com.gotravel.mobile.ui.screen.ServicioDestination
-import com.gotravel.mobile.ui.screen.ViajeDestination
 import com.gotravel.mobile.ui.utils.Regex
 import com.gotravel.mobile.ui.utils.Sesion
-import com.gotravel.mobile.ui.utils.formatoFinal
-import com.gotravel.mobile.ui.utils.formatoFromDb
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.IOException
-import java.time.LocalDate
 
 sealed interface ServicioUiState {
     data class Success(val servicio: Servicio) : ServicioUiState
@@ -43,6 +37,7 @@ class ServicioViewModel(
 ) : ViewModel() {
 
     private val idServicio: Int = checkNotNull(savedStateHandle[ServicioDestination.idServicio])
+    private val idEtapa: Int? = savedStateHandle[ServicioDestination.idEtapa]
 
     var mensajeUi: MutableLiveData<String> = MutableLiveData()
 
@@ -83,10 +78,10 @@ class ServicioViewModel(
 
                     val servicioFromServer = Sesion.entrada.readUTF()
                     val servicio =  gson.fromJson(servicioFromServer, Servicio::class.java)
-                    println("servicio " + servicioFromServer)
 
                     if(servicio != null) {
                         servicio.imagenes = getAllImagenesFromServicio()!!
+                        servicio.contratado = isServicioContratado()
                     }
 
                     Sesion.salida.writeUTF("findUsuarioByServicio;${idServicio}")
@@ -106,6 +101,16 @@ class ServicioViewModel(
                     val type = object : TypeToken<List<Resena>>() {}.type
                     val resenas =  gson.fromJson<List<Resena>>(resenasFromServer, type)
 
+                    for(r in resenas) {
+                        val usuarioTieneFoto = Sesion.entrada.readBoolean()
+                        if(usuarioTieneFoto) {
+                            val length = Sesion.entrada.readInt() // Lee la longitud del ByteArray
+                            val byteArray = ByteArray(length)
+                            Sesion.entrada.readFully(byteArray) // Lee el ByteArray
+                            r.usuario!!.foto = byteArray
+                        }
+                    }
+
                     servicio.resenas = resenas
 
                     return@withContext servicio
@@ -123,6 +128,35 @@ class ServicioViewModel(
         } else {
             return null
         }
+
+    }
+
+    private suspend fun isServicioContratado(): Boolean {
+
+        if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
+            return withContext(Dispatchers.IO) {
+
+                try {
+
+                    Sesion.salida.writeUTF("isServicioContratado;${idServicio}")
+                    Sesion.salida.flush()
+
+                    return@withContext Sesion.entrada.readBoolean()
+
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                    Sesion.socket!!.close()
+                    return@withContext false
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+                return@withContext false
+
+            }
+        }
+
+        return false
 
     }
 
@@ -236,10 +270,6 @@ class ServicioViewModel(
 
         if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
             withContext(Dispatchers.IO) {
-                val gson = GsonBuilder()
-                    .serializeNulls()
-                    .setLenient()
-                    .create()
 
                 try {
 
@@ -267,5 +297,157 @@ class ServicioViewModel(
 
     }
 
+    suspend fun publicarServicio() {
+
+        if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
+            withContext(Dispatchers.IO) {
+
+                try {
+
+                    Sesion.salida.writeUTF("publicarServicio;${idServicio}")
+                    Sesion.salida.flush()
+
+                    val confirm = Sesion.entrada.readBoolean()
+
+                    if(confirm) {
+                        getServicio()
+                    }
+
+
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                    Sesion.socket!!.close()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+            }
+        }
+
+    }
+
+    suspend fun ocultarServicio() {
+
+        if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
+            withContext(Dispatchers.IO) {
+
+                try {
+
+                    Sesion.salida.writeUTF("ocultarServicio;${idServicio}")
+                    Sesion.salida.flush()
+
+                    val confirm = Sesion.entrada.readBoolean()
+
+                    if(confirm) {
+                        getServicio()
+                    }
+
+
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                    Sesion.socket!!.close()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+            }
+        }
+
+    }
+
+    suspend fun addResena(nota: String, comentario: String) : Boolean{
+
+        if(nota.isBlank() || comentario.isBlank()) {
+            mensajeUi.postValue("Rellena todos los campos")
+        } else {
+
+            var puntuacion: Int = -1
+
+            try {
+                puntuacion = nota.toInt()
+            } catch (e: NumberFormatException) {
+                mensajeUi.postValue("La nota no es válida")
+            }
+
+            if(puntuacion != -1 && comentario.matches(Regex.regexCamposAlfaNum)) {
+
+                val resenaId = ResenaId(idServicio = idServicio, idUsuario = Sesion.usuario.id!!)
+                val resena = Resena(id = resenaId, puntuacion = puntuacion, contenido = comentario, oculto = "0")
+
+                val gson = GsonBuilder()
+                    .serializeNulls()
+                    .setLenient()
+                    .create()
+
+                if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
+                    return withContext(Dispatchers.IO) {
+
+                        try {
+
+                            Sesion.salida.writeUTF("save;resena")
+                            Sesion.salida.flush()
+
+                            Sesion.salida.writeUTF(gson.toJson(resena))
+                            Sesion.salida.flush()
+
+                            val jsonFromServer = Sesion.entrada.readUTF()
+                            val resenaFromServer = gson.fromJson(jsonFromServer, Resena::class.java)
+
+                            if(resenaFromServer != null) {
+                                getServicio()
+                                return@withContext true
+                            }
+
+                            return@withContext false
+
+                        } catch (e: IOException) {
+                            e.printStackTrace()
+                            Sesion.socket!!.close()
+                            return@withContext false
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+
+                        return@withContext false
+
+                    }
+                }
+            } else {
+                mensajeUi.postValue("El comentario no es válido")
+            }
+
+        }
+
+        return false
+
+    }
+
+    suspend fun contratarServicio(context: Context) {
+        if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
+            withContext(Dispatchers.IO) {
+
+                try {
+
+                    Sesion.salida.writeUTF("contratarServicio;${idServicio};${idEtapa!!}")
+                    Sesion.salida.flush()
+
+                    val url = Sesion.entrada.readUTF()
+
+                    if(url != null) {
+                        // Crea un Intent para abrir el enlace de aprobación en el navegador
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                        context.startActivity(intent)
+                    }
+
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                    Sesion.socket!!.close()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+            }
+        }
+    }
 
 }

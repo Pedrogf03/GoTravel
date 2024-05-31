@@ -11,10 +11,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -122,6 +121,7 @@ fun CrearServicioContent(
     modifier: Modifier = Modifier,
     navigateToServicio: (Int) -> Unit,
     tiposServicio: List<Tiposervicio>,
+    closeEditarServicio: () -> Unit = {},
     servicio: Servicio? = null,
     verticalArrangement: Arrangement.Vertical = Arrangement.Top
 ) {
@@ -171,6 +171,17 @@ fun CrearServicioContent(
                 modifier = Modifier.padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ){
+
+                if(servicio != null) {
+                    Row (
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ){
+                        IconButton(onClick = { closeEditarServicio() }) {
+                            Icon(imageVector = Icons.Default.Close, contentDescription = "")
+                        }
+                    }
+                }
 
                 if(seleccionarInfoBasica) {
 
