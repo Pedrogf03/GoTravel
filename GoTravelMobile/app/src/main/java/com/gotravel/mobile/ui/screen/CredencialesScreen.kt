@@ -5,6 +5,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
@@ -52,6 +54,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gotravel.gotravel.R
 import com.gotravel.mobile.ui.AppTopBar
@@ -116,12 +119,12 @@ fun CredencialesScreen(
 
     if (!sesionIniciada.value || viewModel.opcion == "registro") {
         Pantalla(
-            navigateUp,
-            modifier,
-            viewModel,
-            navigateToHome,
-            navigateToCredenciales,
-            borrarNavegacion
+            navigateUp = navigateUp,
+            modifier = modifier,
+            viewModel = viewModel,
+            navigateToHome = navigateToHome,
+            navigateToCredenciales = navigateToCredenciales,
+            borrarNavegacion = borrarNavegacion
         )
     }
 }
@@ -181,6 +184,153 @@ fun LoginScreen(
     modifier: Modifier = Modifier
 ) {
 
+    var contrasenaOlvidada by remember { mutableStateOf(false) }
+    var emailEnviado by remember { mutableStateOf(false) }
+
+    val mensajeUi = viewModel.mensajeUi.observeAsState(initial = "")
+
+    if(contrasenaOlvidada) {
+        Dialog(onDismissRequest = { contrasenaOlvidada != contrasenaOlvidada }) {
+
+            var email by remember { mutableStateOf("") }
+
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Card (
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onPrimary),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
+                    modifier = Modifier.wrapContentSize()
+                ){
+                    Column (
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(8.dp)
+                    ){
+
+                        Row (
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
+                        ){
+                            IconButton(onClick = { contrasenaOlvidada != contrasenaOlvidada }) {
+                                Icon(imageVector = Icons.Default.Close, contentDescription = "")
+                            }
+                        }
+
+                        Text("Introduce tu correo electrónico", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary, textAlign = TextAlign.Center)
+                        Spacer(modifier = Modifier.padding(8.dp))
+                        TextField(
+                            value = email,
+                            onValueChange = { email = it },
+                            label = { Text("Correo electrónico") },
+                            singleLine = true,
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Email,
+                                    contentDescription = ""
+                                )
+                            },
+                            keyboardOptions = KeyboardOptions.Default.copy(
+                                keyboardType = KeyboardType.Email,
+                                imeAction = ImeAction.Next
+                            ),
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                disabledContainerColor = Color.Transparent,
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                        )
+
+                        Spacer(modifier = Modifier.padding(4.dp))
+
+                        Text(
+                            text = mensajeUi.value,
+                            modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
+                            color = MaterialTheme.colorScheme.error
+                        )
+
+                        Spacer(modifier = Modifier.padding(4.dp))
+
+                        val context = LocalContext.current
+                        Button(
+                            onClick = {
+                                GlobalScope.launch {
+                                    if(viewModel.recuperarContrasena(email, context)) {
+                                        emailEnviado = true
+                                        contrasenaOlvidada = false
+                                    }
+                                }
+                            },
+                            modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(text = "Recuperar contraseña")
+                                Spacer(modifier = Modifier.weight(1f))
+                                Icon(imageVector = Icons.Default.ArrowForward, contentDescription = "")
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+    } else if(emailEnviado) {
+        Dialog(onDismissRequest = { contrasenaOlvidada != contrasenaOlvidada }) {
+
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Card (
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onPrimary),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
+                    modifier = Modifier.wrapContentSize()
+                ){
+                    Column (
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(8.dp)
+                    ){
+
+                        Row (
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
+                        ){
+                            IconButton(onClick = { contrasenaOlvidada != contrasenaOlvidada }) {
+                                Icon(imageVector = Icons.Default.Close, contentDescription = "")
+                            }
+                        }
+
+                        Row (
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ){
+                            Text(text = "Se ha cambiado tu contraseña automáticamente y ha sido enviada junto con instrucciones al correo electrónico proporcionado.")
+                            Text(text = "Por favor, inicie sesión y cambie su contraseña cuanto antes.")
+                        }
+
+                        Button(
+                            onClick = {
+                                emailEnviado = false
+                            },
+                            modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                        ) {
+
+                            Text(text = "Aceptar")
+                        }
+
+                    }
+                }
+            }
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -202,8 +352,6 @@ fun LoginScreen(
 
             var verContrasena by remember { mutableStateOf(false) }
             var verConfirmar by remember { mutableStateOf(false) }
-
-            val mensajeUi = viewModel.mensajeUi.observeAsState(initial = "")
 
             if (registro) {
                 TextField(
@@ -402,7 +550,7 @@ fun LoginScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            // TODO: contraseña olvidada
+                            contrasenaOlvidada = !contrasenaOlvidada
                         },
                     textAlign = TextAlign.Center
                 )

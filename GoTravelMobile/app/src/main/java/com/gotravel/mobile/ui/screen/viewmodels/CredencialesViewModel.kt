@@ -177,6 +177,49 @@ class CredencialesViewModel(
 
     }
 
+    fun recuperarContrasena(email: String, context: Context) : Boolean {
+
+        var dirIp = "localhost"
+        var puerto = 8484
+
+        val conf = Properties()
+        try {
+            val inputStream = context.openFileInput("client.properties")
+            conf.load(inputStream)
+            dirIp = conf.getProperty("IP")
+            puerto = Integer.parseInt(conf.getProperty("PUERTO"))
+        } catch (e: IOException) {
+            println("No se ha podido leer el archivo de propiedades")
+        }
+
+
+        try {
+            val socketAddress = InetSocketAddress(dirIp, puerto)
+            val cliente = Socket()
+            val tiempoDeEspera = 1000 // Tiempo de espera en milisegundos
+
+            cliente.connect(socketAddress, tiempoDeEspera)
+            Sesion.socket = cliente
+
+            Sesion.salida = DataOutputStream(Sesion.socket!!.getOutputStream())
+            Sesion.entrada = DataInputStream(Sesion.socket!!.getInputStream())
+
+            Sesion.salida.writeUTF("recuperarContrasena;${email}")
+            Sesion.salida.flush()
+
+            return Sesion.entrada.readBoolean()
+
+        } catch (e: IOException) {
+            mensajeUi.postValue("No se ha podido conectar con el servidor")
+            e.printStackTrace()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        return false
+
+    }
+
 }
 
 /*

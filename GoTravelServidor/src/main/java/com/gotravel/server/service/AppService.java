@@ -233,6 +233,10 @@ public class AppService {
         return servicioRepository.findAllContratadosByEtapa(idEtapa);
     }
 
+    public List<Servicio> findServiciosContratadosByUsuario(int idUsuario) {
+        return servicioRepository.findAllContratadosByUsuario(idUsuario);
+    }
+
     @Autowired
     private ImagenRepository imagenRepository;
 

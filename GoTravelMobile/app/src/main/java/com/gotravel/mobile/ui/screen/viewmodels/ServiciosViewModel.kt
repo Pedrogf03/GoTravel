@@ -49,9 +49,9 @@ class ServiciosViewModel(
                     val servicios = mutableListOf<Servicio>()
                     if(busqueda != null) {
                         for(servicio in allServicios) {
-                            if(servicio.nombre == busqueda && servicio.publicado == "0") {
+                            if(servicio.nombre.contains(busqueda) && servicio.publicado == "0") {
                                 serviciosOcultos.add(servicio)
-                            } else if(servicio.nombre == busqueda && servicio.publicado == "1") {
+                            } else if(servicio.nombre.contains(busqueda) && servicio.publicado == "1") {
                                 servicios.add(servicio)
                             }
                         }

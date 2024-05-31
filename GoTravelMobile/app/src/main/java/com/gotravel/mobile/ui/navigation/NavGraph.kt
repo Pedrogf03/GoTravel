@@ -15,6 +15,8 @@ import com.gotravel.mobile.ui.screen.BuscarServiciosDestination
 import com.gotravel.mobile.ui.screen.BuscarServiciosScreen
 import com.gotravel.mobile.ui.screen.CambiarContrasenaDestination
 import com.gotravel.mobile.ui.screen.CambiarContrasenaScreen
+import com.gotravel.mobile.ui.screen.ContratacionesDestination
+import com.gotravel.mobile.ui.screen.ContratacionesScreen
 import com.gotravel.mobile.ui.screen.CrearServicioDestination
 import com.gotravel.mobile.ui.screen.CrearServicioScreen
 import com.gotravel.mobile.ui.screen.CrearViajeDestination
@@ -180,7 +182,7 @@ fun AppNavHost(
                     navController.navigate(EditarPerfilDestination.route)
                 },
                 navigateToContrataciones = {
-                    //TODO
+                    navController.navigate(ContratacionesDestination.route)
                 },
                 navigateToPagos = {
                     //TODO
@@ -202,6 +204,36 @@ fun AppNavHost(
                     navController.navigate(CambiarContrasenaDestination.route)
                 },
                 navController = navController
+            )
+        }
+
+        // Pantalla para ver las contrataciones del usuario sin busqueda
+        composable(route = ContratacionesDestination.route) {
+            ContratacionesScreen(
+                navController = navController,
+                buscarServicio = { busqueda ->
+                    navController.navigate(ContratacionesDestination.route + if(busqueda.isNotBlank()) "/${busqueda}" else "")
+                },
+                navigateToServicio = {
+                    navController.navigate(("${ServicioDestination.route}/${it}"))
+                }
+            )
+        }
+
+        // Pantalla para ver las contrataciones del usuario con busqueda
+        composable(
+            route = ContratacionesDestination.routeWithArgs,
+            arguments = listOf(
+                navArgument(ContratacionesDestination.busqueda) { type = NavType.StringType },
+            )) {
+            ContratacionesScreen(
+                navController = navController,
+                buscarServicio = { busqueda ->
+                    navController.navigate(ContratacionesDestination.route + if(busqueda.isNotBlank()) "/${busqueda}" else "")
+                },
+                navigateToServicio = {
+                    navController.navigate(("${ServicioDestination.route}/${it}"))
+                }
             )
         }
 
