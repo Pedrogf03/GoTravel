@@ -132,7 +132,9 @@ class MainActivity : ComponentActivity() {
                                     val idViaje = Sesion.entrada.readUTF()
 
                                     if(idViaje != null) {
-                                        navController.navigate("${ViajeDestination.route}/$idViaje")
+                                        withContext(Dispatchers.Main){
+                                            navController.navigate("${ViajeDestination.route}/$idViaje")
+                                        }
                                     }
 
                                 } catch (e: IOException) {

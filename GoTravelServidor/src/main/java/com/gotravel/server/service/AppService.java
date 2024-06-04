@@ -7,14 +7,12 @@ import com.gotravel.server.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -214,7 +212,7 @@ public class AppService {
 
         for(Servicio s : servicios) {
 
-            if((tipo.equals("transporte") && s.getTipoServicio().getNombre().equalsIgnoreCase(tipo)) || (tipo.equals("estancia") && !s.getTipoServicio().getNombre().equalsIgnoreCase("transporte"))) {
+            if((tipo.equalsIgnoreCase("transporte") && s.getTipoServicio().getNombre().equalsIgnoreCase("transporte")) || (tipo.equals("estancia"))) {
                 LocalDate fechaInicioS = LocalDate.parse(s.getFechaInicio(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
                 // Si la fecha de inicio del servicio se encuentra entre la de inicio y final de la etapa
@@ -270,7 +268,7 @@ public class AppService {
     private ResenaRepository resenaRepository;
 
     public List<Resena> findResenasByServicioId(int idServicio) {
-        return resenaRepository.findAllByServicioId(idServicio);
+        return resenaRepository.findAllByServicioIdAndOculto(idServicio, "0");
     }
 
     public Resena saveResena(Resena resena) {

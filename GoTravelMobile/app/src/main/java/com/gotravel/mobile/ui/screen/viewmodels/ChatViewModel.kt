@@ -153,7 +153,7 @@ class ChatViewModel(
     @RequiresApi(Build.VERSION_CODES.O)
     suspend fun enviarMensaje(texto: String) {
 
-        val mensaje = Mensaje(texto = texto, fecha = LocalDate.now().format(formatoFromDb), hora = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")), leido = "0")
+        val mensaje = Mensaje(texto = texto, fecha = LocalDate.now().format(formatoFromDb), hora = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")))
 
         if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
             withContext(Dispatchers.IO) {

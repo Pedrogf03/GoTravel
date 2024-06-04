@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -47,11 +48,14 @@ import com.gotravel.mobile.ui.navigation.NavDestination
 import com.gotravel.mobile.ui.screen.viewmodels.ChatUiState
 import com.gotravel.mobile.ui.screen.viewmodels.ChatViewModel
 import com.gotravel.mobile.ui.utils.Sesion
+import com.gotravel.mobile.ui.utils.formatoFinal
+import com.gotravel.mobile.ui.utils.formatoFromDb
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
 
 
 object ChatDestination : NavDestination {
@@ -126,8 +130,21 @@ fun ChatScreen(
                         state = listState,
                         modifier = Modifier.weight(1f)
                     ) {
-                        items(mensajes) { mensaje ->
+                        var mensajeAnterior = mensajes[0]
+                        itemsIndexed(mensajes) { index, mensaje ->
+                            val fechaActual = LocalDate.parse(mensaje.fecha, formatoFromDb)
+                            val fechaAnterior = LocalDate.parse(mensajeAnterior.fecha, formatoFromDb)
+
+                            if (fechaAnterior.isBefore(fechaActual) || index == 0) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Text(text = fechaActual.format(formatoFinal))
+                                }
+                            }
                             MensajeCard(mensaje)
+                            mensajeAnterior = mensaje
                         }
                     }
                     CajaDeTexto(
@@ -166,6 +183,7 @@ fun MensajeCard(mensaje: Mensaje) {
     ) {
         Card (
             modifier = Modifier.padding(4.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
             colors = CardDefaults.cardColors(containerColor = if(Sesion.usuario.id == mensaje.emisor.id) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimary)
         ){
             Column (

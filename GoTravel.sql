@@ -171,12 +171,12 @@ CREATE TABLE IF NOT EXISTS `gotravel`.`contratacion` (
   PRIMARY KEY (`id_contratacion`),
   INDEX `fk_Contratacion_Servicio1_idx` (`id_servicio` ASC) VISIBLE,
   INDEX `fk_Contratacion_Usuario1_idx` (`id_usuario` ASC) VISIBLE,
-  INDEX `fk_contratacion_etapa1_idx` (`id_etapa` ASC) VISIBLE,
-  INDEX `fk_contratacion_pago1_idx` (`id_pago` ASC) VISIBLE,
-  CONSTRAINT `fk_contratacion_etapa1`
+  INDEX `fk_Contratacion_etapa1_idx` (`id_etapa` ASC) VISIBLE,
+  INDEX `fk_Contratacion_Pago1_idx` (`id_pago` ASC) VISIBLE,
+  CONSTRAINT `fk_Contratacion_Etapa1`
     FOREIGN KEY (`id_etapa`)
     REFERENCES `gotravel`.`etapa` (`id_etapa`),
-  CONSTRAINT `fk_contratacion_pago1`
+  CONSTRAINT `fk_Contratacion_Pago1`
     FOREIGN KEY (`id_pago`)
     REFERENCES `gotravel`.`pago` (`id_pago`),
   CONSTRAINT `fk_Contratacion_Servicio1`
@@ -329,6 +329,9 @@ SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
 INSERT INTO rol (nombre) VALUES ('Usuario'), ('Profesional'), ('Administrador');
 INSERT INTO tiposervicio (nombre) VALUES ('Transporte'), ('Alojamiento'), ('Visita'), ('Guía');
 
+-- Contraseña = 001
+INSERT INTO usuario (nombre, email, contrasena) values ('Administrador', 'inf@gotravel.com', '68b80d6619619255a4d004d54476de51f9157acd0a9d97cd294a0a3862cad3dd');
+INSERT INTO usuariorol (rol, id_usuario) values ('Administrador', (SELECT id_usuario FROM usuario WHERE email = 'inf@gotravel.com'));
 
 -- -----------------------------------------------------
 -- Triggers
@@ -345,22 +348,6 @@ BEGIN
 
     INSERT INTO usuariorol (rol, id_usuario)
     VALUES ('Usuario', id_usuario);
-
-END;
-//
-DELIMITER ;
-
-DELIMITER //
-CREATE TRIGGER tr_insertar_rol_profesional
-AFTER INSERT ON Suscripcion
-FOR EACH ROW
-BEGIN
-
-    DECLARE id_usuario INT;
-    SET id_usuario = NEW.id_usuario;
-
-    INSERT INTO usuariorol (rol, id_usuario)
-    VALUES ('Profesional', id_usuario);
 
 END;
 //
@@ -422,7 +409,7 @@ BEGIN
     SET coste_total = (
         SELECT SUM(pago.coste) 
         FROM Contratacion 
-        INNER JOIN pago ON Contratacion.id_pago = pago.id
+        INNER JOIN pago ON Contratacion.id_pago = pago.id_pago
         WHERE Contratacion.id_etapa = e_id_etapa
     )
     WHERE id_etapa = e_id_etapa;
@@ -444,7 +431,7 @@ BEGIN
     SET coste_total = (
         SELECT SUM(pago.coste) 
         FROM Contratacion 
-        INNER JOIN pago ON Contratacion.id_pago = pago.id
+        INNER JOIN pago ON Contratacion.id_pago = pago.id_pago
         WHERE Contratacion.id_etapa = e_id_etapa
     )
     WHERE id_etapa = e_id_etapa;

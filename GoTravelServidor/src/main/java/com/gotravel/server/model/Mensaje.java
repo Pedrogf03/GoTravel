@@ -40,9 +40,4 @@ public class Mensaje {
     @Column(name = "hora", nullable = false, columnDefinition = "TIME")
     @Expose
     private String hora;
-
-    @Column(name = "leido", nullable = false, columnDefinition = "ENUM('0', '1')")
-    @Expose
-    private String leido;
-
 }

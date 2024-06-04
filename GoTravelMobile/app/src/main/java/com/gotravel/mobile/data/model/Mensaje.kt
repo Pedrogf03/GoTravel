@@ -17,6 +17,5 @@ data class Mensaje (
     val receptor: Usuario? = null,
     val texto: String,
     val fecha: String,
-    val hora: String,
-    val leido: String
+    val hora: String
 )
