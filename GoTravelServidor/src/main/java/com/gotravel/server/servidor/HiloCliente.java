@@ -205,6 +205,8 @@ public class HiloCliente extends Thread {
                                     String jsonFromServer = "";
                                     if (tabla.equalsIgnoreCase("usuario")) {
                                         Usuario usuarioFromUser = gson.fromJson(jsonFromUser, Usuario.class);
+                                        usuarioFromUser.setRoles(sesion.getUsuario().getRoles());
+                                        usuarioFromUser.setFoto(sesion.getUsuario().getFoto());
                                         usuarioFromUser = service.saveUsuario(usuarioFromUser);
                                         sesion.setUsuario(usuarioFromUser);
                                         jsonFromServer = gson.toJson(usuarioFromUser);
@@ -441,16 +443,20 @@ public class HiloCliente extends Thread {
                                     sesion.getSalida().writeUTF(url);
 
                                     String idContratacion = sesion.getEntrada().readUTF();
-                                    Contratacion c = paypal.capturarPedido(idContratacion);
 
-                                    c.setUsuario(sesion.getUsuario());
-                                    c.getPago().setUsuario(sesion.getUsuario());
-                                    c.setServicio(s);
-                                    c.setEtapa(e);
+                                    if(!idContratacion.equalsIgnoreCase("cancelar")) {
+                                        Contratacion c = paypal.capturarPedido(idContratacion);
 
-                                    service.saveContratacion(c);
+                                        c.setUsuario(sesion.getUsuario());
+                                        c.getPago().setUsuario(sesion.getUsuario());
+                                        c.setServicio(s);
+                                        c.setEtapa(e);
+                                        service.saveContratacion(c);
+                                        yield "" + e.getViaje().getId();
+                                    }
 
-                                    yield "" + e.getViaje().getId();
+                                    yield "";
+
                                 }
                                 case "findContratacionesByEtapa" -> {
                                     int idEtapa = Integer.parseInt(fromCliente[1]);
@@ -469,20 +475,29 @@ public class HiloCliente extends Thread {
                                         case "crear" -> {
                                             Usuario u = sesion.getUsuario();
 
-                                            String url = paypal.crearSuscripcion(u);
+                                            String url = "";
+
+                                            if(fromCliente.length > 2) {
+                                                url = paypal.crearSuscripcion(u, "desktop");
+                                            } else {
+                                                url = paypal.crearSuscripcion(u, "android");
+                                            }
 
                                             sesion.getSalida().writeUTF(url);
 
                                             String subscriptionId = sesion.getEntrada().readUTF();
-                                            Suscripcion s = paypal.getSubscription(subscriptionId);
 
-                                            s.setUsuario(sesion.getUsuario());
-                                            s.getPagos().get(0).setUsuario(sesion.getUsuario());
-                                            service.saveSuscripcion(s);
+                                            if(!subscriptionId.equalsIgnoreCase("cancelar")) {
+                                                Suscripcion s = paypal.getSubscription(subscriptionId);
 
-                                            sesion.getUsuario().getRoles().add(service.findRol("Profesional"));
-                                            sesion.setUsuario(service.saveUsuario(sesion.getUsuario()));
-                                            jsonFromServer = gson.toJson(sesion.getUsuario());
+                                                s.setUsuario(sesion.getUsuario());
+                                                s.getPagos().get(0).setUsuario(sesion.getUsuario());
+                                                service.saveSuscripcion(s);
+
+                                                sesion.getUsuario().getRoles().add(service.findRol("Profesional"));
+                                                sesion.setUsuario(service.saveUsuario(sesion.getUsuario()));
+                                                jsonFromServer = gson.toJson(sesion.getUsuario());
+                                            }
 
                                         }
                                         case "renovar" -> {

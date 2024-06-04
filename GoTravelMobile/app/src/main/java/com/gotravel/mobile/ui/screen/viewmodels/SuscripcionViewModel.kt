@@ -115,7 +115,7 @@ class SuscripcionViewModel(
                     Sesion.salida.flush()
 
                     val jsonFromServer = Sesion.entrada.readUTF()
-                    return@withContext gson.fromJson<Suscripcion?>(jsonFromServer, Suscripcion::class.java)
+                    return@withContext gson.fromJson(jsonFromServer, Suscripcion::class.java)
 
                 } catch (e: IOException) {
                     e.printStackTrace()

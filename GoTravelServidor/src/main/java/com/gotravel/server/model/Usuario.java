@@ -83,7 +83,7 @@ public class Usuario implements Serializable {
 
     @Column(name = "oculto", nullable = false, columnDefinition = "ENUM('0', '1')")
     @Expose
-    private String oculto;
+    private String oculto = "0";
 
     @OneToMany(mappedBy = "usuario", fetch = FetchType.EAGER)
     private List<Viaje> viajes;

@@ -147,7 +147,7 @@ class CredencialesViewModel(
 
         if (!(nombre.isBlank() || nombre.isEmpty()) && !(email.isBlank() || email.isEmpty()) && !(contrasena.isBlank() || contrasena.isEmpty()) && !(confirmarContrasena.isBlank() || confirmarContrasena.isEmpty())) {
 
-            if (!nombre.matches(Regex.regexCamposAlfaNum) && nombre.length <= 45) {
+            if (!nombre.matches(Regex.regexCamposAlfaNum) || nombre.length > 45) {
                 mensajeUi.postValue("El nombre no es válido")
                 mensajeUi.postValue(nombre)
             } else if (!email.matches(Regex.regexEmail)) {

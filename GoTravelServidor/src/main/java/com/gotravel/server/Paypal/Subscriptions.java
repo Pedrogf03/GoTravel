@@ -26,7 +26,7 @@ public class Subscriptions {
         this.token = new TokenClient().obtenerTokenPaypal();
     }
 
-    public String crearSuscripcion(Usuario u) throws IOException {
+    public String crearSuscripcion(Usuario u, String clientType) throws IOException {
 
         String url =
                 "https://api-m.sandbox.paypal.com/v1/billing/subscriptions";
@@ -35,30 +35,59 @@ public class Subscriptions {
 
         MediaType mediaType = MediaType.parse("application/json");
 
-        String json = "{\n" +
-                "  \"plan_id\": \"" + PLAN_ID + "\",\n" +
-                "  \"quantity\": \"1\",\n" +
-                "  \"auto_renewal\": true,\n" +
-                "  \"subscriber\": {\n" +
-                "    \"name\": {\n" +
-                "      \"given_name\": \"" + u.getNombre() + "\",\n" +
-                "      \"surname\": \"" + (u.getApellidos() != null ? u.getApellidos() : "") + "\"\n" +
-                "    },\n" +
-                "    \"email_address\": \"" + u.getEmail() + "\"\n" +
-                "  },\n" +
-                "  \"application_context\": {\n" +
-                "    \"brand_name\": \"GoTravel!\",\n" +
-                "    \"locale\": \"es-ES\",\n" +
-                "    \"shipping_preference\": \"NO_SHIPPING\",\n" +
-                "    \"user_action\": \"SUBSCRIBE_NOW\",\n" +
-                "    \"payment_method\": {\n" +
-                "      \"payer_selected\": \"PAYPAL\",\n" +
-                "      \"payee_preferred\": \"IMMEDIATE_PAYMENT_REQUIRED\"\n" +
-                "    },\n" +
-                "    \"return_url\": \"gotravel://subscription_returnurl\",\n" +
-                "    \"cancel_url\": \"gotravel://subscription_cancelurl\"\n" +
-                "  }\n" +
-                "}";
+        String json = "";
+
+        if(clientType.equalsIgnoreCase("android")) {
+            json = "{\n" +
+                    "  \"plan_id\": \"" + PLAN_ID + "\",\n" +
+                    "  \"quantity\": \"1\",\n" +
+                    "  \"auto_renewal\": true,\n" +
+                    "  \"subscriber\": {\n" +
+                    "    \"name\": {\n" +
+                    "      \"given_name\": \"" + u.getNombre() + "\",\n" +
+                    "      \"surname\": \"" + (u.getApellidos() != null ? u.getApellidos() : "") + "\"\n" +
+                    "    },\n" +
+                    "    \"email_address\": \"" + u.getEmail() + "\"\n" +
+                    "  },\n" +
+                    "  \"application_context\": {\n" +
+                    "    \"brand_name\": \"GoTravel!\",\n" +
+                    "    \"locale\": \"es-ES\",\n" +
+                    "    \"shipping_preference\": \"NO_SHIPPING\",\n" +
+                    "    \"user_action\": \"SUBSCRIBE_NOW\",\n" +
+                    "    \"payment_method\": {\n" +
+                    "      \"payer_selected\": \"PAYPAL\",\n" +
+                    "      \"payee_preferred\": \"IMMEDIATE_PAYMENT_REQUIRED\"\n" +
+                    "    },\n" +
+                    "    \"return_url\": \"gotravel://subscription_returnurl\",\n" +
+                    "    \"cancel_url\": \"gotravel://subscription_cancelurl\"\n" +
+                    "  }\n" +
+                    "}";
+        } else if(clientType.equalsIgnoreCase("desktop")) {
+            json = "{\n" +
+                    "  \"plan_id\": \"" + PLAN_ID + "\",\n" +
+                    "  \"quantity\": \"1\",\n" +
+                    "  \"auto_renewal\": true,\n" +
+                    "  \"subscriber\": {\n" +
+                    "    \"name\": {\n" +
+                    "      \"given_name\": \"" + u.getNombre() + "\",\n" +
+                    "      \"surname\": \"" + (u.getApellidos() != null ? u.getApellidos() : "") + "\"\n" +
+                    "    },\n" +
+                    "    \"email_address\": \"" + u.getEmail() + "\"\n" +
+                    "  },\n" +
+                    "  \"application_context\": {\n" +
+                    "    \"brand_name\": \"GoTravel!\",\n" +
+                    "    \"locale\": \"es-ES\",\n" +
+                    "    \"shipping_preference\": \"NO_SHIPPING\",\n" +
+                    "    \"user_action\": \"SUBSCRIBE_NOW\",\n" +
+                    "    \"payment_method\": {\n" +
+                    "      \"payer_selected\": \"PAYPAL\",\n" +
+                    "      \"payee_preferred\": \"IMMEDIATE_PAYMENT_REQUIRED\"\n" +
+                    "    },\n" +
+                    "    \"return_url\": \"http://localhost:8080/subscription_returnurl\",\n" +
+                    "    \"cancel_url\": \"http://localhost:8080/subscription_cancelurl\"\n" +
+                    "  }\n" +
+                    "}";
+        }
 
         RequestBody body = RequestBody.create(json, mediaType);
 
@@ -140,7 +169,7 @@ public class Subscriptions {
 
                 List<Pago> pagos = new ArrayList<>();
                 pagos.add(new Pago(coste, fechaInicio.substring(0, 10)));
-                return new Suscripcion(subscriptionId, pagos, "1", estado, fechaInicio.substring(0, 9), fechaFinal);
+                return new Suscripcion(subscriptionId, pagos, "1", estado, fechaInicio.substring(0, 10), fechaFinal);
 
             }
         }

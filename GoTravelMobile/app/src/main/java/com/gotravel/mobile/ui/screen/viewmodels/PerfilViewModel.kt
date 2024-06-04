@@ -22,11 +22,11 @@ class PerfilViewModel : ViewModel() {
 
         if(!(usuario.nombre.isBlank() || usuario.nombre.isEmpty()) && usuario.nombre.matches(Regex.regexCamposAlfaNum) && usuario.nombre.length <= 45) {
 
-            if(usuario.apellidos != null && usuario.apellidos!!.matches(Regex.regexCamposAlfaNum) && usuario.apellidos!!.length <= 200 ) {
+            if((usuario.apellidos != null && usuario.apellidos!!.matches(Regex.regexCamposAlfaNum) && usuario.apellidos!!.length <= 200) || usuario.apellidos == null) {
 
                 if(!(usuario.email.isBlank() || usuario.email.isEmpty()) && usuario.email.matches(Regex.regexEmail)) {
 
-                    if(usuario.tfno != null && usuario.tfno!!.matches(Regex.regexTfno) ) {
+                    if((usuario.tfno != null && usuario.tfno!!.matches(Regex.regexTfno)) || usuario.tfno == null) {
 
                         if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
                             return withContext(Dispatchers.IO) {

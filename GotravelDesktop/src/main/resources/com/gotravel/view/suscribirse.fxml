@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView?>
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+
+<AnchorPane prefHeight="1000.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.gotravel.Controller.SuscribirseScreen">
+   <children>
+      <AnchorPane layoutX="405.0" layoutY="25.0" prefHeight="950.0" prefWidth="1110.0" style="-fx-background-color: #3D5F90;">
+         <children>
+            <VBox alignment="CENTER" layoutY="-100.0" prefHeight="874.0" prefWidth="918.0" style="-fx-spacing: 20;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+               <children>
+                  <Text fx:id="title" fill="WHITE" strokeType="OUTSIDE" strokeWidth="0.0" text="¡Bienvenido al Programa para Profesionales de GoTravel!" />
+                  <Text fx:id="p" fill="WHITE" strokeType="OUTSIDE" strokeWidth="0.0" text="¿Tienes un servicio que puede mejorar la experiencia de viaje de nuestros usuarios? ¡Estás en el lugar correcto! Nuestro programa para profesionales está abierto a todo aquel que desee compartir sus recursos para que otros usuarios puedan disfrutar de ellos." textAlignment="CENTER" wrappingWidth="650.13671875" />
+                  <Text fx:id="subtitle1" fill="WHITE" strokeType="OUTSIDE" strokeWidth="0.0" text="¿Qué puedes ofrecer?" />
+                  <Text fx:id="p1" fill="WHITE" strokeType="OUTSIDE" strokeWidth="0.0" text="Desde alojamiento, alquiler de vehículos, guías turísticas, hasta la oportunidad de compartir un viaje, ¡las posibilidades son infinitas! Si tienes un servicio que puede mejorar la experiencia de viaje de nuestros usuarios, queremos saber de ti." textAlignment="CENTER" wrappingWidth="650.13671875" />
+                  <Text fx:id="subtitle2" fill="WHITE" strokeType="OUTSIDE" strokeWidth="0.0" text="¿Cómo funciona?" />
+                  <Text fx:id="p2" fill="WHITE" strokeType="OUTSIDE" strokeWidth="0.0" text="Por una suscripción mensual de solo 4.99€, puedes convertirte en un proveedor de servicios en nuestra plataforma. Esto te permitirá publicar y promocionar tus servicios a nuestra creciente comunidad de viajeros." textAlignment="CENTER" wrappingWidth="650.13671875" />
+                  <Text fx:id="subtitle3" fill="WHITE" strokeType="OUTSIDE" strokeWidth="0.0" text="¿Por qué unirse?" />
+                  <Text fx:id="p3" fill="WHITE" strokeType="OUTSIDE" strokeWidth="0.0" text="Al unirte a nuestro programa para profesionales, no solo tendrás la oportunidad de aumentar tus ingresos, sino que también podrás recibir valoraciones de los clientes y mejorar continuamente tus servicios basándote en sus comentarios." textAlignment="CENTER" wrappingWidth="650.13671875" />
+                  <Text fx:id="subtitle4" fill="WHITE" strokeType="OUTSIDE" strokeWidth="0.0" text="¡Únete a nosotros hoy y comienza tu viaje hacia el éxito!" />
+                  <Button fx:id="subButton" mnemonicParsing="false" onAction="#suscribirse" prefHeight="41.0" prefWidth="544.0" style="-fx-background-color: #ffffff;" text="  Pagar con PayPal">
+                     <graphic>
+                        <FontAwesomeIconView glyphName="PAYPAL" />
+                     </graphic>
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
+                  </Button>
+               </children>
+            </VBox>
+         </children>
+      </AnchorPane>
+      <Button layoutX="14.0" layoutY="14.0" mnemonicParsing="false" onAction="#navigateUp" style="-fx-background-color: NONE;">
+         <graphic>
+            <FontAwesomeIconView glyphName="ARROW_LEFT" size="24" />
+         </graphic>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Button>
+   </children>
+</AnchorPane>

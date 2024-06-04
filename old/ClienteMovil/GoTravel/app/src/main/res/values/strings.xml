@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">GoTravel!</string>
+    <string name="email_label">Correo electrónico</string>
+    <string name="passwd_label">Contraseña</string>
+    <string name="username_label">Usuario</string>
+    <string name="tus_viajes">Tus viajes</string>
+    <string name="no_se_ha_podido_conectar_con_el_servidor">No se ha podido conectar con el servidor</string>
+    <string name="reintentar">Reintentar</string>
+    <string name="cargando">Cargando</string>
+    <string name="busca_tu_viaje">Busca tu viaje</string>
+    <string name="nuevo_viaje">Nuevo viaje</string>
+    <string name="nombre_del_viaje">Nombre del viaje</string>
+    <string name="descripcion_del_viaje">Descripcion del viaje</string>
+</resources>

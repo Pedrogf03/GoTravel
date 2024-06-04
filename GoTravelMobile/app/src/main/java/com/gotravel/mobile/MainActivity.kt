@@ -109,13 +109,32 @@ class MainActivity : ComponentActivity() {
 
                 }
                 "subscription_cancelurl" -> {
+                    GlobalScope.launch {
+
+                        if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
+                            withContext(Dispatchers.IO) {
+
+                                try {
+
+                                    Sesion.salida.writeUTF("cancelar")
+                                    Sesion.salida.flush()
+
+                                } catch (e: IOException) {
+                                    e.printStackTrace()
+                                    Sesion.socket!!.close()
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+
+                            }
+                        }
+
+                    }
                     navController.navigate("${SuscripcionDestination.route}/false")
                 }
                 "checkout_returnurl" -> {
 
                     val contratacionId = uri.getQueryParameter("token")
-
-                    println(contratacionId)
 
                     GlobalScope.launch {
 
@@ -151,7 +170,27 @@ class MainActivity : ComponentActivity() {
 
                 }
                 "checkout_cancelurl" -> {
-                    //Ignore
+                    GlobalScope.launch {
+
+                        if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
+                            withContext(Dispatchers.IO) {
+
+                                try {
+
+                                    Sesion.salida.writeUTF("cancelar")
+                                    Sesion.salida.flush()
+
+                                } catch (e: IOException) {
+                                    e.printStackTrace()
+                                    Sesion.socket!!.close()
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+
+                            }
+                        }
+
+                    }
                 }
             }
         }

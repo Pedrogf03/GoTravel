@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.gotravel.Controller.LandingScreen">
+   <children>
+      <ImageView fx:id="wallpaper" fitHeight="1080.0" fitWidth="1920.0" layoutX="736.0" layoutY="211.0" pickOnBounds="true" preserveRatio="true" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+      <AnchorPane layoutX="710.0" layoutY="240.0" prefHeight="600.0" prefWidth="500.0" style="-fx-background-color: #3D5F90;">
+         <children>
+            <Label fx:id="iniciaresionLabel" alignment="CENTER" layoutX="91.0" layoutY="21.0" prefHeight="64.0" prefWidth="318.0" text="Iniciar Sesión" textAlignment="CENTER" textFill="WHITE">
+               <font>
+                  <Font name="Bodoni MT Condensed" size="12.0" />
+               </font>
+            </Label>
+            <VBox alignment="CENTER" layoutX="98.0" layoutY="109.0" prefHeight="309.0" prefWidth="304.0" style="-fx-spacing: 15;">
+               <children>
+                  <Label fx:id="nombreLabel" alignment="CENTER" prefHeight="25.0" prefWidth="261.0" text="Nombre" textAlignment="CENTER" textFill="WHITE">
+                     <font>
+                        <Font name="Bodoni MT Condensed" size="12.0" />
+                     </font>
+                  </Label>
+                  <TextField fx:id="nombre" alignment="CENTER" prefHeight="25.0" prefWidth="261.0">
+                     <cursor>
+                        <Cursor fx:constant="TEXT" />
+                     </cursor></TextField>
+                  <Label fx:id="emailLabel" alignment="CENTER" prefHeight="25.0" prefWidth="261.0" text="Correo Electrónico" textAlignment="CENTER" textFill="WHITE">
+                     <font>
+                        <Font name="Bodoni MT Condensed" size="12.0" />
+                     </font>
+                  </Label>
+                  <TextField fx:id="email" prefHeight="25.0" prefWidth="261.0">
+                     <cursor>
+                        <Cursor fx:constant="TEXT" />
+                     </cursor></TextField>
+                  <Label fx:id="contrasenaLabel" alignment="CENTER" prefHeight="25.0" prefWidth="261.0" text="Contraseña" textAlignment="CENTER" textFill="WHITE">
+                     <font>
+                        <Font name="Bodoni MT Condensed" size="12.0" />
+                     </font>
+                  </Label>
+                  <PasswordField fx:id="contrasena">
+                     <cursor>
+                        <Cursor fx:constant="TEXT" />
+                     </cursor></PasswordField>
+                  <Label fx:id="confirmarContrasenaLabel" alignment="CENTER" prefHeight="25.0" prefWidth="261.0" text="Confirmar contraseña" textAlignment="CENTER" textFill="WHITE">
+                     <font>
+                        <Font name="Bodoni MT Condensed" size="12.0" />
+                     </font>
+                  </Label>
+                  <PasswordField fx:id="confirmarContrasena">
+                     <cursor>
+                        <Cursor fx:constant="TEXT" />
+                     </cursor></PasswordField>
+               </children>
+            </VBox>
+            <Button layoutX="147.0" layoutY="478.0" mnemonicParsing="false" onAction="#conectarConElServidor" prefHeight="25.0" prefWidth="207.0" style="-fx-background-color: #FFFFFF;" text="Continuar">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor></Button>
+            <Button fx:id="cambiarFormularioMsg" layoutX="147.0" layoutY="516.0" mnemonicParsing="false" onAction="#cambiarFormulario" prefHeight="25.0" prefWidth="207.0" style="-fx-background-color: none;" text="¿Aún no estás registrado?" textFill="WHITE" underline="true">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor></Button>
+            <Button fx:id="contrasenaOlvidadaMsg" layoutX="147.0" layoutY="541.0" mnemonicParsing="false" onAction="#contrasenaOlvidada" prefHeight="25.0" prefWidth="207.0" style="-fx-background-color: none;" text="¿Has olvidado tu contraseña?" textFill="WHITE" underline="true">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor></Button>
+            <Label fx:id="errorMsg" alignment="CENTER" layoutX="6.0" layoutY="440.0" prefHeight="17.0" prefWidth="489.0" textAlignment="CENTER" textFill="#ba1a1a" />
+         </children>
+      </AnchorPane>
+   </children>
+</AnchorPane>
