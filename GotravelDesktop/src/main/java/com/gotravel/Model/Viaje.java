@@ -23,6 +23,14 @@ public class Viaje {
     private Double costeTotal;
     private List<Etapa> etapas;
 
+    public Viaje(String nombre, String descripcion, String fechaInicio, String fechaFin, Double costeTotal) {
+        this.nombre = nombre;
+        this.descripcion = descripcion;
+        this.fechaInicio = fechaInicio;
+        this.fechaFin = fechaFin;
+        this.costeTotal = costeTotal;
+    }
+
     public String inicio() {
         return LocalDate.parse(this.fechaInicio, Fechas.formatoFromDb).format(Fechas.formatoFinal);
     }

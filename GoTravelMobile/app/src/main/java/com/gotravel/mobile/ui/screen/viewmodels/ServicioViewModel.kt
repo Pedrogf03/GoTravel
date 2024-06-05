@@ -82,38 +82,40 @@ class ServicioViewModel(
                     if(servicio != null) {
                         servicio.imagenes = getAllImagenesFromServicio()!!
                         servicio.contratado = isServicioContratado()
-                    }
 
-                    Sesion.salida.writeUTF("findUsuarioByServicio;${idServicio}")
-                    Sesion.salida.flush()
 
-                    val usuarioFromServer = Sesion.entrada.readUTF()
-                    val usuario = gson.fromJson(usuarioFromServer, Usuario::class.java)
 
-                    if(usuario != null) {
-                        servicio.usuario = usuario
-                    }
+                        Sesion.salida.writeUTF("findUsuarioByServicio;${idServicio}")
+                        Sesion.salida.flush()
 
-                    Sesion.salida.writeUTF("findResenasByServicio;${idServicio}")
-                    Sesion.salida.flush()
+                        val usuarioFromServer = Sesion.entrada.readUTF()
+                        val usuario = gson.fromJson(usuarioFromServer, Usuario::class.java)
 
-                    val resenasFromServer = Sesion.entrada.readUTF()
-                    val type = object : TypeToken<List<Resena>>() {}.type
-                    val resenas =  gson.fromJson<List<Resena>>(resenasFromServer, type)
-
-                    for(r in resenas) {
-                        val usuarioTieneFoto = Sesion.entrada.readBoolean()
-                        if(usuarioTieneFoto) {
-                            val length = Sesion.entrada.readInt() // Lee la longitud del ByteArray
-                            val byteArray = ByteArray(length)
-                            Sesion.entrada.readFully(byteArray) // Lee el ByteArray
-                            r.usuario!!.foto = byteArray
+                        if(usuario != null) {
+                            servicio.usuario = usuario
                         }
+
+                        Sesion.salida.writeUTF("findResenasByServicio;${idServicio}")
+                        Sesion.salida.flush()
+
+                        val resenasFromServer = Sesion.entrada.readUTF()
+                        val type = object : TypeToken<List<Resena>>() {}.type
+                        val resenas =  gson.fromJson<List<Resena>>(resenasFromServer, type)
+
+                        for(r in resenas) {
+                            val usuarioTieneFoto = Sesion.entrada.readBoolean()
+                            if(usuarioTieneFoto) {
+                                val length = Sesion.entrada.readInt() // Lee la longitud del ByteArray
+                                val byteArray = ByteArray(length)
+                                Sesion.entrada.readFully(byteArray) // Lee el ByteArray
+                                r.usuario!!.foto = byteArray
+                            }
+                        }
+
+                        servicio.resenas = resenas
+
+                        return@withContext servicio
                     }
-
-                    servicio.resenas = resenas
-
-                    return@withContext servicio
 
                 } catch (e: IOException) {
                     e.printStackTrace()

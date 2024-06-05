@@ -19,7 +19,6 @@
         <service android:name="com.gotravel.mobile.ClosingService" android:stopWithTask="false"/>
         <activity
             android:name="com.gotravel.mobile.MainActivity"
-            android:windowSoftInputMode="adjustResize"
             android:launchMode="singleTop"
             android:exported="true"
             android:theme="@style/Theme.GoTravel">

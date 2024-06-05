@@ -59,8 +59,8 @@ public class SuscribirseScreen implements Initializable {
     private Text title;
 
     @FXML
-    void navigateUp(ActionEvent event) {
-
+    void navigateUp(ActionEvent event) throws IOException {
+        GoTravel.setRoot("perfil");
     }
 
     @FXML

@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.gotravel.Utils.Fechas.formatoFinal;
@@ -28,8 +29,8 @@ public class Servicio {
     private TipoServicio tipoServicio;
     private Direccion direccion;
     private Usuario usuario;
-    private List<Imagen> imagenes;
-    private List<Resena> resenas;
+    private List<Imagen> imagenes = new ArrayList<>();
+    private List<Resena> resenas = new ArrayList<>();
     private String publicado = "0";
     private boolean contratado = false;
 

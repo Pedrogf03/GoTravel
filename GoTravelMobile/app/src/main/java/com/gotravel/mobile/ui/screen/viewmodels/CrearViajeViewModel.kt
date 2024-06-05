@@ -30,7 +30,7 @@ class CrearViajeViewModel : ViewModel() {
             val inicio = LocalDate.parse(fechaInicio, formatoFinal)
             val fin = LocalDate.parse(fechaFin, formatoFinal)
 
-            if(!nombre.matches(Regex.regexCamposAlfaNum) && nombre.length <= 45) {
+            if(!nombre.matches(Regex.regexCamposAlfaNum) && nombre.length > 45) {
                 mensajeUi.postValue("El nombre no es válido")
             } else if(descripcion.isNotBlank() && !descripcion.matches(Regex.regexCamposAlfaNum)) {
                 mensajeUi.postValue("La descripción no es válida")

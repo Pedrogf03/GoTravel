@@ -83,9 +83,8 @@ public class ContratacionesScreen implements Initializable {
     }
 
     private void mostrarContrataciones() {
+
         flowPane.getChildren().clear();
-        flowPane.setVgap(10);
-        flowPane.setHgap(10);
 
         for(Servicio s : contrataciones) {
             HBox hbox = new HBox(10);
@@ -121,7 +120,12 @@ public class ContratacionesScreen implements Initializable {
             flowPane.getChildren().add(hbox);
             FlowPane.setMargin(hbox, new Insets(10, 10, 10, 10));
             hbox.setOnMouseClicked(event -> {
-                // TODO: ver servicio
+                ServicioScreen.setServicioId(s.getId());
+                try {
+                    GoTravel.setRoot("servicio");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             });
         }
     }
