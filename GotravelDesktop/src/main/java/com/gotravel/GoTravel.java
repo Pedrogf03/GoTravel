@@ -60,7 +60,7 @@ public class GoTravel extends Application {
                 sesion.getEntrada().close();
                 sesion.getSocket().close();
             } catch (IOException e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
             }
 
         }

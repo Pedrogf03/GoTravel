@@ -1,5 +1,7 @@
 package com.gotravel.mobile.ui.screen
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -56,6 +58,7 @@ object CambiarContrasenaDestination : NavDestination {
     override val titleRes = R.string.app_name
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
 @Composable
 fun CambiarContrasenaScreen(
@@ -124,8 +127,10 @@ fun CambiarContrasenaScreen(
                         keyboardType = KeyboardType.Text,
                         imeAction =ImeAction.Next
                     ),
-                    colors = TextFieldDefaults.textFieldColors(
-                        containerColor = Color.Transparent
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
                     ),
                     modifier = Modifier
                         .fillMaxWidth()

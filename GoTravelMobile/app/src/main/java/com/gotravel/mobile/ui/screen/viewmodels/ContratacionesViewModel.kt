@@ -75,7 +75,7 @@ class ContratacionesViewModel(
 
                 try {
 
-                    Sesion.salida.writeUTF("findAllServiciosContratados")
+                    Sesion.salida.writeUTF("findAll;serviciosContratados")
                     Sesion.salida.flush()
 
                     val jsonFromServer = Sesion.entrada.readUTF()
@@ -116,7 +116,7 @@ class ContratacionesViewModel(
 
                 try {
 
-                    Sesion.salida.writeUTF("findImagesFromServicioId;$id;one")
+                    Sesion.salida.writeUTF("findByServicioId;imagen;$id;one")
                     Sesion.salida.flush()
 
                     val jsonFromServer = Sesion.entrada.readUTF()

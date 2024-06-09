@@ -7,7 +7,7 @@ import com.gotravel.ImageApi.ImageApi;
 import com.gotravel.Model.Usuario;
 import com.gotravel.Model.Viaje;
 import com.gotravel.Utils.Fonts;
-import javafx.event.ActionEvent;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
@@ -77,37 +77,40 @@ public class HomeScreen implements Initializable {
     private VBox viajeMostrar;
 
     @FXML
-    void crearServicio(ActionEvent event) throws IOException {
+    private FontAwesomeIconView iconoTfno;
+
+    @FXML
+    void crearServicio() throws IOException {
         GoTravel.setRoot("crearServicio");
     }
 
     @FXML
-    void crearViaje(ActionEvent event) throws IOException {
+    void crearViaje() throws IOException {
         GoTravel.setRoot("crearViaje");
     }
 
     @FXML
-    void navigateToChats(ActionEvent event) throws IOException {
+    void navigateToChats() throws IOException {
         GoTravel.setRoot("chats");
     }
 
     @FXML
-    void navigateToHome(ActionEvent event) throws IOException {
+    void navigateToHome() throws IOException {
         GoTravel.setRoot("home");
     }
 
     @FXML
-    void navigateToPerfil(ActionEvent event) throws IOException {
+    void navigateToPerfil() throws IOException {
         GoTravel.setRoot("perfil");
     }
 
     @FXML
-    void navigateToServicios(ActionEvent event) throws IOException {
+    void navigateToServicios() throws IOException {
         GoTravel.setRoot("servicios");
     }
 
     @FXML
-    void navigateToViajes(ActionEvent event) throws IOException {
+    void navigateToViajes() throws IOException {
         GoTravel.setRoot("viajes");
     }
 
@@ -184,6 +187,7 @@ public class HomeScreen implements Initializable {
             tfno.setFont(Fonts.labelMedium);
         } else {
             infoUser.getChildren().remove(containerTelefono);
+            infoUser.getChildren().remove(iconoTfno);
         }
 
         rol.setText(u.getRoles().get(0).getNombre());
@@ -218,13 +222,13 @@ public class HomeScreen implements Initializable {
                         String jsonFromServer = GoTravel.getSesion().getEntrada().readUTF();
                         return gson.fromJson(jsonFromServer, Viaje.class);
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        System.err.println(e.getMessage());
                         GoTravel.setRoot("landing");
                         return null;
                     }
                 }).get();
             } catch (Exception e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
                 return null;
             }
 
@@ -252,13 +256,13 @@ public class HomeScreen implements Initializable {
                         String jsonFromServer = GoTravel.getSesion().getEntrada().readUTF();
                         return gson.fromJson(jsonFromServer, Viaje.class);
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        System.err.println(e.getMessage());
                         GoTravel.setRoot("landing");
                         return null;
                     }
                 }).get();
             } catch (Exception e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
                 return null;
             }
 

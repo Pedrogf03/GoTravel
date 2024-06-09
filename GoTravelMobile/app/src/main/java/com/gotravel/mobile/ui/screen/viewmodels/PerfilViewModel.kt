@@ -179,7 +179,7 @@ class PerfilViewModel : ViewModel() {
 
                             try {
 
-                                Sesion.salida.writeUTF("updateContrasena;${contrasenaActualHash};${contrasenaNuevaHash}")
+                                Sesion.salida.writeUTF("update;contrasena;${contrasenaActualHash};${contrasenaNuevaHash}")
                                 Sesion.salida.flush()
 
                                 val jsonFromServer = Sesion.entrada.readUTF()

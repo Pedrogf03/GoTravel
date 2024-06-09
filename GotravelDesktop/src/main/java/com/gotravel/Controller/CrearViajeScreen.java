@@ -2,23 +2,18 @@ package com.gotravel.Controller;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import com.gotravel.GoTravel;
-import com.gotravel.Model.Servicio;
 import com.gotravel.Model.Viaje;
+import com.gotravel.Utils.Fechas;
 import com.gotravel.Utils.Fonts;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.net.URL;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.ResourceBundle;
 import java.util.concurrent.Executors;
 
@@ -61,15 +56,21 @@ public class CrearViajeScreen implements Initializable {
     @FXML
     private Text title;
 
+    private static Viaje editarViaje;
+
+    public static void setViaje(Viaje v) {
+        editarViaje = v;
+    }
+
     @FXML
-    void crearViaje(ActionEvent event) {
+    void crearViaje() {
 
         if(nombre.getText().isBlank() || fechaInicio.getValue() == null || fechaFin.getValue() == null) {
             errorMsg.setText("Por favor rellena todos los campos obligatorios");
         } else {
 
-            LocalDate inicio = LocalDate.parse(fechaInicio.getValue().toString(), formatoFinal);
-            LocalDate fin = LocalDate.parse(fechaFin.getValue().toString(), formatoFinal);
+            LocalDate inicio = LocalDate.parse(fechaInicio.getValue().toString(), formatoFromDb);
+            LocalDate fin = LocalDate.parse(fechaFin.getValue().toString(), formatoFromDb);
 
             if(!regexCamposAlfaNum.matcher(nombre.getText()).matches() || nombre.getText().length() > 45) {
                 errorMsg.setText("El nombre no es válido");
@@ -78,7 +79,16 @@ public class CrearViajeScreen implements Initializable {
             } else if (fin.isBefore(inicio)) {
                 errorMsg.setText("La fecha de final no puede ser antes que la fecha de inicio");
             } else {
-                Viaje viaje = new Viaje(nombre.getText(), descripcion.getText().isBlank() ? null : descripcion.getText(), inicio.format(formatoFromDb), fin.format(formatoFromDb), 0.0);
+                Viaje viaje;
+                if(editarViaje != null) {
+                    viaje = editarViaje;
+                    viaje.setNombre(nombre.getText());
+                    viaje.setDescripcion(descripcion.getText().isBlank() ? null : descripcion.getText());
+                    viaje.setFechaInicio(inicio.format(formatoFromDb));
+                    viaje.setFechaFin(fin.format(formatoFromDb));
+                } else {
+                    viaje = new Viaje(nombre.getText(), descripcion.getText().isBlank() ? null : descripcion.getText(), inicio.format(formatoFromDb), fin.format(formatoFromDb), 0.0);
+                }
                 guardarViaje(viaje);
             }
         }
@@ -90,14 +100,18 @@ public class CrearViajeScreen implements Initializable {
         if(GoTravel.getSesion().getSocket() != null && !GoTravel.getSesion().getSocket().isClosed()) {
 
             try {
-                new Thread(() -> {
+                Executors.newSingleThreadExecutor().submit(() -> {
                     Gson gson = new GsonBuilder()
                             .serializeNulls()
                             .setLenient()
                             .create();
 
                     try {
-                        GoTravel.getSesion().getSalida().writeUTF("save:viaje");
+                        if(editarViaje != null) {
+                            GoTravel.getSesion().getSalida().writeUTF("update;viaje");
+                        } else {
+                            GoTravel.getSesion().getSalida().writeUTF("save;viaje");
+                        }
                         GoTravel.getSesion().getSalida().flush();
 
                         String json = gson.toJson(viaje);
@@ -109,7 +123,7 @@ public class CrearViajeScreen implements Initializable {
                         Viaje viajeFromServer = gson.fromJson(jsonFromServer, Viaje.class);
 
                         if (viajeFromServer != null) {
-                            // TODO: ViajeScreen.setViaje(viajeFromServer);
+                            ViajeScreen.setViajeId(viajeFromServer.getId());
                             GoTravel.setRoot("viaje");
                         } else {
                             errorMsg.setText("No se ha podido guardar el viaje");
@@ -117,16 +131,16 @@ public class CrearViajeScreen implements Initializable {
 
 
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        System.err.println(e.getMessage());
                         try {
                             GoTravel.setRoot("landing");
                         } catch (IOException ex) {
-                            throw new RuntimeException(ex);
+                            System.err.println(e.getMessage());
                         }
                     }
-                }).start();
+                }).get();
             } catch (Exception e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
             }
 
         }
@@ -134,7 +148,7 @@ public class CrearViajeScreen implements Initializable {
     }
 
     @FXML
-    void navigateUp(ActionEvent event) throws IOException {
+    void navigateUp() throws IOException {
         GoTravel.setRoot("home");
     }
 
@@ -165,6 +179,13 @@ public class CrearViajeScreen implements Initializable {
                 setDisable(empty || date.isBefore(LocalDate.now()));
             }
         });
+
+        if(editarViaje != null) {
+            nombre.setText(editarViaje.getNombre());
+            descripcion.setText(editarViaje.getDescripcion());
+            fechaInicio.setValue(LocalDate.parse(editarViaje.inicio(), formatoFinal));
+            fechaFin.setValue(LocalDate.parse(editarViaje.fin(), formatoFinal));
+        }
 
     }
 }

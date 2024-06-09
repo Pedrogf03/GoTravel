@@ -426,7 +426,7 @@ fun InformacionServicio(
                         } else {
                             Button(onClick = {
                                 GlobalScope.launch {
-                                    viewModel.ocultarServicio()
+                                    viewModel.archivarServicio()
                                 }
                             }) {
                                 Text(text = "Ocultar", fontSize = 12.sp)

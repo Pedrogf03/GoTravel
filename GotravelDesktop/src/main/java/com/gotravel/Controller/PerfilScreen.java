@@ -6,17 +6,18 @@ import com.gotravel.GoTravel;
 import com.gotravel.Model.Rol;
 import com.gotravel.Model.Usuario;
 import com.gotravel.Utils.Fonts;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 
@@ -27,13 +28,16 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.util.Objects;
 import java.util.ResourceBundle;
-import java.util.concurrent.ExecutionException;
+import java.util.UUID;
 
 import static com.gotravel.Utils.Regex.*;
 
 public class PerfilScreen implements Initializable {
 
     private Usuario u = GoTravel.getSesion().getUsuario();
+
+    @FXML
+    private Button actualizarContrasenaButton;
 
     @FXML
     private TextField apellidosField;
@@ -45,10 +49,31 @@ public class PerfilScreen implements Initializable {
     private VBox botones;
 
     @FXML
+    private Text cambiarContrasenaTitle;
+
+    @FXML
     private Button cerrarServidorButton;
 
     @FXML
+    private PasswordField confirmarContrasena;
+
+    @FXML
+    private Label confirmarContrasenaLabel;
+
+    @FXML
     private HBox containerTelefono;
+
+    @FXML
+    private PasswordField contrasenaActual;
+
+    @FXML
+    private Label contrasenaActualLabel;
+
+    @FXML
+    private PasswordField contrasenaNueva;
+
+    @FXML
+    private Label contrasenaNuevaLabel;
 
     @FXML
     private Button contratacionesButton;
@@ -67,6 +92,9 @@ public class PerfilScreen implements Initializable {
 
     @FXML
     private Label emailLabel;
+
+    @FXML
+    private Text errorMsg;
 
     @FXML
     private ImageView fotoEditar;
@@ -88,6 +116,9 @@ public class PerfilScreen implements Initializable {
 
     @FXML
     private Label nombreLabel;
+
+    @FXML
+    private AnchorPane cambiarContrasenaPanel;
 
     @FXML
     private Label rol;
@@ -117,10 +148,20 @@ public class PerfilScreen implements Initializable {
     private ImageView userFoto;
 
     @FXML
-    private Text errorMsg;
+    private Button cambiarContrasenaButton;
 
     @FXML
-    void updateFoto(ActionEvent event) {
+    void mostrarNuevaContrasena() {
+
+        cambiarContrasenaPanel.setDisable(false);
+        cambiarContrasenaPanel.setVisible(true);
+
+        cerrarEditarPerfil();
+
+    }
+
+    @FXML
+    void updateFoto() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("Imágenes", "*.png", "*.jpg", "*.jpeg")
@@ -159,7 +200,7 @@ public class PerfilScreen implements Initializable {
                             }
 
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            System.err.println(e.getMessage());
                             errorMsg.setText("No se puede conectar con el servidor");
                         }
                     }).start();
@@ -167,14 +208,14 @@ public class PerfilScreen implements Initializable {
                 }
 
             } catch (IOException e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
             }
         }
     }
 
 
     @FXML
-    void updateUsuario(ActionEvent event) throws ExecutionException, InterruptedException {
+    void updateUsuario() {
 
         if(!(nombreField.getText().isEmpty() || nombreField.getText().isBlank()) && regexCamposAlfaNum.matcher(nombreField.getText()).matches() && nombreField.getText().length() <= 45) {
             if((regexCamposAlfaNum.matcher(apellidosField.getText()).matches() && apellidosField.getText().length() <= 200) || apellidosField.getText().isBlank()) {
@@ -227,7 +268,7 @@ public class PerfilScreen implements Initializable {
                                     }
 
                                 } catch (IOException e) {
-                                    e.printStackTrace();
+                                    System.err.println(e.getMessage());
                                     errorMsg.setText("No se puede conectar con el servidor");
                                 }
                             }).start();
@@ -250,7 +291,7 @@ public class PerfilScreen implements Initializable {
     }
 
     @FXML
-    void cerrarServidor(ActionEvent event) throws ExecutionException, InterruptedException {
+    void cerrarServidor() {
 
         if(GoTravel.getSesion().getSocket() != null && !GoTravel.getSesion().getSocket().isClosed()) {
 
@@ -266,7 +307,7 @@ public class PerfilScreen implements Initializable {
                     GoTravel.setRoot("landing");
 
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    System.err.println(e.getMessage());
                 }
             }).start();
 
@@ -275,7 +316,7 @@ public class PerfilScreen implements Initializable {
     }
 
     @FXML
-    void cerrarSesion(ActionEvent event) throws ExecutionException, InterruptedException {
+    void cerrarSesion() {
 
         if(GoTravel.getSesion().getSocket() != null && !GoTravel.getSesion().getSocket().isClosed()) {
 
@@ -291,7 +332,7 @@ public class PerfilScreen implements Initializable {
                     GoTravel.setRoot("landing");
 
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    System.err.println(e.getMessage());
                 }
             }).start();
 
@@ -300,18 +341,18 @@ public class PerfilScreen implements Initializable {
     }
 
     @FXML
-    void editarPerfil(ActionEvent event) {
+    void editarPerfil() {
         editarPerfilPanel.setVisible(true);
         editarPerfilPanel.setDisable(false);
     }
 
     @FXML
-    void verContrataciones(ActionEvent event) throws IOException {
+    void verContrataciones() throws IOException {
         GoTravel.setRoot("contrataciones");
     }
 
     @FXML
-    void verSuscripcion(ActionEvent event) throws IOException {
+    void verSuscripcion() throws IOException {
         if(u.isProfesional()) {
             GoTravel.setRoot("suscripcion");
         } else {
@@ -320,34 +361,100 @@ public class PerfilScreen implements Initializable {
     }
 
     @FXML
-    void navigateToChats(ActionEvent event) throws IOException {
+    void navigateToChats() throws IOException {
         GoTravel.setRoot("chats");
     }
 
     @FXML
-    void navigateToHome(ActionEvent event) throws IOException {
+    void navigateToHome() throws IOException {
         GoTravel.setRoot("home");
     }
 
     @FXML
-    void navigateToPerfil(ActionEvent event) throws IOException {
+    void navigateToPerfil() throws IOException {
         GoTravel.setRoot("perfil");
     }
 
     @FXML
-    void navigateToServicios(ActionEvent event) throws IOException {
+    void navigateToServicios() throws IOException {
         GoTravel.setRoot("servicios");
     }
 
     @FXML
-    void navigateToViajes(ActionEvent event) throws IOException {
+    void navigateToViajes() throws IOException {
         GoTravel.setRoot("viajes");
     }
 
     @FXML
-    void cerrarEditarPerfil(ActionEvent event) {
+    void cerrarEditarPerfil() {
         editarPerfilPanel.setVisible(false);
         editarPerfilPanel.setDisable(true);
+    }
+
+    @FXML
+    void cerrarCambiarContrasena() {
+        cambiarContrasenaPanel.setVisible(false);
+        cambiarContrasenaPanel.setDisable(true);
+    }
+
+    @FXML
+    void updateContrasena() {
+
+
+        if((!contrasenaActual.getText().isBlank() || !contrasenaActual.getText().isEmpty()) && (!contrasenaNueva.getText().isBlank() || !contrasenaNueva.getText().isEmpty()) && (!confirmarContrasena.getText().isBlank() || !confirmarContrasena.getText().isEmpty()) ) {
+
+            String contrasenaNuevaHash = GoTravel.toSha256(contrasenaNueva.getText());
+            String confirmarHash = GoTravel.toSha256(confirmarContrasena.getText());
+            String contrasenaActualHash = GoTravel.toSha256(contrasenaActual.getText());
+
+            if(contrasenaNuevaHash.equals(contrasenaActualHash)) {
+                errorMsg.setText("La nueva contraseña no puede ser igual a la anterior");
+            } else if (!contrasenaNuevaHash.equals(confirmarHash)) {
+                errorMsg.setText("Las contraseñas no coinciden");
+            } else {
+
+                if(GoTravel.getSesion().getSocket() != null && !GoTravel.getSesion().getSocket().isClosed()) {
+                    Gson gson = new GsonBuilder()
+                            .serializeNulls()
+                            .setLenient()
+                            .create();
+
+                    new Thread(() -> {
+                        try {
+
+                            Usuario usuarioFromServer;
+
+                            GoTravel.getSesion().getSalida().writeUTF("update;contrasena;" + contrasenaActualHash + ";" + contrasenaNuevaHash);
+                            GoTravel.getSesion().getSalida().flush();
+
+                            String jsonFromServer = GoTravel.getSesion().getEntrada().readUTF();
+                            usuarioFromServer = gson.fromJson(jsonFromServer, Usuario.class);
+
+                            if(usuarioFromServer != null) {
+                                byte[] foto = GoTravel.getSesion().getUsuario().getFoto();
+                                usuarioFromServer.setFoto(foto);
+                                for(Rol r : usuarioFromServer.getRoles()) {
+                                    if(r.getNombre().equalsIgnoreCase("profesional")) {
+                                        usuarioFromServer.setProfesional(true);
+                                    } else if (r.getNombre().equalsIgnoreCase("administrador")) {
+                                        usuarioFromServer.setAdministrador(true);
+                                    }
+                                }
+                                GoTravel.getSesion().setUsuario(usuarioFromServer);
+                                GoTravel.setRoot("perfil");
+                            }
+
+                        } catch (IOException e) {
+                            System.err.println(e.getMessage());
+                        }
+                    }).start();
+
+                }
+
+            }
+
+        }
+
     }
 
     @Override
@@ -414,6 +521,15 @@ public class PerfilScreen implements Initializable {
 
         updateFotoButton.setFont(Fonts.labelMedium);
         updateUsuarioButton.setFont(Fonts.labelMedium);
+
+        actualizarContrasenaButton.setFont(Fonts.labelMedium);
+
+        cambiarContrasenaTitle.setFont(Fonts.titleSmall);
+        contrasenaActualLabel.setFont(Fonts.labelMedium);
+        contrasenaNuevaLabel.setFont(Fonts.labelMedium);
+        confirmarContrasenaLabel.setFont(Fonts.labelMedium);
+
+        cambiarContrasenaButton.setFont(Fonts.labelSmall);
 
     }
 

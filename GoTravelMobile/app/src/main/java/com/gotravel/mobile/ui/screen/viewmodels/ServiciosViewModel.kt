@@ -126,7 +126,7 @@ class ServiciosViewModel(
 
                 try {
 
-                    Sesion.salida.writeUTF("findImagesFromServicioId;$id;one")
+                    Sesion.salida.writeUTF("findByServicioId;imagen;$id;one")
                     Sesion.salida.flush()
 
                     val jsonFromServer = Sesion.entrada.readUTF()

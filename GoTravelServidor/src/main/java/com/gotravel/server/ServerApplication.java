@@ -1,8 +1,5 @@
 package com.gotravel.server;
 
-import com.gotravel.server.Paypal.Subscriptions;
-import com.gotravel.server.Paypal.TokenClient;
-import com.gotravel.server.model.Usuario;
 import com.gotravel.server.service.AppService;
 import com.gotravel.server.servidor.HiloCliente;
 import org.slf4j.Logger;
@@ -10,16 +7,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.core.io.ClassPathResource;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.Scanner;
+import java.util.*;
 
 @SpringBootApplication
 public class ServerApplication {
@@ -30,9 +23,9 @@ public class ServerApplication {
 	private int puerto;
 	private volatile boolean pararServidor;
 	private ServerSocket socketServidor;
-	private List<HiloCliente> clientesConectados;
+	private Map<Integer, HiloCliente> clientesConectados;
 
-	public ServerApplication(AppService service) throws IOException{
+	public ServerApplication(AppService service) throws IOException {
 
 		this.service = service;
 
@@ -41,7 +34,7 @@ public class ServerApplication {
 			Properties conf = new Properties();
 			conf.load(new FileInputStream("server.properties"));
 			this.puerto = Integer.parseInt(conf.getProperty("puerto"));
-			this.clientesConectados = new ArrayList<>();
+			this.clientesConectados = new HashMap<>();
 		} catch (IOException e) {
             LOG.error("No se han podido leer las propiedades del servidor: {}", e.getMessage());
 			throw e;

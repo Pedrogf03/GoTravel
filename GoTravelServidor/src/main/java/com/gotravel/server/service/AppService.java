@@ -1,7 +1,6 @@
 package com.gotravel.server.service;
 
 import com.gotravel.server.ServerApplication;
-import com.gotravel.server.model.Suscripcion;
 import com.gotravel.server.model.*;
 import com.gotravel.server.repository.*;
 import org.slf4j.Logger;

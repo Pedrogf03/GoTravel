@@ -11,7 +11,6 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
@@ -59,18 +58,17 @@ public class SuscribirseScreen implements Initializable {
     private Text title;
 
     @FXML
-    void navigateUp(ActionEvent event) throws IOException {
+    void navigateUp() throws IOException {
         GoTravel.setRoot("perfil");
     }
 
     @FXML
-    void suscribirse(ActionEvent event) {
+    void suscribirse() {
 
         if(GoTravel.getSesion().getSocket() != null && !GoTravel.getSesion().getSocket().isClosed()) {
 
             new Thread(() -> {
                 Suscripcion s = findSuscripcionByUsuarioId();
-
                 if(s != null) {
                     activarSuscripcion(s.getId());
                 } else {
@@ -96,9 +94,7 @@ public class SuscribirseScreen implements Initializable {
                         String url = GoTravel.getSesion().getEntrada().readUTF();
 
                         if(!url.isBlank()) {
-                            Platform.runLater(() -> {
-                                GoTravel.getHost().showDocument(url);
-                            });
+                            Platform.runLater(() -> GoTravel.getHost().showDocument(url));
 
                             server = HttpServer.create(new InetSocketAddress(8080), 0);
                             server.createContext("/subscription_returnurl", new SubscriptionHandler());
@@ -109,16 +105,16 @@ public class SuscribirseScreen implements Initializable {
                         }
 
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        System.err.println(e.getMessage());
                         try {
                             GoTravel.setRoot("landing");
                         } catch (IOException ex) {
-                            e.printStackTrace();
+                            System.err.println(e.getMessage());
                         }
                     }
                 }).start();
             } catch (Exception e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
             }
 
         }
@@ -162,13 +158,13 @@ public class SuscribirseScreen implements Initializable {
                         return gson.fromJson(jsonFromServer, Suscripcion.class);
 
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        System.err.println(e.getMessage());
                         GoTravel.setRoot("landing");
                         return null;
                     }
                 }).get();
             } catch (Exception e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
             }
 
         }
@@ -200,16 +196,16 @@ public class SuscribirseScreen implements Initializable {
                         }
 
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        System.err.println(e.getMessage());
                         try {
                             GoTravel.setRoot("landing");
                         } catch (IOException ex) {
-                            e.printStackTrace();
+                            System.err.println(e.getMessage());
                         }
                     }
                 }).start();
             } catch (Exception e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
             }
 
         }
@@ -219,7 +215,7 @@ public class SuscribirseScreen implements Initializable {
     static class SubscriptionHandler implements HttpHandler {
 
         @Override
-        public void handle(HttpExchange exchange) throws IOException {
+        public void handle(HttpExchange exchange) {
 
             URI requestURI = exchange.getRequestURI();
             String query = requestURI.getQuery();
@@ -259,16 +255,16 @@ public class SuscribirseScreen implements Initializable {
                                 }
 
                             } catch (IOException e) {
-                                e.printStackTrace();
+                                System.err.println(e.getMessage());
                                 try {
                                     GoTravel.setRoot("landing");
                                 } catch (IOException ex) {
-                                    e.printStackTrace();
+                                    System.err.println(e.getMessage());
                                 }
                             }
                         }).start();
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        System.err.println(e.getMessage());
                     }
 
                     server.stop(0);
@@ -283,30 +279,26 @@ public class SuscribirseScreen implements Initializable {
     static class CancelHandler implements HttpHandler {
 
         @Override
-        public void handle(HttpExchange exchange) throws IOException {
+        public void handle(HttpExchange exchange) {
 
             try {
                 Executors.newSingleThreadExecutor().submit(() -> {
-                    Gson gson = new GsonBuilder()
-                            .serializeNulls()
-                            .setLenient()
-                            .create();
 
                     try {
                         GoTravel.getSesion().getSalida().writeUTF("cancelar");
                         GoTravel.getSesion().getSalida().flush();
 
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        System.err.println(e.getMessage());
                         try {
                             GoTravel.setRoot("landing");
                         } catch (IOException ex) {
-                            e.printStackTrace();
+                            System.err.println(e.getMessage());
                         }
                     }
                 }).get();
             } catch (Exception e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
             }
 
             server.stop(0);

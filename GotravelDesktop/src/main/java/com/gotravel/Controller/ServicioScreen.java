@@ -6,7 +6,10 @@ import com.google.gson.reflect.TypeToken;
 import com.gotravel.GoTravel;
 import com.gotravel.Model.*;
 import com.gotravel.Utils.Fonts;
-import javafx.event.ActionEvent;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
@@ -20,12 +23,17 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import javafx.stage.FileChooser;
 import lombok.Setter;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.net.InetSocketAddress;
+import java.net.URI;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Objects;
 import java.util.ResourceBundle;
@@ -37,6 +45,9 @@ public class ServicioScreen implements Initializable {
     private static int servicioId;
     private Servicio s;
     private int fotoActual = 0;
+    private int etapaId;
+
+    private static HttpServer server;
 
     @FXML
     private HBox botones;
@@ -87,7 +98,7 @@ public class ServicioScreen implements Initializable {
     private Button siguienteButton;
 
     @FXML
-    void anteriorFoto(ActionEvent event) {
+    void anteriorFoto() {
         fotoActual--;
         if(fotoActual < 0) {
             fotoActual = s.getImagenes().size()-1;
@@ -96,7 +107,7 @@ public class ServicioScreen implements Initializable {
     }
 
     @FXML
-    void siguienteFoto(ActionEvent event) {
+    void siguienteFoto() {
         fotoActual++;
         if(fotoActual >= s.getImagenes().size()) {
             fotoActual = 0;
@@ -105,7 +116,7 @@ public class ServicioScreen implements Initializable {
     }
 
     @FXML
-    void navigateUp(ActionEvent event) throws IOException {
+    void navigateUp() throws IOException {
         GoTravel.setRoot("servicios");
     }
 
@@ -245,7 +256,7 @@ public class ServicioScreen implements Initializable {
                             servicio.setImagenes(getAllImagenesFromServicio());
                             servicio.setContratado(isServicioContratado());
 
-                            GoTravel.getSesion().getSalida().writeUTF("findUsuarioByServicio;" + servicioId);
+                            GoTravel.getSesion().getSalida().writeUTF("findByServicioId;usuario;" + servicioId);
                             GoTravel.getSesion().getSalida().flush();
 
                             String usuarioFromServer = GoTravel.getSesion().getEntrada().readUTF();
@@ -255,7 +266,7 @@ public class ServicioScreen implements Initializable {
                                 servicio.setUsuario(usuario);
                             }
 
-                            GoTravel.getSesion().getSalida().writeUTF("findResenasByServicio;" + servicioId);
+                            GoTravel.getSesion().getSalida().writeUTF("findByServicioId;resenas;" + servicioId);
                             GoTravel.getSesion().getSalida().flush();
 
                             String resenasFromServer = GoTravel.getSesion().getEntrada().readUTF();
@@ -279,13 +290,13 @@ public class ServicioScreen implements Initializable {
                         return null;
 
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        System.err.println(e.getMessage());
                         GoTravel.setRoot("landing");
                         return null;
                     }
                 }).get();
             } catch (Exception e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
             }
 
         }
@@ -303,20 +314,20 @@ public class ServicioScreen implements Initializable {
 
                     try {
 
-                        GoTravel.getSesion().getSalida().writeUTF("isServicioContratado;" + servicioId);
+                        GoTravel.getSesion().getSalida().writeUTF("servicio;isContratado;" + servicioId);
                         GoTravel.getSesion().getSalida().flush();
 
                         return GoTravel.getSesion().getEntrada().readBoolean();
 
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        System.err.println(e.getMessage());
                         GoTravel.setRoot("landing");
                         return false;
                     }
 
                 }).get();
             } catch (Exception e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
             }
 
         }
@@ -339,7 +350,7 @@ public class ServicioScreen implements Initializable {
 
                     try {
 
-                        GoTravel.getSesion().getSalida().writeUTF("findImagesFromServicioId;" + servicioId + ";all");
+                        GoTravel.getSesion().getSalida().writeUTF("findByServicioId;imagen;" + servicioId + ";all");
                         GoTravel.getSesion().getSalida().flush();
 
                         String jsonFromServer = GoTravel.getSesion().getEntrada().readUTF();
@@ -356,20 +367,328 @@ public class ServicioScreen implements Initializable {
                         return imagenes;
 
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        System.err.println(e.getMessage());
                         GoTravel.setRoot("landing");
                         return null;
                     }
 
                 }).get();
             } catch (Exception e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
             }
 
         }
 
         return null;
 
+    }
+
+    @FXML
+    void subirFoto() {
+
+        if(GoTravel.getSesion().getSocket() != null && !GoTravel.getSesion().getSocket().isClosed()) {
+
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.getExtensionFilters().addAll(
+                    new FileChooser.ExtensionFilter("Imágenes", "*.png", "*.jpg", "*.jpeg")
+            );
+
+            File file = fileChooser.showOpenDialog(null);
+
+            if(file != null) {
+
+                try {
+
+                    byte[] fileContent = Files.readAllBytes(file.toPath());
+
+                    new Thread(() -> {
+
+                        Gson gson = new GsonBuilder()
+                                .serializeNulls()
+                                .setLenient()
+                                .create();
+
+                        try {
+
+                            GoTravel.getSesion().getSalida().writeUTF("uploadFoto;servicio;" + servicioId);
+                            GoTravel.getSesion().getSalida().flush();
+
+                            GoTravel.getSesion().getSalida().writeInt(fileContent.length);
+                            GoTravel.getSesion().getSalida().write(fileContent);
+                            GoTravel.getSesion().getSalida().flush();
+
+                            String jsonFromServer = GoTravel.getSesion().getEntrada().readUTF();
+                            Servicio servicio = gson.fromJson(jsonFromServer, Servicio.class);
+
+                            if(servicio != null) {
+                                GoTravel.setRoot("servicio");
+                            }
+
+                        } catch (IOException e) {
+                            System.err.println(e.getMessage());
+                            try {
+                                GoTravel.setRoot("landing");
+                            } catch (IOException ex) {
+                                System.err.println(e.getMessage());
+                            }
+                        }
+
+                    }).start();
+
+                } catch (Exception e) {
+                    System.err.println(e.getMessage());
+                }
+
+            }
+
+        }
+
+    }
+
+    @FXML
+    void deleteFoto() {
+
+        if(GoTravel.getSesion().getSocket() != null && !GoTravel.getSesion().getSocket().isClosed()) {
+
+            try {
+
+                new Thread(() -> {
+
+                    try {
+
+                        GoTravel.getSesion().getSalida().writeUTF("delete;imagen;" + s.getImagenes().get(fotoActual).getId());
+                        GoTravel.getSesion().getSalida().flush();
+
+                        boolean confirm = GoTravel.getSesion().getEntrada().readBoolean();
+
+                        if(confirm){
+                            GoTravel.setRoot("servicio");
+                        }
+
+                    } catch (IOException e) {
+                        System.err.println(e.getMessage());
+                        try {
+                            GoTravel.setRoot("landing");
+                        } catch (IOException ex) {
+                            System.err.println(e.getMessage());
+                        }
+                    }
+
+                }).start();
+
+            } catch (Exception e) {
+                System.err.println(e.getMessage());
+            }
+
+        }
+
+    }
+
+    @FXML
+    void publicarServicio() {
+
+        if(GoTravel.getSesion().getSocket() != null && !GoTravel.getSesion().getSocket().isClosed()) {
+
+            try {
+
+                new Thread(() -> {
+
+                    Gson gson = new GsonBuilder()
+                            .serializeNulls()
+                            .setLenient()
+                            .create();
+
+                    try {
+
+                        GoTravel.getSesion().getSalida().writeUTF("servicio;publicar;" + servicioId);
+                        GoTravel.getSesion().getSalida().flush();
+
+                        String jsonFromServer = GoTravel.getSesion().getEntrada().readUTF();
+                        Servicio servicioFromServer = gson.fromJson(jsonFromServer, Servicio.class);
+
+                        if(servicioFromServer != null){
+                            GoTravel.setRoot("servicio");
+                        }
+
+                    } catch (IOException e) {
+                        System.err.println(e.getMessage());
+                        try {
+                            GoTravel.setRoot("landing");
+                        } catch (IOException ex) {
+                            System.err.println(e.getMessage());
+                        }
+                    }
+
+                }).start();
+
+            } catch (Exception e) {
+                System.err.println(e.getMessage());
+            }
+
+        }
+
+    }
+
+    @FXML
+    void archivarServicio() {
+
+        if(GoTravel.getSesion().getSocket() != null && !GoTravel.getSesion().getSocket().isClosed()) {
+
+            try {
+
+                new Thread(() -> {
+
+                    Gson gson = new GsonBuilder()
+                            .serializeNulls()
+                            .setLenient()
+                            .create();
+
+                    try {
+
+                        GoTravel.getSesion().getSalida().writeUTF("servicio;archivar;" + servicioId);
+                        GoTravel.getSesion().getSalida().flush();
+
+                        String jsonFromServer = GoTravel.getSesion().getEntrada().readUTF();
+                        Servicio servicioFromServer = gson.fromJson(jsonFromServer, Servicio.class);
+
+                        if(servicioFromServer != null){
+                            GoTravel.setRoot("servicio");
+                        }
+
+                    } catch (IOException e) {
+                        System.err.println(e.getMessage());
+                        try {
+                            GoTravel.setRoot("landing");
+                        } catch (IOException ex) {
+                            System.err.println(e.getMessage());
+                        }
+                    }
+
+                }).start();
+
+            } catch (Exception e) {
+                System.err.println(e.getMessage());
+            }
+
+        }
+
+    }
+
+    private void addResena() {
+
+        // TODO
+
+    }
+
+    @FXML
+    void contratarServicio() {
+
+        if(GoTravel.getSesion().getSocket() != null && !GoTravel.getSesion().getSocket().isClosed()) {
+
+            try {
+
+                new Thread(() -> {
+
+                    Gson gson = new GsonBuilder()
+                            .serializeNulls()
+                            .setLenient()
+                            .create();
+
+                    try {
+
+                        GoTravel.getSesion().getSalida().writeUTF("servicio;contratar;" + servicioId + ";" + etapaId + ";desktop");
+                        GoTravel.getSesion().getSalida().flush();
+
+                        String url = GoTravel.getSesion().getEntrada().readUTF();
+
+                        if(!url.isBlank()) {
+                            Platform.runLater(() -> {
+                                GoTravel.getHost().showDocument(url);
+                            });
+
+                            server = HttpServer.create(new InetSocketAddress(8080), 0);
+                            server.createContext("/checkout_returnurl", new CheckoutHandler());
+                            server.createContext("/checkout_cancelurl", new SuscribirseScreen.CancelHandler());
+                            server.setExecutor(null);
+                            server.start();
+
+                        }
+
+                    } catch (IOException e) {
+                        System.err.println(e.getMessage());
+                        try {
+                            GoTravel.setRoot("landing");
+                        } catch (IOException ex) {
+                            System.err.println(e.getMessage());
+                        }
+                    }
+
+                }).start();
+
+            } catch (Exception e) {
+                System.err.println(e.getMessage());
+            }
+
+        }
+
+    }
+
+    static class CheckoutHandler implements HttpHandler {
+
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+
+            URI requestURI = exchange.getRequestURI();
+            String query = requestURI.getQuery();
+            String[] params = query.split("&");
+
+            for (String param : params) {
+                String[] keyValue = param.split("=");
+                if (keyValue.length > 1 && keyValue[0].equals("token")) {
+                    String contratacionId = keyValue[1];
+
+                    try {
+                        new Thread(() -> {
+                            Gson gson = new GsonBuilder()
+                                    .serializeNulls()
+                                    .setLenient()
+                                    .create();
+
+                            try {
+                                GoTravel.getSesion().getSalida().writeUTF(contratacionId);
+                                GoTravel.getSesion().getSalida().flush();
+
+                                int idViaje = Integer.parseInt(GoTravel.getSesion().getEntrada().readUTF());
+
+                                // TODO ViajeScreen.setViajeId(idViaje);
+                                //  GoTravel.setRoot("viaje");
+
+                            } catch (IOException e) {
+                                System.err.println(e.getMessage());
+                                try {
+                                    GoTravel.setRoot("landing");
+                                } catch (IOException ex) {
+                                    System.err.println(e.getMessage());
+                                }
+                            }
+                        }).start();
+                    } catch (Exception e) {
+                        System.err.println(e.getMessage());
+                    }
+
+                    server.stop(0);
+
+                }
+            }
+
+        }
+
+    }
+
+    @FXML
+    void navigateToChat() {
+        // TODO ChatScreen.setOtroUsuario(s.getUsuario());
+        //        GoTravel.setRoot("chat");
     }
 
 }

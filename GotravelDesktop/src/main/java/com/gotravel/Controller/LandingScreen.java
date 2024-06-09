@@ -7,22 +7,20 @@ import com.gotravel.ImageApi.ImageApi;
 import com.gotravel.Model.Rol;
 import com.gotravel.Model.Usuario;
 import com.gotravel.Utils.Fonts;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
 import java.io.*;
+import java.lang.module.Configuration;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.URL;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.ResourceBundle;
 
@@ -70,7 +68,7 @@ public class LandingScreen implements Initializable {
     private Label errorMsg;
 
     @FXML
-    void cambiarFormulario(ActionEvent event) {
+    void cambiarFormulario() {
         if(iniciarSesion) {
             iniciaresionLabel.setText("Registrarse");
             nombreLabel.setDisable(false);
@@ -109,7 +107,7 @@ public class LandingScreen implements Initializable {
     }
 
     @FXML
-    void conectarConElServidor(ActionEvent event) {
+    void conectarConElServidor() {
 
         errorMsg.setText("Conectando con el servidor...");
 
@@ -194,9 +192,9 @@ public class LandingScreen implements Initializable {
 
             } catch (IOException e) {
                 errorMsg.setText("No se ha podido conectar con el servidor");
-                e.printStackTrace();
+                System.err.println(e.getMessage());
             } catch (Exception e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
             }
 
         }
@@ -252,8 +250,71 @@ public class LandingScreen implements Initializable {
     }
 
     @FXML
-    void contrasenaOlvidada(ActionEvent event) {
-        // TODO
+    void contrasenaOlvidada() {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Recuperación de contraseña");
+        dialog.setHeaderText("Recuperación de contraseña");
+        dialog.setContentText("Introduce tu correo electrónico:");
+
+        Optional<String> result = dialog.showAndWait();
+
+        if (result.isPresent()) {
+            String correoElectronico = result.get();
+            if(recuperarContrasena(correoElectronico)) {
+                dialog.close();
+
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Email Enviado");
+                alert.setHeaderText(null);
+                alert.setContentText("Se ha cambiado tu contraseña automáticamente y ha sido enviada junto con instrucciones al correo electrónico proporcionado. Por favor, inicia sesión y cambia tu contraseña cuanto antes.");
+
+                alert.showAndWait();
+            }
+
+        }
+
+    }
+
+
+    private boolean recuperarContrasena(String email) {
+
+        String dirIp = "localhost";
+        int puerto = 8484;
+
+        Properties conf = new Properties();
+        try {
+            FileInputStream inputStream = new FileInputStream("client.properties");
+            conf.load(inputStream);
+            dirIp = conf.getProperty("IP");
+            puerto = Integer.parseInt(conf.getProperty("PUERTO"));
+        } catch (IOException e) {
+            System.err.println("No se ha podido leer el archivo de propiedades");
+        }
+
+        try {
+            SocketAddress socketAddress = new InetSocketAddress(dirIp, puerto);
+            Socket cliente = new Socket();
+            int tiempoDeEspera = 1000;
+
+            cliente.connect(socketAddress, tiempoDeEspera);
+            GoTravel.getSesion().setSocket(cliente);
+            GoTravel.getSesion().setSalida(new DataOutputStream(GoTravel.getSesion().getSocket().getOutputStream()));
+            GoTravel.getSesion().setEntrada(new DataInputStream(GoTravel.getSesion().getSocket().getInputStream()));
+
+            GoTravel.getSesion().getSalida().writeUTF("recuperarContrasena;" + email);
+            GoTravel.getSesion().getSalida().flush();
+
+            return GoTravel.getSesion().getEntrada().readBoolean();
+
+        } catch (IOException e) {
+            errorMsg.setText("No se ha podido conectar con el servidor");
+            System.err.println(e.getMessage());
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+        }
+
+        return false;
+
     }
 
     private boolean iniciarSesion = true;
@@ -264,7 +325,7 @@ public class LandingScreen implements Initializable {
         try {
             wallpaper.setImage(new Image(new ByteArrayInputStream(Objects.requireNonNull(ImageApi.getImage()))));
         } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
+            System.err.println(e.getMessage());
         }
 
         iniciaresionLabel.setFont(Fonts.titleMedium);
@@ -282,8 +343,6 @@ public class LandingScreen implements Initializable {
         confirmarContrasena.setDisable(true);
         confirmarContrasenaLabel.setVisible(false);
         confirmarContrasena.setVisible(false);
-
-
 
     }
 

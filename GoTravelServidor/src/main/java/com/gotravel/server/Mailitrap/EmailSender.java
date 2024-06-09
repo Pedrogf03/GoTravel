@@ -1,8 +1,6 @@
 package com.gotravel.server.Mailitrap;
 
 
-
-import com.gotravel.server.servidor.Sha256Encryptor;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;

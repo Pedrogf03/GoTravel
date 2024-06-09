@@ -55,7 +55,7 @@ class ChatsViewModel: ViewModel() {
 
                 try {
 
-                    Sesion.salida.writeUTF("findAllMensajes")
+                    Sesion.salida.writeUTF("findByUserId;mensajes")
                     Sesion.salida.flush()
 
                     val jsonFromServer = Sesion.entrada.readUTF()
@@ -96,7 +96,7 @@ class ChatsViewModel: ViewModel() {
 
                 try {
 
-                    Sesion.salida.writeUTF("findImageFromUserId;${id}")
+                    Sesion.salida.writeUTF("findByUserId;imagen;${id}")
                     Sesion.salida.flush()
 
                     if(Sesion.entrada.readBoolean()){

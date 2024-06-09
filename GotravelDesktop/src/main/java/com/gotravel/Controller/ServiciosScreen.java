@@ -7,7 +7,6 @@ import com.gotravel.GoTravel;
 import com.gotravel.Model.Imagen;
 import com.gotravel.Model.Servicio;
 import com.gotravel.Utils.Fonts;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
@@ -42,25 +41,33 @@ public class ServiciosScreen implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
-        if(!busqueda.isBlank()) {
-            for (Servicio s : getServicios()) {
-                if(s.getNombre().contains(busqueda)) {
-                    if(s.getPublicado().equalsIgnoreCase("0")) {
-                        serviciosOcultos.add(s);
-                    } else {
-                        serviciosPublicos.add(s);
+        try {
+            if(!busqueda.isBlank()) {
+                for (Servicio s : getServicios()) {
+                    if(s.getNombre().contains(busqueda)) {
+                        if(s.getPublicado().equalsIgnoreCase("0")) {
+                            serviciosOcultos.add(s);
+                        } else {
+                            serviciosPublicos.add(s);
+                        }
+                    }
+                }
+            } else {
+                for (Servicio s : getServicios()) {
+                    if(s.getNombre().contains(busqueda)) {
+                        if(s.getPublicado().equalsIgnoreCase("0")) {
+                            serviciosOcultos.add(s);
+                        } else {
+                            serviciosPublicos.add(s);
+                        }
                     }
                 }
             }
-        } else {
-            for (Servicio s : getServicios()) {
-                if(s.getNombre().contains(busqueda)) {
-                    if(s.getPublicado().equalsIgnoreCase("0")) {
-                        serviciosOcultos.add(s);
-                    } else {
-                        serviciosPublicos.add(s);
-                    }
-                }
+        } catch (NullPointerException e) {
+            try {
+                GoTravel.setRoot("landing");
+            } catch (IOException ex) {
+                System.err.println(e.getMessage());
             }
         }
 
@@ -110,13 +117,13 @@ public class ServiciosScreen implements Initializable {
                         return servicios;
 
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        System.err.println(e.getMessage());
                         GoTravel.setRoot("landing");
                         return null;
                     }
                 }).get();
             } catch (Exception e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
             }
 
         }
@@ -137,7 +144,7 @@ public class ServiciosScreen implements Initializable {
                             .create();
 
                     try {
-                        GoTravel.getSesion().getSalida().writeUTF("findImagesFromServicioId;" + id + ";one");
+                        GoTravel.getSesion().getSalida().writeUTF("findByServicioId;imagen;" + id + ";one");
                         GoTravel.getSesion().getSalida().flush();
 
                         String jsonFromServer = GoTravel.getSesion().getEntrada().readUTF();
@@ -153,13 +160,13 @@ public class ServiciosScreen implements Initializable {
                         return imagen;
 
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        System.err.println(e.getMessage());
                         GoTravel.setRoot("landing");
                         return null;
                     }
                 }).get();
             } catch (Exception e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
             }
 
         }
@@ -210,7 +217,7 @@ public class ServiciosScreen implements Initializable {
                 try {
                     GoTravel.setRoot("servicio");
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    System.err.println(e.getMessage());
                 }
             });
         }
@@ -232,13 +239,13 @@ public class ServiciosScreen implements Initializable {
     private ScrollPane scrollPane;
 
     @FXML
-    void buscarServicios(ActionEvent event) throws IOException {
+    void buscarServicios() throws IOException {
         busqueda = buscador.getText();
         GoTravel.setRoot("servicios");
     }
 
     @FXML
-    void filtrar(ActionEvent event) throws IOException {
+    void filtrar() {
         if (filtro.getValue().equals("Publicados")) {
             servicios = serviciosPublicos;
         } else if (filtro.getValue().equals("Ocultos")) {
@@ -248,27 +255,27 @@ public class ServiciosScreen implements Initializable {
     }
 
     @FXML
-    void navigateToChats(ActionEvent event) throws IOException {
+    void navigateToChats() throws IOException {
         GoTravel.setRoot("chats");
     }
 
     @FXML
-    void navigateToHome(ActionEvent event) throws IOException {
+    void navigateToHome() throws IOException {
         GoTravel.setRoot("home");
     }
 
     @FXML
-    void navigateToPerfil(ActionEvent event) throws IOException {
+    void navigateToPerfil() throws IOException {
         GoTravel.setRoot("perfil");
     }
 
     @FXML
-    void navigateToServicios(ActionEvent event) throws IOException {
+    void navigateToServicios() throws IOException {
         GoTravel.setRoot("servicios");
     }
 
     @FXML
-    void navigateToViajes(ActionEvent event) throws IOException {
+    void navigateToViajes() throws IOException {
         GoTravel.setRoot("viajes");
     }
 

@@ -83,9 +83,7 @@ class ServicioViewModel(
                         servicio.imagenes = getAllImagenesFromServicio()!!
                         servicio.contratado = isServicioContratado()
 
-
-
-                        Sesion.salida.writeUTF("findUsuarioByServicio;${idServicio}")
+                        Sesion.salida.writeUTF("findByServicioId;usuario;${idServicio}")
                         Sesion.salida.flush()
 
                         val usuarioFromServer = Sesion.entrada.readUTF()
@@ -95,7 +93,7 @@ class ServicioViewModel(
                             servicio.usuario = usuario
                         }
 
-                        Sesion.salida.writeUTF("findResenasByServicio;${idServicio}")
+                        Sesion.salida.writeUTF("findByServicioId;resenas;${idServicio}")
                         Sesion.salida.flush()
 
                         val resenasFromServer = Sesion.entrada.readUTF()
@@ -140,7 +138,7 @@ class ServicioViewModel(
 
                 try {
 
-                    Sesion.salida.writeUTF("isServicioContratado;${idServicio}")
+                    Sesion.salida.writeUTF("servicio;isContratado;${idServicio}")
                     Sesion.salida.flush()
 
                     return@withContext Sesion.entrada.readBoolean()
@@ -173,7 +171,7 @@ class ServicioViewModel(
 
                 try {
 
-                    Sesion.salida.writeUTF("findImagesFromServicioId;${idServicio};all")
+                    Sesion.salida.writeUTF("findByServicioId;imagen;$idServicio;all")
                     Sesion.salida.flush()
 
                     val jsonFromServer = Sesion.entrada.readUTF()
@@ -186,8 +184,6 @@ class ServicioViewModel(
                         Sesion.entrada.readFully(byteArray) // Lee el ByteArray
                         imagen.imagen = byteArray
                     }
-
-                    //Sesion.entrada.readUTF()
 
                     return@withContext imagenes
 
@@ -285,8 +281,6 @@ class ServicioViewModel(
                         getServicio()
                     }
 
-                    //Sesion.entrada.readUTF()
-
                 } catch (e: IOException) {
                     e.printStackTrace()
                     Sesion.socket!!.close()
@@ -303,18 +297,22 @@ class ServicioViewModel(
 
         if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
             withContext(Dispatchers.IO) {
+                val gson = GsonBuilder()
+                    .serializeNulls()
+                    .setLenient()
+                    .create()
 
                 try {
 
-                    Sesion.salida.writeUTF("publicarServicio;${idServicio}")
+                    Sesion.salida.writeUTF("servicio;publicar;${idServicio}")
                     Sesion.salida.flush()
 
-                    val confirm = Sesion.entrada.readBoolean()
+                    val jsonFromServer = Sesion.entrada.readUTF();
+                    val servicioFromServer = gson.fromJson(jsonFromServer, Servicio::class.java)
 
-                    if(confirm) {
+                    if(servicioFromServer != null) {
                         getServicio()
                     }
-
 
                 } catch (e: IOException) {
                     e.printStackTrace()
@@ -328,22 +326,26 @@ class ServicioViewModel(
 
     }
 
-    suspend fun ocultarServicio() {
+    suspend fun archivarServicio() {
 
         if(Sesion.socket != null && !Sesion.socket!!.isClosed) {
             withContext(Dispatchers.IO) {
+                val gson = GsonBuilder()
+                    .serializeNulls()
+                    .setLenient()
+                    .create()
 
                 try {
 
-                    Sesion.salida.writeUTF("ocultarServicio;${idServicio}")
+                    Sesion.salida.writeUTF("servicio;archivar;${idServicio}")
                     Sesion.salida.flush()
 
-                    val confirm = Sesion.entrada.readBoolean()
+                    val jsonFromServer = Sesion.entrada.readUTF();
+                    val servicioFromServer = gson.fromJson(jsonFromServer, Servicio::class.java)
 
-                    if(confirm) {
+                    if(servicioFromServer != null) {
                         getServicio()
                     }
-
 
                 } catch (e: IOException) {
                     e.printStackTrace()
@@ -430,7 +432,7 @@ class ServicioViewModel(
 
                 try {
 
-                    Sesion.salida.writeUTF("contratarServicio;${idServicio};${idEtapa!!}")
+                    Sesion.salida.writeUTF("servicio;contratar;${idServicio};${idEtapa!!}")
                     Sesion.salida.flush()
 
                     val url = Sesion.entrada.readUTF()

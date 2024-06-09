@@ -3,12 +3,10 @@ package com.gotravel.server.Paypal;
 import com.gotravel.server.model.Contratacion;
 import com.gotravel.server.model.Pago;
 import com.gotravel.server.model.Servicio;
-import com.gotravel.server.model.Usuario;
 import okhttp3.*;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.springframework.cglib.core.Local;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -22,7 +20,7 @@ public class Checkout {
         this.token = new TokenClient().obtenerTokenPaypal();
     }
 
-    public String crearPedido(Servicio s) throws IOException {
+    public String crearPedido(Servicio s, String tipoCliente) throws IOException {
 
         String url =
                 "https://api-m.sandbox.paypal.com/v2/checkout/orders";
@@ -31,32 +29,63 @@ public class Checkout {
 
         MediaType mediaType = MediaType.parse("application/json");
 
-        String json = "{\n" +
-                "  \"intent\": \"CAPTURE\",\n" +
-                "  \"purchase_units\": [\n" +
-                "    {\n" +
-                "      \"amount\": {\n" +
-                "        \"currency_code\": \"EUR\",\n" +
-                "        \"value\": \"" + s.getPrecio() + "\"\n" +
-                "      }\n" +
-                "    }\n" +
-                "  ],\n" +
-                "  \"payment_source\": {\n" +
-                "    \"paypal\": {\n" +
-                "      \"experience_context\": {\n" +
-                "        \"payment_method_preference\": \"IMMEDIATE_PAYMENT_REQUIRED\",\n" +
-                "        \"brand_name\": \"GoTrave!\",\n" +
-                "        \"locale\": \"es-ES\",\n" +
-                "        \"landing_page\": \"NO_PREFERENCE\",\n" +
-                "        \"shipping_preference\": \"NO_SHIPPING\",\n" +
-                "        \"payment_method_preference\": \"IMMEDIATE_PAYMENT_REQUIRED\",\n" +
-                "        \"user_action\": \"PAY_NOW\",\n" +
-                "        \"return_url\": \"gotravel://checkout_returnurl\",\n" +
-                "        \"cancel_url\": \"gotravel://checkout_cancelurl\"\n" +
-                "      }\n" +
-                "    }\n" +
-                "  }\n" +
-                "}";
+        String json;
+
+        if(tipoCliente.equalsIgnoreCase("android")) {
+            json = "{\n" +
+                    "  \"intent\": \"CAPTURE\",\n" +
+                    "  \"purchase_units\": [\n" +
+                    "    {\n" +
+                    "      \"amount\": {\n" +
+                    "        \"currency_code\": \"EUR\",\n" +
+                    "        \"value\": \"" + s.getPrecio() + "\"\n" +
+                    "      }\n" +
+                    "    }\n" +
+                    "  ],\n" +
+                    "  \"payment_source\": {\n" +
+                    "    \"paypal\": {\n" +
+                    "      \"experience_context\": {\n" +
+                    "        \"payment_method_preference\": \"IMMEDIATE_PAYMENT_REQUIRED\",\n" +
+                    "        \"brand_name\": \"GoTrave!\",\n" +
+                    "        \"locale\": \"es-ES\",\n" +
+                    "        \"landing_page\": \"NO_PREFERENCE\",\n" +
+                    "        \"shipping_preference\": \"NO_SHIPPING\",\n" +
+                    "        \"payment_method_preference\": \"IMMEDIATE_PAYMENT_REQUIRED\",\n" +
+                    "        \"user_action\": \"PAY_NOW\",\n" +
+                    "        \"return_url\": \"gotravel://checkout_returnurl\",\n" +
+                    "        \"cancel_url\": \"gotravel://checkout_cancelurl\"\n" +
+                    "      }\n" +
+                    "    }\n" +
+                    "  }\n" +
+                    "}";
+        } else {
+            json = "{\n" +
+                    "  \"intent\": \"CAPTURE\",\n" +
+                    "  \"purchase_units\": [\n" +
+                    "    {\n" +
+                    "      \"amount\": {\n" +
+                    "        \"currency_code\": \"EUR\",\n" +
+                    "        \"value\": \"" + s.getPrecio() + "\"\n" +
+                    "      }\n" +
+                    "    }\n" +
+                    "  ],\n" +
+                    "  \"payment_source\": {\n" +
+                    "    \"paypal\": {\n" +
+                    "      \"experience_context\": {\n" +
+                    "        \"payment_method_preference\": \"IMMEDIATE_PAYMENT_REQUIRED\",\n" +
+                    "        \"brand_name\": \"GoTrave!\",\n" +
+                    "        \"locale\": \"es-ES\",\n" +
+                    "        \"landing_page\": \"NO_PREFERENCE\",\n" +
+                    "        \"shipping_preference\": \"NO_SHIPPING\",\n" +
+                    "        \"payment_method_preference\": \"IMMEDIATE_PAYMENT_REQUIRED\",\n" +
+                    "        \"user_action\": \"PAY_NOW\",\n" +
+                    "        \"return_url\": \"http://localhost:8080/checkout_returnurl\",\n" +
+                    "        \"cancel_url\": \"http://localhost:8080/checkout_cancelurl\"\n" +
+                    "      }\n" +
+                    "    }\n" +
+                    "  }\n" +
+                    "}";
+        }
 
 
         RequestBody body = RequestBody.create(json, mediaType);

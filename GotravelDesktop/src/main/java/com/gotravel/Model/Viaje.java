@@ -31,6 +31,14 @@ public class Viaje {
         this.costeTotal = costeTotal;
     }
 
+    public Viaje(int id, String nombre, String descripcion, String fechaInicio, String fechaFin, Double costeTotal) {
+        this.nombre = nombre;
+        this.descripcion = descripcion;
+        this.fechaInicio = fechaInicio;
+        this.fechaFin = fechaFin;
+        this.costeTotal = costeTotal;
+    }
+
     public String inicio() {
         return LocalDate.parse(this.fechaInicio, Fechas.formatoFromDb).format(Fechas.formatoFinal);
     }

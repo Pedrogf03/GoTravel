@@ -7,7 +7,6 @@ import com.gotravel.GoTravel;
 import com.gotravel.Model.Imagen;
 import com.gotravel.Model.Servicio;
 import com.gotravel.Utils.Fonts;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
@@ -47,13 +46,13 @@ public class ContratacionesScreen implements Initializable {
     private ScrollPane scrollPane;
 
     @FXML
-    void buscarServicios(ActionEvent event) throws IOException {
+    void buscarServicios() throws IOException {
         busqueda = buscador.getText();
         GoTravel.setRoot("contrataciones");
     }
 
     @FXML
-    void navigateUp(ActionEvent event) throws IOException {
+    void navigateUp() throws IOException {
         GoTravel.setRoot("perfil");
     }
 
@@ -124,7 +123,7 @@ public class ContratacionesScreen implements Initializable {
                 try {
                     GoTravel.setRoot("servicio");
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    System.err.println(e.getMessage());
                 }
             });
         }
@@ -142,7 +141,7 @@ public class ContratacionesScreen implements Initializable {
                             .create();
 
                     try {
-                        GoTravel.getSesion().getSalida().writeUTF("findAllServiciosContratados");
+                        GoTravel.getSesion().getSalida().writeUTF("findAll;serviciosContratados");
                         GoTravel.getSesion().getSalida().flush();
 
                         String jsonFromServer = GoTravel.getSesion().getEntrada().readUTF();
@@ -158,13 +157,13 @@ public class ContratacionesScreen implements Initializable {
                         return contrataciones;
 
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        System.err.println(e.getMessage());
                         GoTravel.setRoot("landing");
                         return null;
                     }
                 }).get();
             } catch (Exception e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
             }
 
         }
@@ -185,7 +184,7 @@ public class ContratacionesScreen implements Initializable {
                             .create();
 
                     try {
-                        GoTravel.getSesion().getSalida().writeUTF("findImagesFromServicioId;" + id + ";one");
+                        GoTravel.getSesion().getSalida().writeUTF("findByServicioId;imagen;" + id + ";one");
                         GoTravel.getSesion().getSalida().flush();
 
                         String jsonFromServer = GoTravel.getSesion().getEntrada().readUTF();
@@ -201,13 +200,13 @@ public class ContratacionesScreen implements Initializable {
                         return imagen;
 
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        System.err.println(e.getMessage());
                         GoTravel.setRoot("landing");
                         return null;
                     }
                 }).get();
             } catch (Exception e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
             }
 
         }

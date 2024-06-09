@@ -5,7 +5,6 @@ import com.google.gson.GsonBuilder;
 import com.gotravel.GoTravel;
 import com.gotravel.Model.Suscripcion;
 import com.gotravel.Utils.Fonts;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
@@ -57,13 +56,13 @@ public class SuscripcionScreen implements Initializable {
                         String jsonFromServer = GoTravel.getSesion().getEntrada().readUTF();
                         return gson.fromJson(jsonFromServer, Suscripcion.class);
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        System.err.println(e.getMessage());
                         GoTravel.setRoot("landing");
                         return null;
                     }
                 }).get();
             } catch (Exception e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
             }
 
         }
@@ -90,20 +89,16 @@ public class SuscripcionScreen implements Initializable {
                         String jsonFromServer = GoTravel.getSesion().getEntrada().readUTF();
                         Suscripcion s = gson.fromJson(jsonFromServer, Suscripcion.class);
 
-                        if(s != null) {
-                            return true;
-                        } else {
-                            return false;
-                        }
+                        return s != null;
 
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        System.err.println(e.getMessage());
                         GoTravel.setRoot("landing");
                         return false;
                     }
                 }).get();
             } catch (Exception e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
             }
 
         }
@@ -130,20 +125,16 @@ public class SuscripcionScreen implements Initializable {
                         String jsonFromServer = GoTravel.getSesion().getEntrada().readUTF();
                         Suscripcion s = gson.fromJson(jsonFromServer, Suscripcion.class);
 
-                        if(s != null) {
-                            return true;
-                        } else {
-                            return false;
-                        }
+                        return s != null;
 
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        System.err.println(e.getMessage());
                         GoTravel.setRoot("landing");
                         return false;
                     }
                 }).get();
             } catch (Exception e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
             }
 
         }
@@ -159,7 +150,7 @@ public class SuscripcionScreen implements Initializable {
     private Text title;
 
     @FXML
-    void navigateUp(ActionEvent event) throws IOException {
+    void navigateUp() throws IOException {
         GoTravel.setRoot("perfil");
     }
 
@@ -167,8 +158,8 @@ public class SuscripcionScreen implements Initializable {
     private Button button;
 
     @FXML
-    void suscribirse(ActionEvent event) throws IOException {
-        boolean reload = false;
+    void suscribirse() throws IOException {
+        boolean reload;
 
         if(s.getRenovar().equalsIgnoreCase("1")){
             reload = cancelarSuscripcion(s.getId());

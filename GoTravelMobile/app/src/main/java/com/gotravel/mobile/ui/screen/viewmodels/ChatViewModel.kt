@@ -81,7 +81,7 @@ class ChatViewModel(
 
                 try {
 
-                    Sesion.salida.writeUTF("findAllMensajesBetweenUsers;${idOtroUsuario}")
+                    Sesion.salida.writeUTF("findByUserId;mensajesBetweenUsers;${idOtroUsuario}")
                     Sesion.salida.flush()
 
                     val jsonFromServer = Sesion.entrada.readUTF()
