@@ -13,4 +13,8 @@ public class TipoServicio {
 
     private String nombre;
 
+    @Override
+    public String toString() {
+        return nombre;
+    }
 }

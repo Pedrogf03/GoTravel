@@ -5,6 +5,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.Hibernate;
 
 import java.io.Serial;
@@ -13,6 +14,7 @@ import java.util.Objects;
 @Getter
 @Setter
 @Embeddable
+@ToString
 public class ResenaId implements java.io.Serializable {
 
     @Serial

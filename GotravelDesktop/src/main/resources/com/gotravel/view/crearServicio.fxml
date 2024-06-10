@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView?>
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Line?>
+<?import javafx.scene.text.Text?>
+<?import jfxtras.scene.control.CalendarTimePicker?>
+
+
+<AnchorPane prefHeight="1000.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.gotravel.Controller.CrearServicioScreen">
+   <children>
+      <Button layoutX="14.0" layoutY="14.0" mnemonicParsing="false" onAction="#navigateUp" style="-fx-background-color: NONE;">
+         <graphic>
+            <FontAwesomeIconView glyphName="ARROW_LEFT" size="24" />
+         </graphic>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Button>
+      <AnchorPane layoutX="196.0" layoutY="160.0" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: #3D5F90;" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0" AnchorPane.topAnchor="50.0">
+         <children>
+            <Text fx:id="titulo" fill="WHITE" layoutX="643.0" layoutY="43.0" strokeType="OUTSIDE" strokeWidth="0.0" text="NUEVO SERVICIO" textAlignment="CENTER" wrappingWidth="533.017578125" />
+            <HBox alignment="CENTER" layoutX="14.0" layoutY="106.0" prefHeight="688.0" prefWidth="1792.0" style="-fx-spacing: 50;" AnchorPane.bottomAnchor="106.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0">
+               <children>
+                  <VBox fx:id="vboxInfo" alignment="CENTER" prefHeight="282.0" prefWidth="428.0" style="-fx-spacing: 25;">
+                     <children>
+                        <Text fill="WHITE" strokeType="OUTSIDE" strokeWidth="0.0" text="Información básica" />
+                        <Label text="Nombre" textFill="WHITE" />
+                        <TextField fx:id="nombre" />
+                        <Label text="Descripción (opcional)" textFill="WHITE" />
+                        <TextField fx:id="descripcion" />
+                        <Label text="Precio" textFill="WHITE" />
+                        <TextField fx:id="precio" />
+                        <Label text="Tipo de servicio" textFill="WHITE" />
+                        <ChoiceBox fx:id="choiceTipos" prefWidth="150.0" />
+                     </children>
+                  </VBox>
+                  <Line endX="100.0" fill="WHITE" startX="100.0" startY="-686.4430541992188" stroke="WHITE" />
+                  <VBox fx:id="vboxFechas" alignment="CENTER" prefHeight="782.0" prefWidth="428.0" style="-fx-spacing: 25;">
+                     <children>
+                        <Text fill="WHITE" strokeType="OUTSIDE" strokeWidth="0.0" text="Fechas y hora" />
+                        <Label text="Fecha de inicio" textFill="WHITE" />
+                        <DatePicker fx:id="fechaInicio" prefHeight="25.0" prefWidth="430.0" />
+                        <Label text="Fecha de final (opcional)" textFill="WHITE" />
+                        <DatePicker fx:id="fechaFinal" prefHeight="25.0" prefWidth="430.0" />
+                        <Label text="Hora (opcional)" textFill="WHITE" />
+                        <CalendarTimePicker fx:id="hora">
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+                        </CalendarTimePicker>
+                     </children>
+                  </VBox>
+                  <Line endX="100.0" fill="WHITE" startX="100.0" startY="-686.4430541992188" stroke="WHITE" />
+                  <VBox fx:id="vboxDir" alignment="CENTER" prefHeight="782.0" prefWidth="428.0" style="-fx-spacing: 25;">
+                     <children>
+                        <Text fill="WHITE" strokeType="OUTSIDE" strokeWidth="0.0" text="Dirección" />
+                        <Label text="Linea 1 de dirección" textFill="WHITE" />
+                        <TextField fx:id="linea1" />
+                        <Label text="Linea 2 de dirección (opcional)" textFill="WHITE" />
+                        <TextField fx:id="linea2" />
+                        <Label text="Ciudad" textFill="WHITE" />
+                        <TextField fx:id="ciudad" />
+                        <Label text="Estado" textFill="WHITE" />
+                        <TextField fx:id="estado" />
+                        <Label text="País" textFill="WHITE" />
+                        <ChoiceBox fx:id="choicePaises" prefWidth="150.0" />
+                        <Label text="Código postal" textFill="WHITE" />
+                        <TextField fx:id="codigoPostal" />
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+            <Button fx:id="crearServicioButton" layoutX="733.0" layoutY="826.0" mnemonicParsing="false" onAction="#crearServicio" prefHeight="25.0" prefWidth="354.0" style="-fx-background-color: #ffffff;" text="Crear servicio">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor>
+            </Button>
+            <Text fx:id="errorMsg" fill="#ba1a1a" layoutX="671.0" layoutY="807.0" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER" wrappingWidth="478.13671875" />
+         </children>
+      </AnchorPane>
+   </children>
+</AnchorPane>

@@ -24,5 +24,13 @@
             <FlowPane fx:id="flowPane" prefHeight="862.0" prefWidth="1816.0" style="-fx-background-color: #3D5F90;" />
          </content>
       </ScrollPane>
+      <Button layoutX="14.0" layoutY="30.0" mnemonicParsing="false" onAction="#navigateUp" style="-fx-background-color: NONE;">
+         <graphic>
+            <FontAwesomeIconView glyphName="ARROW_LEFT" size="24" />
+         </graphic>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Button>
    </children>
 </AnchorPane>

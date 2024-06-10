@@ -21,13 +21,15 @@ public class Etapa {
     private String fechaFinal;
     private Double costeTotal;
     private String tipo;
+    private String pais;
     private List<Servicio> contrataciones;
 
-    public Etapa(String nombre, String fechaInicio, String fechaFinal, String tipo, Double costeTotal) {
+    public Etapa(String nombre, String fechaInicio, String fechaFinal, String tipo, String pais, Double costeTotal) {
         this.nombre = nombre;
         this.fechaInicio = fechaInicio;
         this.fechaFinal = fechaFinal;
         this.tipo = tipo;
+        this.pais = pais;
         this.costeTotal = costeTotal;
     }
 

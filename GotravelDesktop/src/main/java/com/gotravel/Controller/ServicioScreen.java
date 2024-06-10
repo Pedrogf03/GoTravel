@@ -7,6 +7,7 @@ import com.gotravel.GoTravel;
 import com.gotravel.Model.*;
 import com.gotravel.Utils.Fechas;
 import com.gotravel.Utils.Fonts;
+import com.gotravel.Utils.Regex;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -15,15 +16,10 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import lombok.Setter;
@@ -54,28 +50,37 @@ public class ServicioScreen implements Initializable {
     private static HttpServer server;
 
     @FXML
-    private HBox botones;
-
-    @FXML
     private Button addFotoButton;
 
     @FXML
-    private Button editarButton;
+    private Button anteriorButton;
 
     @FXML
-    private Button ocultarButton;
-
-    @FXML
-    private Button publicarButton;
+    private HBox botones;
 
     @FXML
     private Button chatearButton;
 
     @FXML
+    private ChoiceBox<Integer> choicePuntuacion;
+
+    @FXML
+    private VBox content;
+
+    @FXML
     private Button contratarButton;
 
     @FXML
+    private Button deleteFotoButton;
+
+    @FXML
     private Label descripcionServicio;
+
+    @FXML
+    private Label direccionServicio;
+
+    @FXML
+    private Button editarButton;
 
     @FXML
     private Label fechasServicio;
@@ -84,25 +89,99 @@ public class ServicioScreen implements Initializable {
     private ImageView imagenServicio;
 
     @FXML
+    private Label labelResena;
+
+    @FXML
     private Label nombreServicio;
+
+    @FXML
+    private Button ocultarButton;
 
     @FXML
     private Label precioServicio;
 
     @FXML
-    private Label tipoServicio;
+    private Button publicarButton;
 
     @FXML
-    private Label direccionServicio;
-
-    @FXML
-    private Button anteriorButton;
+    private Button resenaButton;
 
     @FXML
     private Button siguienteButton;
 
     @FXML
-    private Button deleteFotoButton;
+    private TextArea textPuntuacion;
+
+    @FXML
+    private Label tipoServicio;
+
+    @FXML
+    private Text tituloResena;
+
+    @FXML
+    private Label errorMsg;
+
+    @FXML
+    private AnchorPane resenaPane;
+
+    @FXML
+    void saveResena() {
+
+        if(choicePuntuacion.getValue() != null && !textPuntuacion.getText().isBlank()) {
+
+            if(Regex.regexCamposAlfaNum.matcher(textPuntuacion.getText()).matches()) {
+                ResenaId resenaId = new ResenaId(GoTravel.getSesion().getUsuario().getId(), servicioId);
+                Resena resena = new Resena(resenaId, choicePuntuacion.getValue(), textPuntuacion.getText(), "0");
+
+                if(GoTravel.getSesion().getSocket() != null && !GoTravel.getSesion().getSocket().isClosed()) {
+
+                    try {
+                        new Thread(() -> {
+                            Gson gson = new GsonBuilder()
+                                    .serializeNulls()
+                                    .setLenient()
+                                    .create();
+
+                            try {
+
+                                GoTravel.getSesion().getSalida().writeUTF("save;resena");
+                                GoTravel.getSesion().getSalida().flush();
+
+                                GoTravel.getSesion().getSalida().writeUTF(gson.toJson(resena));
+                                GoTravel.getSesion().getSalida().flush();
+
+                                String jsonFromServer = GoTravel.getSesion().getEntrada().readUTF();
+                                Resena resenaFromServer = gson.fromJson(jsonFromServer, Resena.class);
+
+                                if(resenaFromServer != null) {
+                                    ServicioScreen.setServicioId(servicioId);
+                                    GoTravel.setRoot("servicio");
+                                }
+
+                            } catch (IOException e) {
+                                System.err.println(e.getMessage());
+                                try {
+                                    GoTravel.setRoot("landing");
+                                } catch (IOException ex) {
+                                    System.err.println(e.getMessage());
+                                }
+                            }
+                        }).start();
+                    } catch (Exception e) {
+                        System.err.println(e.getMessage());
+                    }
+
+                }
+
+            } else {
+                errorMsg.setText("El contenido de la reseña no es válido");
+            }
+
+        } else {
+            errorMsg.setText("Rellena todos los campos");
+        }
+
+    }
 
     @FXML
     void anteriorFoto() {
@@ -126,9 +205,6 @@ public class ServicioScreen implements Initializable {
     void navigateUp() throws IOException {
         GoTravel.setRoot("servicios");
     }
-
-    @FXML
-    private VBox content;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -162,12 +238,13 @@ public class ServicioScreen implements Initializable {
 
         direccionServicio.setFont(Fonts.labelMedium);
         Direccion d = s.getDireccion();
-        direccionServicio.setText(d.getLinea1() + ", " + (d.getLinea2().isBlank() ? "" : d.getLinea2()) + d.getCiudad() + ", " + d.getEstado() + ", " + d.getPais() + ", " + d.getCp());
+        direccionServicio.setText(d.getLinea1() + ", " + (d.getLinea2() == null ? "" : d.getLinea2() + ", ") + d.getCiudad() + ", " + d.getEstado() + ", " + d.getPais() + ", " + d.getCp());
 
         if(GoTravel.getSesion().getUsuario().getId() == s.getUsuario().getId()) {
 
             botones.getChildren().remove(contratarButton);
             botones.getChildren().remove(chatearButton);
+            botones.getChildren().remove(resenaButton);
 
             if(s.getPublicado().equals("0")) {
                 botones.getChildren().remove(ocultarButton);
@@ -187,6 +264,9 @@ public class ServicioScreen implements Initializable {
             if(s.isContratado()) {
                 botones.getChildren().remove(contratarButton);
             }
+
+            deleteFotoButton.setVisible(false);
+            deleteFotoButton.setDisable(true);
 
         }
 
@@ -244,6 +324,18 @@ public class ServicioScreen implements Initializable {
 
             content.getChildren().add(vboxResena);
         }
+
+        for(Node n : resenaPane.getChildren()) {
+            if(n instanceof Label) {
+                ((Label) n).setFont(Fonts.labelMedium);
+            } else if (n instanceof Text) {
+                ((Text) n).setFont(Fonts.titleMedium);
+            } else if (n instanceof Button) {
+                ((Button) n).setFont(Fonts.labelMedium);
+            }
+        }
+
+        choicePuntuacion.getItems().addAll(1, 2, 3, 4, 5);
 
     }
 
@@ -506,7 +598,7 @@ public class ServicioScreen implements Initializable {
             alert.setHeaderText(null);
             alert.setContentText("No se puede publicar un servicio sin imágenes.");
             alert.showAndWait();
-        } else if (!LocalDate.parse(s.getFechaInicio(), Fechas.formatoFromDb).isBefore(LocalDate.now())) {
+        } else if (LocalDate.parse(s.getFechaInicio(), Fechas.formatoFromDb).isBefore(LocalDate.now())) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error de Publicación");
             alert.setHeaderText(null);
@@ -603,10 +695,18 @@ public class ServicioScreen implements Initializable {
 
     }
 
-    private void addResena() {
+    @FXML
+    void addResena() {
+        resenaPane.setVisible(true);
+        resenaPane.setDisable(false);
+    }
 
-        // TODO
-
+    @FXML
+    void cerrarDialog() {
+        resenaPane.setVisible(false);
+        resenaPane.setDisable(true);
+        choicePuntuacion.setValue(null);
+        textPuntuacion.setText("");
     }
 
     @FXML
@@ -673,10 +773,6 @@ public class ServicioScreen implements Initializable {
 
                     try {
                         new Thread(() -> {
-                            Gson gson = new GsonBuilder()
-                                    .serializeNulls()
-                                    .setLenient()
-                                    .create();
 
                             try {
                                 GoTravel.getSesion().getSalida().writeUTF(contratacionId);
@@ -684,8 +780,8 @@ public class ServicioScreen implements Initializable {
 
                                 int idViaje = Integer.parseInt(GoTravel.getSesion().getEntrada().readUTF());
 
-                                // TODO ViajeScreen.setViajeId(idViaje);
-                                //  GoTravel.setRoot("viaje");
+                                ViajeScreen.setViajeId(idViaje);
+                                GoTravel.setRoot("viaje");
 
                             } catch (IOException e) {
                                 System.err.println(e.getMessage());

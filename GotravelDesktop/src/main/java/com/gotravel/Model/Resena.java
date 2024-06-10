@@ -17,4 +17,10 @@ public class Resena {
     private String contenido;
     private String oculto;
 
+    public Resena(ResenaId id, int puntuacion, String contenido, String oculto) {
+        this.id = id;
+        this.puntuacion = puntuacion;
+        this.contenido = contenido;
+        this.oculto = oculto;
+    }
 }

@@ -19,4 +19,12 @@ public class Direccion {
     private String pais;
     private String cp;
 
+    public Direccion(String linea1, String linea2, String ciudad, String estado, String pais, String cp) {
+        this.linea1 = linea1;
+        this.linea2 = linea2;
+        this.ciudad = ciudad;
+        this.estado = estado;
+        this.pais = pais;
+        this.cp = cp;
+    }
 }

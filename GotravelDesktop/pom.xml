@@ -47,6 +47,12 @@
             <version>1.18.32</version>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.jfxtras</groupId>
+            <artifactId>jfxtras-controls</artifactId>
+            <version>10.0-r1</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

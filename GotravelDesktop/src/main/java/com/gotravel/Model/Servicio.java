@@ -1,9 +1,6 @@
 package com.gotravel.Model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -15,6 +12,7 @@ import static com.gotravel.Utils.Fechas.formatoFromDb;
 
 @Getter
 @Setter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class Servicio {
@@ -33,6 +31,17 @@ public class Servicio {
     private List<Resena> resenas = new ArrayList<>();
     private String publicado = "0";
     private boolean contratado = false;
+
+    public Servicio(String nombre, String descripcion, Double precio, String fechaInicio, String fechaFinal, String hora, TipoServicio tipoServicio, Direccion direccion) {
+        this.nombre = nombre;
+        this.descripcion = descripcion;
+        this.precio = precio;
+        this.fechaInicio = fechaInicio;
+        this.fechaFinal = fechaFinal;
+        this.hora = hora;
+        this.tipoServicio = tipoServicio;
+        this.direccion = direccion;
+    }
 
     public String getInicio() {
         return LocalDate.parse(fechaInicio, formatoFromDb).format(formatoFinal);

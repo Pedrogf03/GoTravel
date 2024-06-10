@@ -24,9 +24,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.concurrent.Executors;
 
 
@@ -61,6 +59,7 @@ public class ServiciosScreen implements Initializable {
                     }
                 }
             }
+
         } catch (NullPointerException e) {
             try {
                 GoTravel.setRoot("landing");
@@ -185,7 +184,13 @@ public class ServiciosScreen implements Initializable {
             hbox.setStyle("-fx-background-color: #ffffff; -fx-padding: 10;");
             hbox.setCursor(Cursor.HAND);
 
-            ImageView imageView = new ImageView(new Image(new ByteArrayInputStream(s.getImagenes().get(0).getImagen())));
+            ImageView imageView;
+            if(s.getImagenes().get(0) != null) {
+                imageView = new ImageView(new Image(new ByteArrayInputStream(s.getImagenes().get(0).getImagen())));
+            } else {
+                imageView = new ImageView(new Image(Objects.requireNonNull(GoTravel.class.getResourceAsStream("userNoFoto.png"))));
+            }
+
             imageView.setFitHeight(240);
             imageView.setFitWidth(240);
             imageView.setPreserveRatio(false);
@@ -215,7 +220,7 @@ public class ServiciosScreen implements Initializable {
                 try {
                     GoTravel.setRoot("servicio");
                 } catch (IOException e) {
-                    System.err.println(e.getMessage());
+                    System.err.println(e.getCause() + ": " + e.getMessage());
                 }
             });
         }

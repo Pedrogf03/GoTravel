@@ -140,7 +140,10 @@ fun CrearServicioContent(
         var seleccionarInfoBasica by remember { mutableStateOf(true) }
         var nombre by remember { mutableStateOf(servicio?.nombre ?: "") }
         var descripcion by remember { mutableStateOf(servicio?.descripcion ?: "") }
-        var precio by remember { mutableStateOf(servicio?.precio.toString()) }
+        var precio by remember { mutableStateOf("") }
+        if(servicio != null) {
+            precio = servicio.precio.toString()
+        }
         var tipoServicio by remember { mutableStateOf(servicio?.tipoServicio) }
         var seleccionarTiposervicio by remember { mutableStateOf(false) }
 

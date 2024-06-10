@@ -220,4 +220,9 @@ public class BuscarServiciosScreen implements Initializable {
         GoTravel.setRoot("servicios");
     }
 
+    @FXML
+    void navigateUp() throws IOException {
+        GoTravel.setRoot("viaje");
+    }
+
 }

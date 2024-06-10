@@ -10,6 +10,7 @@ import com.gotravel.Model.Servicio;
 import com.gotravel.Model.Viaje;
 import com.gotravel.Utils.Fechas;
 import com.gotravel.Utils.Fonts;
+import com.gotravel.Utils.Paises;
 import com.gotravel.Utils.Regex;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -97,6 +98,12 @@ public class ViajeScreen implements Initializable {
     private Label tipoEtapaLabel;
 
     @FXML
+    private ChoiceBox<String> pais;
+
+    @FXML
+    private Label paisLabel;
+
+    @FXML
     private AnchorPane etapaDialog;
 
     @FXML
@@ -132,6 +139,7 @@ public class ViajeScreen implements Initializable {
             VBox vboxInfo = new VBox();
             vboxInfo.getChildren().add(new Label(e.getNombre()));
             vboxInfo.getChildren().add(new Label("Tipo " + e.getTipo()));
+            vboxInfo.getChildren().add(new Label("Destino " + e.getPais()));
             vboxInfo.getChildren().add(new Label(e.inicio() + " - " + e.fin()));
             vboxInfo.getChildren().add(new Label("Precio total: " + e.getCosteTotal() + "€"));
             vboxInfo.getChildren().forEach(nodo -> {
@@ -320,6 +328,23 @@ public class ViajeScreen implements Initializable {
             fechaFinalLabel.setFont(Fonts.labelMedium);
             fechaInicioLabel.setFont(Fonts.labelMedium);
             tipoEtapaLabel.setFont(Fonts.labelMedium);
+            paisLabel.setFont(Fonts.labelMedium);
+
+            fechaInicio.setDayCellFactory(picker -> new DateCell() {
+                public void updateItem(LocalDate date, boolean empty) {
+                    super.updateItem(date, empty);
+                    setDisable(empty || date.isBefore(LocalDate.now()));
+                }
+            });
+
+            fechaFinal.setDayCellFactory(picker -> new DateCell() {
+                public void updateItem(LocalDate date, boolean empty) {
+                    super.updateItem(date, empty);
+                    setDisable(empty || date.isBefore(LocalDate.now()));
+                }
+            });
+
+            pais.getItems().addAll(Paises.paises);
 
             tipoEtapa.getItems().addAll("Estancia", "Transporte");
 
@@ -345,12 +370,18 @@ public class ViajeScreen implements Initializable {
     void cerrarDialog() {
         etapaDialog.setDisable(true);
         etapaDialog.setVisible(false);
+        etapaActualizar = null;
+        nombreEtapa.setText("");
+        fechaInicio.setValue(null);
+        fechaFinal.setValue(null);
+        tipoEtapa.setValue(null);
+        pais.setValue(null);
     }
 
     @FXML
     void saveEtapa() {
 
-        if(nombreEtapa.getText().isBlank() || fechaInicio.getValue() == null || fechaFinal.getValue() == null || tipoEtapa.getValue() == null) {
+        if(nombreEtapa.getText().isBlank() || fechaInicio.getValue() == null || fechaFinal.getValue() == null || tipoEtapa.getValue() == null || pais.getValue() == null) {
             errorMsg.setText("Por favor rellena todos los campos");
         } else {
 
@@ -361,8 +392,9 @@ public class ViajeScreen implements Initializable {
                 etapa.setFechaInicio(fechaInicio.getValue().format(Fechas.formatoFromDb));
                 etapa.setFechaFinal(fechaFinal.getValue().format(Fechas.formatoFromDb));
                 etapa.setTipo(tipoEtapa.getValue());
+                etapa.setPais(pais.getValue());
             } else {
-                etapa = new Etapa(nombreEtapa.getText(), fechaInicio.getValue().format(Fechas.formatoFromDb), fechaFinal.getValue().format(Fechas.formatoFromDb), tipoEtapa.getValue(), 0.0);
+                etapa = new Etapa(nombreEtapa.getText(), fechaInicio.getValue().format(Fechas.formatoFromDb), fechaFinal.getValue().format(Fechas.formatoFromDb), tipoEtapa.getValue(),  pais.getValue(), 0.0);
             }
 
             if(!(etapa.getNombre().isBlank() || etapa.getNombre().isEmpty()) && Regex.regexCamposAlfaNum.matcher(etapa.getNombre()).matches() && etapa.getNombre().length() <= 45) {

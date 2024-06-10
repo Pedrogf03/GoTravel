@@ -558,6 +558,7 @@ public class HiloCliente extends Thread {
         Resena resenaFromUser = gson.fromJson(jsonFromUser, Resena.class);
         resenaFromUser.setUsuario(sesion.getUsuario());
         resenaFromUser.setServicio(service.findServicioById(resenaFromUser.getId().getIdServicio()));
+        System.out.println(service.findServicioById(resenaFromUser.getId().getIdServicio()));
         resenaFromUser = service.saveResena(resenaFromUser);
         return gson.toJson(resenaFromUser);
     }

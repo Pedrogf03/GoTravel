@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView?>
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.FlowPane?>
+
+<AnchorPane prefHeight="1000.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.gotravel.Controller.BuscarServiciosScreen">
+   <children>
+      <TextField fx:id="buscador" layoutX="646.0" layoutY="26.0" prefHeight="41.0" prefWidth="589.0" promptText="Busca un servicio por su nombre..." />
+      <Button layoutX="1235.0" layoutY="30.0" mnemonicParsing="false" onAction="#buscarServicios" style="-fx-background-color: NONE;">
+         <graphic>
+            <FontAwesomeIconView glyphName="SEARCH" size="24" />
+         </graphic>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Button>
+      <ScrollPane fx:id="scrollPane" layoutX="232.0" layoutY="85.0" prefHeight="874.0" prefWidth="1638.0" style="-fx-background-color: #3D5F90;" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0" AnchorPane.topAnchor="85.0">
+         <content>
+            <FlowPane fx:id="flowPane" prefHeight="862.0" prefWidth="1816.0" style="-fx-background-color: #3D5F90;" />
+         </content>
+      </ScrollPane>
+      <Button layoutX="14.0" layoutY="30.0" mnemonicParsing="false" onAction="#navigateUp" style="-fx-background-color: NONE;">
+         <graphic>
+            <FontAwesomeIconView glyphName="ARROW_LEFT" size="24" />
+         </graphic>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Button>
+   </children>
+</AnchorPane>

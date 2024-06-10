@@ -7,6 +7,7 @@ module com.gotravel {
     requires java.compiler;
     requires static lombok;
     requires jdk.httpserver;
+    requires jfxtras.controls;
 
 
     opens com.gotravel to javafx.fxml;

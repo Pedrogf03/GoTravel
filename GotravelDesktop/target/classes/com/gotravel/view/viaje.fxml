@@ -25,9 +25,9 @@
       </Button>
       <AnchorPane layoutX="71.0" layoutY="66.0" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: #3D5F90;" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0" AnchorPane.topAnchor="50.0">
          <children>
-            <ScrollPane fx:id="scrollPane" layoutX="-4.0" layoutY="270.0" prefHeight="630.0" prefWidth="1820.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="270.0">
+            <ScrollPane fx:id="scrollPane" fitToWidth="true" layoutX="-4.0" layoutY="270.0" prefHeight="630.0" prefWidth="1820.0" vbarPolicy="NEVER" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="270.0">
                <content>
-                  <HBox fx:id="hboxEtapas" alignment="CENTER_LEFT" prefHeight="620.0" prefWidth="1816.0" />
+                  <HBox fx:id="hboxEtapas" alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="-Infinity" minWidth="-Infinity" />
                </content>
             </ScrollPane>
             <Text fx:id="nombreViaje" fill="WHITE" layoutX="14.0" layoutY="55.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Nombre del viaje" />
@@ -63,6 +63,8 @@
                   <DatePicker fx:id="fechaFinal" prefHeight="25.0" prefWidth="328.0" />
                   <Label fx:id="tipoEtapaLabel" text="Tipo de etapa" textFill="WHITE" />
                   <ChoiceBox fx:id="tipoEtapa" prefHeight="25.0" prefWidth="328.0" />
+                  <Label fx:id="paisLabel" text="País de destino" textFill="WHITE" />
+                  <ChoiceBox fx:id="pais" prefHeight="25.0" prefWidth="328.0" />
                   <Text fx:id="errorMsg" fill="#ba1a1a" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER" wrappingWidth="302.13671875" />
                   <Button fx:id="guardarEtapaButton" mnemonicParsing="false" onAction="#saveEtapa" prefHeight="25.0" prefWidth="216.0" style="-fx-background-color: #ffffff;" text="Guardar etapa" />
                </children>
