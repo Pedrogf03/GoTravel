@@ -23,6 +23,14 @@ public class Etapa {
     private String tipo;
     private List<Servicio> contrataciones;
 
+    public Etapa(String nombre, String fechaInicio, String fechaFinal, String tipo, Double costeTotal) {
+        this.nombre = nombre;
+        this.fechaInicio = fechaInicio;
+        this.fechaFinal = fechaFinal;
+        this.tipo = tipo;
+        this.costeTotal = costeTotal;
+    }
+
     public String inicio() {
         return LocalDate.parse(this.fechaInicio, Fechas.formatoFromDb).format(Fechas.formatoFinal);
     }

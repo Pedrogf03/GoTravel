@@ -71,6 +71,7 @@ import com.gotravel.mobile.ui.screen.viewmodels.ViajeUiState
 import com.gotravel.mobile.ui.screen.viewmodels.ViajeViewModel
 import com.gotravel.mobile.ui.utils.formatoFinal
 import com.gotravel.mobile.ui.utils.formatoFromDb
+import com.gotravel.mobile.ui.utils.paises
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -389,6 +390,7 @@ fun EtapaCard(
                 Column {
                     Text(text = etapa.nombre, color = textColor)
                     Text(text = "Tipo " + etapa.tipo, color = textColor, fontSize = 16.sp)
+                    Text(text = "Destino: " + etapa.pais, color = textColor, fontSize = 16.sp)
                     Text(text = etapa.inicio + if(etapa.final != etapa.inicio) " - " + etapa.final else "", fontSize = 12.sp, color = textColor)
                     Text(text = "Precio de la etapa: " + etapa.costeTotal + "€", fontSize = 12.sp, color = textColor)
                 }
@@ -679,13 +681,16 @@ fun CrearEtapa(
 
         var nombre by remember { mutableStateOf(etapa?.nombre ?: "") }
         var tipo by remember { mutableStateOf(etapa?.tipo ?: "") }
+        var pais by remember { mutableStateOf(etapa?.pais ?: "") }
         var fechaInicio by remember { mutableStateOf(etapa?.inicio ?: "") }
         var fechaFinal by remember { mutableStateOf(etapa?.final ?: "") }
         var seleccionarFechaInicio by remember { mutableStateOf(false) }
         var seleccionarFechaFinal by remember { mutableStateOf(false) }
 
-        val options = listOf("Transporte", "Estancia")
-        var expanded by remember { mutableStateOf(false) }
+        val tipos = listOf("Transporte", "Estancia")
+        var expandedTipos by remember { mutableStateOf(false) }
+
+        var expandedPaises by remember { mutableStateOf(false) }
 
         val mensajeUi = viewModel.mensajeUi.observeAsState(initial = "")
 
@@ -802,20 +807,43 @@ fun CrearEtapa(
                 Spacer(modifier = Modifier.padding(8.dp))
 
                 Box {
-                    TextButton(onClick = { expanded = true }) {
+                    TextButton(onClick = { expandedTipos = true }) {
                         Text(tipo.ifEmpty { "Tipo de etapa*" })
                         Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = "")
                     }
                     DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
+                        expanded = expandedTipos,
+                        onDismissRequest = { expandedTipos = false }
                     ) {
-                        options.forEach { option ->
+                        tipos.forEach { option ->
                             DropdownMenuItem(
                                 text = { Text(option) },
                                 onClick = {
                                     tipo = option
-                                    expanded = false
+                                    expandedTipos = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.padding(8.dp))
+
+                Box {
+                    TextButton(onClick = { expandedPaises = true }) {
+                        Text(pais.ifEmpty { "País de destino*" })
+                        Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = "")
+                    }
+                    DropdownMenu(
+                        expanded = expandedPaises,
+                        onDismissRequest = { expandedPaises = false }
+                    ) {
+                        paises.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option) },
+                                onClick = {
+                                    pais = option
+                                    expandedPaises = false
                                 }
                             )
                         }
@@ -836,7 +864,7 @@ fun CrearEtapa(
 
                         if(etapa != null) {
                             GlobalScope.launch {
-                                if(viewModel.guardarEtapa(nombre = nombre, fechaInicio = fechaInicio, fechaFinal = fechaFinal, tipo = tipo, etapaActualizar = etapa)) {
+                                if(viewModel.guardarEtapa(nombre = nombre, fechaInicio = fechaInicio, fechaFinal = fechaFinal, tipo = tipo, pais = pais, etapaActualizar = etapa)) {
                                     withContext(Dispatchers.Main) {
                                         actualizarPagina()
                                     }
@@ -844,7 +872,7 @@ fun CrearEtapa(
                             }
                         } else {
                             GlobalScope.launch {
-                                if(viewModel.guardarEtapa(nombre = nombre, fechaInicio = fechaInicio, fechaFinal = fechaFinal, tipo = tipo)) {
+                                if(viewModel.guardarEtapa(nombre = nombre, fechaInicio = fechaInicio, fechaFinal = fechaFinal, tipo = tipo, pais = pais)) {
                                     withContext(Dispatchers.Main) {
                                         actualizarPagina()
                                     }

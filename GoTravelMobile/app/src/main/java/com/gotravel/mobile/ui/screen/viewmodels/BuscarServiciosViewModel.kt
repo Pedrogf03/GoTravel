@@ -64,7 +64,7 @@ class BuscarServiciosViewModel(
 
                 try {
 
-                    Sesion.salida.writeUTF("servicio;${idEtapa};findAllByEtapa")
+                    Sesion.salida.writeUTF("servicio;findAllByEtapa;${idEtapa}")
                     Sesion.salida.flush()
 
                     val jsonFromServer = Sesion.entrada.readUTF()

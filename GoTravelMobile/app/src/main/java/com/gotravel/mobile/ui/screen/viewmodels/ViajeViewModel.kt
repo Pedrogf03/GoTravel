@@ -156,17 +156,17 @@ class ViajeViewModel(
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    suspend fun guardarEtapa(nombre: String, fechaInicio: String, fechaFinal: String, tipo: String, etapaActualizar: Etapa? = null): Boolean {
+    suspend fun guardarEtapa(nombre: String, fechaInicio: String, fechaFinal: String, tipo: String, pais: String, etapaActualizar: Etapa? = null): Boolean {
 
-        if(nombre.isBlank() || fechaInicio.isBlank() || fechaFinal.isBlank() || tipo.isBlank()) {
+        if(nombre.isBlank() || fechaInicio.isBlank() || fechaFinal.isBlank() || tipo.isBlank() || pais.isBlank()) {
             mensajeUi.postValue("Por favor rellena todos los campos")
         } else {
 
             val etapa: Etapa
             if(etapaActualizar != null) {
-                etapa = etapaActualizar.copy(nombre = nombre, fechaInicio = LocalDate.parse(fechaInicio, formatoFinal).format(formatoFromDb), fechaFinal = LocalDate.parse(fechaFinal, formatoFinal).format(formatoFromDb), tipo = tipo)
+                etapa = etapaActualizar.copy(nombre = nombre, fechaInicio = LocalDate.parse(fechaInicio, formatoFinal).format(formatoFromDb), fechaFinal = LocalDate.parse(fechaFinal, formatoFinal).format(formatoFromDb), tipo = tipo, pais = pais)
             } else {
-                etapa = Etapa(nombre = nombre, fechaInicio = LocalDate.parse(fechaInicio, formatoFinal).format(formatoFromDb), fechaFinal = LocalDate.parse(fechaFinal, formatoFinal).format(formatoFromDb), tipo = tipo, costeTotal = 0.0)
+                etapa = Etapa(nombre = nombre, fechaInicio = LocalDate.parse(fechaInicio, formatoFinal).format(formatoFromDb), fechaFinal = LocalDate.parse(fechaFinal, formatoFinal).format(formatoFromDb), tipo = tipo, costeTotal = 0.0, pais = pais)
             }
 
             if(!(etapa.nombre.isBlank() || etapa.nombre.isEmpty()) && etapa.nombre.matches(Regex.regexCamposAlfaNum) && etapa.nombre.length <= 45) {
@@ -210,12 +210,9 @@ class ViajeViewModel(
 
                                         if(etapaActualizar != null){
                                             Sesion.salida.writeUTF("update;etapa;${idViaje}")
-                                            Sesion.salida.writeUTF(gson.toJson(etapa))
                                         } else{
                                             Sesion.salida.writeUTF("save;etapa;${idViaje}")
                                         }
-                                        Sesion.salida.flush()
-
                                         val json = gson.toJson(etapa)
                                         Sesion.salida.writeUTF(json)
                                         Sesion.salida.flush()

@@ -80,7 +80,7 @@ public class HiloCliente extends Thread {
                         if(s != null && s.getRenovar().equals("0") && s.getEstado().equals("ACTIVE")) { // SI NO HAY QUE RENOVARLA Y ESTÁ ACTIVA
                             u = suspenderSuscripcion(u, s);
                         } else if (s != null && s.getRenovar().equals("1") && s.getEstado().equals("ACTIVE")) { // SI HAY QUE RENOVARLA Y ESTÁ ACTIVA
-                            renovarSuscripciones(s);
+                            renovarSuscripcion(s);
                         }
                     }
                     // Si ha iniciado sesion, se manda un json que contiene al usuario
@@ -265,10 +265,11 @@ public class HiloCliente extends Thread {
         } else if (option.equalsIgnoreCase("findAllByEtapa")) {
             Etapa e = service.findEtapaById(id);
             List<Servicio> servicios = service
-                    .findAllServiciosByFechasAndTipo(
+                    .findAllServiciosByFechasAndTipoAndPais(
                             LocalDate.parse(e.getFechaInicio(), DateTimeFormatter.ofPattern("yyyy-MM-dd")),
                             LocalDate.parse(e.getFechaFinal(), DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-                            e.getTipo()
+                            e.getTipo(),
+                            e.getPais()
                     );
             jsonFromServer = gson.toJson(servicios);
         } else if (option.equalsIgnoreCase("contratar")) {
@@ -413,7 +414,7 @@ public class HiloCliente extends Thread {
         sesion.getSalida().writeUTF("fin");
     }
 
-    private void renovarSuscripciones(Suscripcion s) {
+    private void renovarSuscripcion(Suscripcion s) {
         // SE LANZA UN HILO QUE SE ENCARGA DE IR RENOVANDO LAS SUSCRIPCIONES Y ACTUALIZARLAS
         new Thread(() -> {
             LocalDate fechaFin = LocalDate.parse(s.getFechaFinal(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));

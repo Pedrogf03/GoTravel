@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.gotravel.GoTravel;
 import com.gotravel.Model.*;
+import com.gotravel.Utils.Fechas;
 import com.gotravel.Utils.Fonts;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -14,6 +15,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -34,6 +36,7 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.ResourceBundle;
@@ -45,7 +48,8 @@ public class ServicioScreen implements Initializable {
     private static int servicioId;
     private Servicio s;
     private int fotoActual = 0;
-    private int etapaId;
+    @Setter
+    private static int etapaId;
 
     private static HttpServer server;
 
@@ -96,6 +100,9 @@ public class ServicioScreen implements Initializable {
 
     @FXML
     private Button siguienteButton;
+
+    @FXML
+    private Button deleteFotoButton;
 
     @FXML
     void anteriorFoto() {
@@ -166,6 +173,8 @@ public class ServicioScreen implements Initializable {
                 botones.getChildren().remove(ocultarButton);
             } else {
                 botones.getChildren().remove(publicarButton);
+                deleteFotoButton.setVisible(false);
+                deleteFotoButton.setDisable(true);
             }
 
         } else {
@@ -174,6 +183,10 @@ public class ServicioScreen implements Initializable {
             botones.getChildren().remove(editarButton);
             botones.getChildren().remove(ocultarButton);
             botones.getChildren().remove(publicarButton);
+
+            if(s.isContratado()) {
+                botones.getChildren().remove(contratarButton);
+            }
 
         }
 
@@ -487,42 +500,58 @@ public class ServicioScreen implements Initializable {
     @FXML
     void publicarServicio() {
 
-        if(GoTravel.getSesion().getSocket() != null && !GoTravel.getSesion().getSocket().isClosed()) {
+        if(s.getImagenes().isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error de Publicación");
+            alert.setHeaderText(null);
+            alert.setContentText("No se puede publicar un servicio sin imágenes.");
+            alert.showAndWait();
+        } else if (!LocalDate.parse(s.getFechaInicio(), Fechas.formatoFromDb).isBefore(LocalDate.now())) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error de Publicación");
+            alert.setHeaderText(null);
+            alert.setContentText("No se puede publicar un servicio que ya ha finalizado.");
+            alert.showAndWait();
+        } else {
 
-            try {
+            if(GoTravel.getSesion().getSocket() != null && !GoTravel.getSesion().getSocket().isClosed()) {
 
-                new Thread(() -> {
+                try {
 
-                    Gson gson = new GsonBuilder()
-                            .serializeNulls()
-                            .setLenient()
-                            .create();
+                    new Thread(() -> {
 
-                    try {
+                        Gson gson = new GsonBuilder()
+                                .serializeNulls()
+                                .setLenient()
+                                .create();
 
-                        GoTravel.getSesion().getSalida().writeUTF("servicio;publicar;" + servicioId);
-                        GoTravel.getSesion().getSalida().flush();
-
-                        String jsonFromServer = GoTravel.getSesion().getEntrada().readUTF();
-                        Servicio servicioFromServer = gson.fromJson(jsonFromServer, Servicio.class);
-
-                        if(servicioFromServer != null){
-                            GoTravel.setRoot("servicio");
-                        }
-
-                    } catch (IOException e) {
-                        System.err.println(e.getMessage());
                         try {
-                            GoTravel.setRoot("landing");
-                        } catch (IOException ex) {
+
+                            GoTravel.getSesion().getSalida().writeUTF("servicio;publicar;" + servicioId);
+                            GoTravel.getSesion().getSalida().flush();
+
+                            String jsonFromServer = GoTravel.getSesion().getEntrada().readUTF();
+                            Servicio servicioFromServer = gson.fromJson(jsonFromServer, Servicio.class);
+
+                            if(servicioFromServer != null){
+                                GoTravel.setRoot("servicio");
+                            }
+
+                        } catch (IOException e) {
                             System.err.println(e.getMessage());
+                            try {
+                                GoTravel.setRoot("landing");
+                            } catch (IOException ex) {
+                                System.err.println(e.getMessage());
+                            }
                         }
-                    }
 
-                }).start();
+                    }).start();
 
-            } catch (Exception e) {
-                System.err.println(e.getMessage());
+                } catch (Exception e) {
+                    System.err.println(e.getMessage());
+                }
+
             }
 
         }
@@ -588,11 +617,6 @@ public class ServicioScreen implements Initializable {
             try {
 
                 new Thread(() -> {
-
-                    Gson gson = new GsonBuilder()
-                            .serializeNulls()
-                            .setLenient()
-                            .create();
 
                     try {
 

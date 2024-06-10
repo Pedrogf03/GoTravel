@@ -23,6 +23,7 @@ data class Etapa(
     val fechaFinal: String,
     val costeTotal: Double,
     val tipo: String,
+    val pais: String,
     var contrataciones: List<Servicio> = listOf()
 ) {
 

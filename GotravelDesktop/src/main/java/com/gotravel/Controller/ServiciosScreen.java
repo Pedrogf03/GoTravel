@@ -54,12 +54,10 @@ public class ServiciosScreen implements Initializable {
                 }
             } else {
                 for (Servicio s : getServicios()) {
-                    if(s.getNombre().contains(busqueda)) {
-                        if(s.getPublicado().equalsIgnoreCase("0")) {
-                            serviciosOcultos.add(s);
-                        } else {
-                            serviciosPublicos.add(s);
-                        }
+                    if(s.getPublicado().equalsIgnoreCase("0")) {
+                        serviciosOcultos.add(s);
+                    } else {
+                        serviciosPublicos.add(s);
                     }
                 }
             }

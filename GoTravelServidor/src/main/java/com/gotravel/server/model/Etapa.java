@@ -35,6 +35,10 @@ public class Etapa {
     @Expose
     private Double costeTotal;
 
+    @Column(name = "pais", nullable = false)
+    @Expose
+    private String pais;
+
     @Lob
     @Column(name = "tipo", nullable = false, columnDefinition = "ENUM('transporte', 'estancia')")
     @Expose

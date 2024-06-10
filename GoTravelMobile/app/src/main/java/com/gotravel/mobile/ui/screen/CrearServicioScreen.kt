@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
@@ -26,6 +28,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -55,6 +58,7 @@ import com.gotravel.mobile.ui.screen.viewmodels.CrearServicioUiState
 import com.gotravel.mobile.ui.screen.viewmodels.CrearServicioViewModel
 import com.gotravel.mobile.ui.utils.formatoFinal
 import com.gotravel.mobile.ui.utils.formatoFromDb
+import com.gotravel.mobile.ui.utils.paises
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -149,6 +153,8 @@ fun CrearServicioContent(
         var seleccionarHora by remember { mutableStateOf(false) }
 
         var seleccionarDireccion by remember { mutableStateOf(false) }
+
+        var expandedPais by remember { mutableStateOf(false) }
 
         val mensajeUi = viewModel.mensajeUi.observeAsState(initial = "")
 
@@ -545,22 +551,26 @@ fun CrearServicioContent(
 
                     Spacer(modifier = Modifier.padding(8.dp))
 
-                    TextField(
-                        value = pais,
-                        onValueChange = { pais = it },
-                        label = { Text("País*") },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Text,
-                            imeAction = ImeAction.Next
-                        ),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                            disabledContainerColor = Color.Transparent,
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    Box {
+                        TextButton(onClick = { expandedPais = true }) {
+                            Text(pais.ifEmpty { "País*" })
+                            Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = "")
+                        }
+                        DropdownMenu(
+                            expanded = expandedPais,
+                            onDismissRequest = { expandedPais = false }
+                        ) {
+                            paises.forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(option) },
+                                    onClick = {
+                                        pais = option
+                                        expandedPais = false
+                                    }
+                                )
+                            }
+                        }
+                    }
 
                     Spacer(modifier = Modifier.padding(8.dp))
 

@@ -205,8 +205,8 @@ public class AppService {
         return devolver;
     }
 
-    public List<Servicio> findAllServiciosByFechasAndTipo(LocalDate fechaInicioE, LocalDate fechaFinalE, String tipo) {
-        List<Servicio> servicios = servicioRepository.findAllByOcultoAndPublicado("0", "1");
+    public List<Servicio> findAllServiciosByFechasAndTipoAndPais(LocalDate fechaInicioE, LocalDate fechaFinalE, String tipo, String pais) {
+        List<Servicio> servicios = servicioRepository.findAllByOcultoAndPublicadoAndDireccionPais("0", "1", pais);
         List<Servicio> devolver = new ArrayList<>();
 
         for(Servicio s : servicios) {
