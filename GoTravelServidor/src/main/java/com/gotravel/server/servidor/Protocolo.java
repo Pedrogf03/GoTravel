@@ -66,6 +66,9 @@ public class Protocolo {
                 if(entrada.equals("dejarChat")) {
                     estado = Estado.ATENDIENDO_PETICIONES;
                     mensaje = "peticion";
+                } else if(entrada.equals("cerrarSesion")) {
+                    estado = Estado.FINALIZADO;
+                    mensaje = "finServer";
                 } else {
                     mensaje = "chat";
                 }

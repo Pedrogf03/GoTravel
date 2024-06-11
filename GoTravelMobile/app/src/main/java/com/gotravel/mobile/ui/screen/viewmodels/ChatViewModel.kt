@@ -194,8 +194,10 @@ class ChatViewModel(
                     } else {
                         val mensajeFromServer = gson.fromJson(jsonFromServer, Mensaje::class.java)
 
-                        withContext(Dispatchers.Main) {
-                            _mensajes.value += mensajeFromServer
+                        if(mensajeFromServer.receptor!!.id == idOtroUsuario || mensajeFromServer.emisor!!.id == idOtroUsuario) {
+                            withContext(Dispatchers.Main) {
+                                _mensajes.value += mensajeFromServer
+                            }
                         }
                     }
 

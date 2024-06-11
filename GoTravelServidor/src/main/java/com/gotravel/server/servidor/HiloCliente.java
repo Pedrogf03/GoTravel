@@ -105,6 +105,8 @@ public class HiloCliente extends Thread {
 
                 if(output.equals("chateando")) {
 
+                    System.out.println("Dentro de chateando: " + Arrays.toString(fromCliente));
+
                     int idOtroUsuario = Integer.parseInt(fromCliente[1]);
                     chatear(idOtroUsuario);
 

@@ -188,7 +188,7 @@ public class ServiciosScreen implements Initializable {
             if(s.getImagenes().get(0) != null) {
                 imageView = new ImageView(new Image(new ByteArrayInputStream(s.getImagenes().get(0).getImagen())));
             } else {
-                imageView = new ImageView(new Image(Objects.requireNonNull(GoTravel.class.getResourceAsStream("userNoFoto.png"))));
+                imageView = new ImageView(new Image(Objects.requireNonNull(GoTravel.class.getResourceAsStream("imageNotFound.jpg"))));
             }
 
             imageView.setFitHeight(240);
