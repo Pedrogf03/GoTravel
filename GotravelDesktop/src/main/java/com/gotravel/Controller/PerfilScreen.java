@@ -17,7 +17,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 
@@ -28,7 +27,6 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.util.Objects;
 import java.util.ResourceBundle;
-import java.util.UUID;
 
 import static com.gotravel.Utils.Regex.*;
 
@@ -149,6 +147,9 @@ public class PerfilScreen implements Initializable {
 
     @FXML
     private Button cambiarContrasenaButton;
+
+    @FXML
+    private Button adminButton;
 
     @FXML
     void mostrarNuevaContrasena() {
@@ -467,6 +468,7 @@ public class PerfilScreen implements Initializable {
 
         if(!u.isAdministrador()) {
             botones.getChildren().remove(cerrarServidorButton);
+            botones.getChildren().remove(adminButton);
         }
 
         if(u.getFoto() != null){
@@ -499,6 +501,7 @@ public class PerfilScreen implements Initializable {
         rol.setFont(Fonts.labelMedium);
 
         editarPerfilButton.setFont(Fonts.titleMedium);
+        adminButton.setFont(Fonts.titleMedium);
         contratacionesButton.setFont(Fonts.titleMedium);
         serviciosButton.setFont(Fonts.titleMedium);
         suscripcionesButton.setFont(Fonts.titleMedium);
@@ -531,6 +534,11 @@ public class PerfilScreen implements Initializable {
 
         cambiarContrasenaButton.setFont(Fonts.labelSmall);
 
+    }
+
+    @FXML
+    void navigateToAdminPanel() throws IOException {
+        GoTravel.setRoot("adminPanel");
     }
 
 }

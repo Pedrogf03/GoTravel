@@ -123,12 +123,17 @@
                         <Cursor fx:constant="HAND" />
                      </cursor>
                   </Button>
-                  <Button fx:id="logoutButton" alignment="CENTER" mnemonicParsing="false" onAction="#cerrarSesion" prefHeight="113.0" prefWidth="722.0" style="-fx-background-color: #3D5F90;" text="CERRAR SESIÓN" textFill="WHITE">
+                  <Button fx:id="adminButton" alignment="CENTER" mnemonicParsing="false" onAction="#navigateToAdminPanel" prefHeight="113.0" prefWidth="722.0" style="-fx-background-color: #3D5F90;" text="PANEL DE ADMINISTRACIÓN" textFill="WHITE">
                      <cursor>
                         <Cursor fx:constant="HAND" />
                      </cursor>
                   </Button>
-                  <Button fx:id="cerrarServidorButton" alignment="CENTER" mnemonicParsing="false" onAction="#cerrarServidor" prefHeight="113.0" prefWidth="722.0" style="-fx-background-color: #FFFFFF;" text="CERRAR SERVIDOR" textFill="#3d5f90">
+                  <Button fx:id="logoutButton" alignment="CENTER" mnemonicParsing="false" onAction="#cerrarSesion" prefHeight="113.0" prefWidth="722.0" style="-fx-background-color: #ffffff;" text="CERRAR SESIÓN" textFill="#3d5f90">
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
+                  </Button>
+                  <Button fx:id="cerrarServidorButton" alignment="CENTER" mnemonicParsing="false" onAction="#cerrarServidor" prefHeight="113.0" prefWidth="722.0" style="-fx-background-color: #3D5F90;" text="CERRAR SERVIDOR" textFill="WHITE">
                      <cursor>
                         <Cursor fx:constant="HAND" />
                      </cursor>

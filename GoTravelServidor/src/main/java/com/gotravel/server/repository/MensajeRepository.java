@@ -10,7 +10,7 @@ import java.util.List;
 @Repository
 public interface MensajeRepository extends JpaRepository<Mensaje, Integer> {
 
-    @Query(value = "SELECT * FROM mensaje m JOIN usuario u1 ON m.id_emisor = u1.id_usuario JOIN usuario u2 ON m.id_receptor = u2.id_usuario WHERE (m.id_emisor = :idUsuarioActual AND m.id_receptor = :idOtroUsuario) OR (m.id_emisor = :idOtroUsuario AND m.id_receptor = :idUsuarioActual) ORDER BY m.fecha, m.hora", nativeQuery = true)
+    @Query(value = "SELECT * FROM (SELECT m.* FROM mensaje m JOIN usuario u1 ON m.id_emisor = u1.id_usuario JOIN usuario u2 ON m.id_receptor = u2.id_usuario WHERE (m.id_emisor = :idUsuarioActual AND m.id_receptor = :idOtroUsuario) OR (m.id_emisor = :idOtroUsuario AND m.id_receptor = :idUsuarioActual) ORDER BY m.fecha DESC, m.hora DESC LIMIT 100) AS sub ORDER BY sub.fecha, sub.hora", nativeQuery = true)
     List<Mensaje> findAllMensajesBetweenUsers(int idUsuarioActual, int idOtroUsuario);
 
     @Query(value = "SELECT *\n" +

@@ -26,4 +26,9 @@ public class Mensaje {
         this.hora = hora;
     }
 
+    public Mensaje(String texto, String fecha, String hora) {
+        this.texto = texto;
+        this.fecha = fecha;
+        this.hora = hora;
+    }
 }

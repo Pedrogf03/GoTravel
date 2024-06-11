@@ -9,7 +9,6 @@ import com.gotravel.server.ServerApplication;
 import com.gotravel.server.model.*;
 import com.gotravel.server.service.AppService;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +42,7 @@ public class HiloCliente extends Thread {
 
     public HiloCliente(Socket cliente, AppService service, Map<Integer, HiloCliente> clientesConectados, ServerApplication server) {
         this.service = service;
-        this.protocolo = new Protocolo(service);
+        this.protocolo = new Protocolo();
         this.sesionIniciada = false;
         this.terminar = false;
         sesion = new Sesion(cliente);
@@ -86,6 +85,7 @@ public class HiloCliente extends Thread {
                     // Si ha iniciado sesion, se manda un json que contiene al usuario
                     // Si no ha iniciado sesion, se manda un mensaje de reintentar o de que el usuario está oculto
                     sesion.getSalida().writeUTF(output);
+                    sesion.getSalida().flush();
                     // Si ha iniciado sesion, se pone la flag en true y se le pregunta al usuario por la foto
                     if(u != null){
                         sesionIniciada = true;
@@ -186,6 +186,7 @@ public class HiloCliente extends Thread {
         if (tabla.equalsIgnoreCase("imagen")) {
             int idImagen = Integer.parseInt(fromCliente[2]);
             sesion.getSalida().writeBoolean(service.deleteImagenById(idImagen));
+            sesion.getSalida().flush();
         }
         return jsonFromServer;
     }
@@ -240,6 +241,7 @@ public class HiloCliente extends Thread {
             url = paypal.crearSuscripcion(u, "android");
         }
         sesion.getSalida().writeUTF(url);
+        sesion.getSalida().flush();
         String subscriptionId = sesion.getEntrada().readUTF();
         if(!subscriptionId.equalsIgnoreCase("cancelar")) {
             Suscripcion s = paypal.getSubscription(subscriptionId);
@@ -264,6 +266,7 @@ public class HiloCliente extends Thread {
         } else if (option.equalsIgnoreCase("isContratado")) {
             Contratacion c = service.findContratacionByServicioAndUsuario(id, idUsuario);
             sesion.getSalida().writeBoolean(c != null);
+            sesion.getSalida().flush();
         } else if (option.equalsIgnoreCase("findAllByEtapa")) {
             Etapa e = service.findEtapaById(id);
             List<Servicio> servicios = service
@@ -327,6 +330,7 @@ public class HiloCliente extends Thread {
         } else if (tabla.equalsIgnoreCase("resenas")) {
             List<Resena> resenas = service.findResenasByServicioId(idServicio);
             sesion.getSalida().writeUTF(gson.toJson(resenas));
+            sesion.getSalida().flush();
             for (Resena r : resenas) {
                 enviarFotoUsuario(r.getUsuario());
             }
@@ -335,12 +339,14 @@ public class HiloCliente extends Thread {
             if (numImagenes.equals("one")) {
                 Imagen i = service.findFirstImageFromServicioId(idServicio);
                 sesion.getSalida().writeUTF(gson.toJson(i));
+                sesion.getSalida().flush();
                 if (i != null) {
                     enviarFoto(i.getImagen());
                 }
             } else if (numImagenes.equals("all")) {
                 List<Imagen> imagenes = service.findAllImagesFromServicioId(idServicio);
                 sesion.getSalida().writeUTF(gson.toJson(imagenes));
+                sesion.getSalida().flush();
                 for (Imagen i : imagenes) {
                     enviarFoto(i.getImagen());
                 }
@@ -351,6 +357,7 @@ public class HiloCliente extends Thread {
 
     private void enviarFoto(byte[] i) throws IOException {
         sesion.getSalida().writeInt(i.length); // Envía la longitud del ByteArray
+        sesion.getSalida().flush();
         sesion.getSalida().write(i); // Envía el ByteArray
         sesion.getSalida().flush();
     }
@@ -405,15 +412,18 @@ public class HiloCliente extends Thread {
             mensajeFromUser.setReceptor(service.findUsuarioById(idOtroUsuario));
             mensajeFromUser = service.saveMensaje(mensajeFromUser);
             sesion.getSalida().writeUTF(gson.toJson(mensajeFromUser));
+            sesion.getSalida().flush();
 
             // -- ENVÍO DEL MENSAJE AL OTRO USUARIO DEL CHAT -- //
             HiloCliente hc = clientesConectados.get(idOtroUsuario);
             if(hc != null && hc.getProtocolo().estado == Estado.CHATEANDO) {
                 hc.sesion.getSalida().writeUTF(gson.toJson(mensajeFromUser));
+                sesion.getSalida().flush();
             }
         }
 
         sesion.getSalida().writeUTF("fin");
+        sesion.getSalida().flush();
     }
 
     private void renovarSuscripcion(Suscripcion s) {
@@ -438,6 +448,7 @@ public class HiloCliente extends Thread {
             String passwordCifrada = Sha256Encryptor.cifrarTexto("" + newPassword);
 
             sesion.getSalida().writeBoolean(EmailSender.sendRecoveryEmail(email, "" + newPassword));
+            sesion.getSalida().flush();
 
             u.setContrasena(passwordCifrada);
             service.saveUsuario(u);
@@ -460,6 +471,7 @@ public class HiloCliente extends Thread {
         if (tabla.equalsIgnoreCase("usuario")) {
             Usuario otroUsuario = service.findUsuarioById(idEntidad);
             sesion.getSalida().writeUTF(gson.toJson(otroUsuario));
+            sesion.getSalida().flush();
             enviarFotoUsuario(otroUsuario);
             jsonFromServer = "";
         }

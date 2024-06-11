@@ -3,18 +3,19 @@ package com.gotravel.server.servidor;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.gotravel.server.model.Usuario;
-import com.gotravel.server.service.AppService;
 
 public class Protocolo {
 
     String mensaje;
     Estado estado;
 
-    public Protocolo(AppService service) {
+    public Protocolo() {
         this.estado = Estado.INICIANDO_SESION;
     }
 
     public String procesarMensaje(String entrada) {
+
+        System.out.println("PROTOCOLO: " + entrada);
 
         Gson gson = new GsonBuilder()
                 .excludeFieldsWithoutExposeAnnotation()

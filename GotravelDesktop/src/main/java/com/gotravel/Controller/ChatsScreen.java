@@ -2,6 +2,7 @@ package com.gotravel.Controller;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import com.gotravel.GoTravel;
 import com.gotravel.ImageApi.ImageApi;
@@ -18,9 +19,11 @@ import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
@@ -37,52 +40,41 @@ public class ChatsScreen implements Initializable {
     private Usuario u = GoTravel.getSesion().getUsuario();
     private Map<Integer, Mensaje> conversaciones;
     private List<Mensaje> mensajes;
-    private Usuario otroUsuario;
-
-    private boolean escuchando = false;
 
     @FXML
-    private VBox chats;
+    private FlowPane flowPane;
 
     @FXML
     private VBox navPanel;
 
     @FXML
-    private VBox mensajesChat;
+    private ScrollPane scrollPane;
 
     @FXML
     private Button serviciosButton;
 
     @FXML
-    private TextField contenidoMensaje;
-
-    @FXML
     void navigateToChats() throws IOException {
-        pararEscuchaDeMensajes();
         GoTravel.setRoot("chats");
     }
 
     @FXML
     void navigateToHome() throws IOException {
-        pararEscuchaDeMensajes();
         GoTravel.setRoot("home");
     }
 
     @FXML
     void navigateToPerfil() throws IOException {
-        pararEscuchaDeMensajes();
         GoTravel.setRoot("perfil");
     }
 
     @FXML
     void navigateToServicios() throws IOException {
-        pararEscuchaDeMensajes();
         GoTravel.setRoot("servicios");
     }
 
     @FXML
     void navigateToViajes() throws IOException {
-        pararEscuchaDeMensajes();
         GoTravel.setRoot("viajes");
     }
 
@@ -95,9 +87,14 @@ public class ChatsScreen implements Initializable {
 
         conversaciones = findAllMensajesByUsuarioId();
 
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setFitToHeight(true);
+        scrollPane.setFitToWidth(true);
+
         if(conversaciones != null) {
 
-            mensajesChat.setPadding(new Insets(20, 20, 20, 20));
+            flowPane.setPadding(new Insets(20, 20, 20, 20));
 
             for (Map.Entry<Integer, Mensaje> entry : conversaciones.entrySet()) {
                 Mensaje mensaje = entry.getValue();
@@ -105,9 +102,8 @@ public class ChatsScreen implements Initializable {
 
                 HBox hbox = new HBox(15);
                 hbox.setAlignment(Pos.CENTER_LEFT);
+                hbox.setPrefSize(500, 100);
                 hbox.setStyle("-fx-background-color: white; -fx-padding: 10;");
-                hbox.setMaxWidth(Double.MAX_VALUE);
-                HBox.setMargin(hbox, new Insets(10, 10, 10, 10));
 
                 ImageView imageView = new ImageView();
                 if(usuarioAMostrar.getFoto() != null) {
@@ -130,11 +126,17 @@ public class ChatsScreen implements Initializable {
                 hbox.setCursor(Cursor.HAND);
                 hbox.setOnMouseClicked(event -> {
 
-                    chatear(usuarioAMostrar);
+                    try {
+                        ChatScreen.setOtroUsuario(usuarioAMostrar);
+                        GoTravel.setRoot("chat");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
 
                 });
 
-                chats.getChildren().add(hbox);
+                FlowPane.setMargin(hbox, new Insets(10, 10, 10, 10));
+                flowPane.getChildren().add(hbox);
             }
 
         } else {
@@ -146,42 +148,6 @@ public class ChatsScreen implements Initializable {
         }
 
 
-    }
-
-    public void chatear(Usuario usuarioAMostrar) {
-        try {
-            mensajesChat.getChildren().clear();
-
-            pararEscuchaDeMensajes();
-
-            otroUsuario = usuarioAMostrar;
-            mensajes = findAllMensajesBetweenUsers(usuarioAMostrar.getId());
-
-            for (Mensaje m : mensajes) {
-                VBox vboxMensaje = new VBox(5);
-                Label textoMensaje = new Label(m.getTexto());
-                textoMensaje.setFont(Fonts.labelMedium);
-                Label horaMensaje = new Label(m.getHora());
-                horaMensaje.setFont(Fonts.labelSmall);
-                vboxMensaje.getChildren().addAll(textoMensaje, horaMensaje);
-
-                HBox hboxMensaje = new HBox();
-                hboxMensaje.getChildren().add(vboxMensaje);
-
-                if (m.getEmisor().getId() == u.getId()) {
-                    hboxMensaje.setAlignment(Pos.CENTER_RIGHT);
-                    vboxMensaje.setAlignment(Pos.CENTER_RIGHT);
-                    mensajesChat.getChildren().add(hboxMensaje);
-                } else {
-                    vboxMensaje.setStyle("-fx-background-color: #3D5F90;");
-                    mensajesChat.getChildren().add(hboxMensaje);
-                }
-            }
-
-            iniciarEscuchaDeMensajes();
-        } catch (InterruptedException e) {
-            System.err.println(e.getCause() + " " + e.getMessage());
-        }
     }
 
     private Map<Integer, Mensaje> findAllMensajesByUsuarioId() {
@@ -229,114 +195,29 @@ public class ChatsScreen implements Initializable {
 
     }
 
-    private Usuario findUserById(int id) {
-
-        if(GoTravel.getSesion().getSocket() != null && !GoTravel.getSesion().getSocket().isClosed()) {
-
-            try {
-                return Executors.newSingleThreadExecutor().submit(() -> {
-                    Gson gson = new GsonBuilder()
-                            .serializeNulls()
-                            .setLenient()
-                            .create();
-
-                    try {
-                        GoTravel.getSesion().getSalida().writeUTF("findById;usuario;" + id);
-                        GoTravel.getSesion().getSalida().flush();
-
-                        String jsonFromServer = GoTravel.getSesion().getEntrada().readUTF();
-                        Usuario otroUsuario = gson.fromJson(jsonFromServer, Usuario.class);
-
-                        if(GoTravel.getSesion().getEntrada().readBoolean()) {
-                            int length = GoTravel.getSesion().getEntrada().readInt();
-                            byte[] byteArray = new byte[length];
-                            GoTravel.getSesion().getEntrada().readFully(byteArray);
-                            otroUsuario.setFoto(byteArray);
-                        }
-
-                        GoTravel.getSesion().getSalida().writeUTF("chat;" + id);
-                        GoTravel.getSesion().getSalida().flush();
-
-                        return otroUsuario;
-
-                    } catch (IOException e) {
-                        System.err.println(e.getMessage());
-                        GoTravel.setRoot("landing");
-                        return null;
-                    }
-                }).get();
-            } catch (Exception e) {
-                System.err.println(e.getMessage());
-            }
-
-        }
-
-        return null;
-
-    }
-
-    private List<Mensaje> findAllMensajesBetweenUsers(int idOtroUsuario) {
-
-        if(GoTravel.getSesion().getSocket() != null && !GoTravel.getSesion().getSocket().isClosed()) {
-
-            try {
-                return Executors.newSingleThreadExecutor().submit(() -> {
-                    Gson gson = new GsonBuilder()
-                            .serializeNulls()
-                            .setLenient()
-                            .create();
-
-                    try {
-                        GoTravel.getSesion().getSalida().writeUTF("findByUserId;mensajesBetweenUsers;" + idOtroUsuario);
-                        GoTravel.getSesion().getSalida().flush();
-
-                        String jsonFromServer = GoTravel.getSesion().getEntrada().readUTF();
-                        System.out.println(jsonFromServer);
-                        Type type = new TypeToken<List<Mensaje>>() {}.getType();
-
-                        return gson.<List<Mensaje>>fromJson(jsonFromServer, type);
-
-                    } catch (IOException e) {
-                        System.err.println(e.getMessage());
-                        GoTravel.setRoot("landing");
-                        return null;
-                    }
-                }).get();
-            } catch (Exception e) {
-                System.err.println(e.getMessage());
-            }
-
-        }
-
-        return null;
-    }
-
     private byte[] getFotoByUserId(int id) {
 
         if(GoTravel.getSesion().getSocket() != null && !GoTravel.getSesion().getSocket().isClosed()) {
 
             try {
-                return Executors.newSingleThreadExecutor().submit(() -> {
+                try {
+                    GoTravel.getSesion().getSalida().writeUTF("findByUserId;imagen;" + id);
+                    GoTravel.getSesion().getSalida().flush();
 
-                    try {
-                        GoTravel.getSesion().getSalida().writeUTF("findByUserId;imagen;" + id);
-                        GoTravel.getSesion().getSalida().flush();
-
-                        if(GoTravel.getSesion().getEntrada().readBoolean()) {
-                            int length = GoTravel.getSesion().getEntrada().readInt();
-                            byte[] byteArray = new byte[length];
-                            GoTravel.getSesion().getEntrada().readFully(byteArray);
-                            return byteArray;
-                        } else {
-                            return null;
-                        }
-
-                    } catch (IOException e) {
-                        System.err.println(e.getMessage());
-                        GoTravel.setRoot("landing");
+                    if(GoTravel.getSesion().getEntrada().readBoolean()) {
+                        int length = GoTravel.getSesion().getEntrada().readInt();
+                        byte[] byteArray = new byte[length];
+                        GoTravel.getSesion().getEntrada().readFully(byteArray);
+                        return byteArray;
+                    } else {
                         return null;
                     }
-                }).get();
+
+                } catch (IOException e) {
+                    System.err.println(e.getMessage());
+                    GoTravel.setRoot("landing");
+                    return null;
+                }
             } catch (Exception e) {
                 System.err.println(e.getMessage());
             }
@@ -345,72 +226,5 @@ public class ChatsScreen implements Initializable {
 
         return null;
     }
-
-    @FXML
-    void enviarMensaje() {
-
-    }
-
-    private synchronized void iniciarEscuchaDeMensajes() throws InterruptedException {
-        new Thread(() -> {
-            try {
-
-                GoTravel.getSesion().getSalida().writeUTF("chat;" + otroUsuario.getId());
-                GoTravel.getSesion().getSalida().flush();
-                escuchando = true;
-
-                while (escuchando && !Thread.currentThread().isInterrupted() && GoTravel.getSesion().getSocket() != null && !GoTravel.getSesion().getSocket().isClosed()) {
-                    Gson gson = new GsonBuilder()
-                            .serializeNulls()
-                            .setLenient()
-                            .create();
-
-                    String jsonFromServer = GoTravel.getSesion().getEntrada().readUTF();
-                    if(!jsonFromServer.equals("fin")) {
-                        Mensaje mensajeFromServer = gson.fromJson(jsonFromServer, Mensaje.class);
-
-                        if(mensajeFromServer.getReceptor().getId() == otroUsuario.getId() || mensajeFromServer.getEmisor().getId() == otroUsuario.getId()) {
-                            final VBox vboxMensaje = new VBox(5);
-                            final Label textoMensaje = new Label(mensajeFromServer.getTexto());
-                            textoMensaje.setFont(Fonts.labelMedium);
-                            final Label horaMensaje = new Label(mensajeFromServer.getHora());
-                            horaMensaje.setFont(Fonts.labelSmall);
-                            vboxMensaje.getChildren().addAll(textoMensaje, horaMensaje);
-
-                            final HBox hboxMensaje = new HBox();
-                            hboxMensaje.getChildren().add(vboxMensaje);
-
-                            Platform.runLater(() -> {
-                                if (mensajeFromServer.getEmisor().getId() == u.getId()) {
-                                    hboxMensaje.setAlignment(Pos.CENTER_RIGHT);
-                                    vboxMensaje.setAlignment(Pos.CENTER_RIGHT);
-                                    mensajesChat.getChildren().add(hboxMensaje);
-                                } else {
-                                    vboxMensaje.setStyle("-fx-background-color: #3D5F90;");
-                                    mensajesChat.getChildren().add(hboxMensaje);
-                                }
-                            });
-                        }
-                    }
-                }
-            } catch (IOException e) {
-                System.err.println(e.getCause() + " " + e.getMessage());
-            }
-        }).start();
-    }
-
-    private void pararEscuchaDeMensajes() {
-        if(GoTravel.getSesion().getSocket() != null && !GoTravel.getSesion().getSocket().isClosed()) {
-            try {
-                GoTravel.getSesion().getSalida().writeUTF("dejarChat");
-                GoTravel.getSesion().getSalida().flush();
-                escuchando = false;
-            } catch (IOException e) {
-                System.err.println(e.getCause() + " " + e.getMessage());
-            }
-        }
-    }
-
-
 
 }
