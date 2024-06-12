@@ -806,9 +806,9 @@ public class ServicioScreen implements Initializable {
     }
 
     @FXML
-    void navigateToChat() {
-        // TODO ChatScreen.setOtroUsuario(s.getUsuario());
-        //        GoTravel.setRoot("chat");
+    void navigateToChat() throws IOException {
+        ChatScreen.setOtroUsuario(s.getUsuario());
+        GoTravel.setRoot("chat");
     }
 
 }
