@@ -210,6 +210,7 @@
                   <PasswordField fx:id="contrasenaNueva" />
                   <Label fx:id="confirmarContrasenaLabel" text="Confirmar contraseña" textFill="WHITE" />
                   <PasswordField fx:id="confirmarContrasena" />
+                  <Text fx:id="passwdErrorMsg" fill="#ba1a1a" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER" wrappingWidth="363.0" />
                   <Button fx:id="cambiarContrasenaButton" mnemonicParsing="false" onAction="#updateContrasena" prefHeight="25.0" prefWidth="224.0" text="Cambiar contraseña">
                      <cursor>
                         <Cursor fx:constant="HAND" />

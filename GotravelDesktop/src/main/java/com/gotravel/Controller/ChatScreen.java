@@ -5,7 +5,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.gotravel.GoTravel;
 import com.gotravel.Model.Mensaje;
-import com.gotravel.Model.Suscripcion;
 import com.gotravel.Model.Usuario;
 import com.gotravel.Utils.Fechas;
 import com.gotravel.Utils.Fonts;
@@ -25,7 +24,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import lombok.Setter;
 
-import java.awt.event.KeyEvent;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -80,6 +78,8 @@ public class ChatScreen implements Initializable {
 
                         GoTravel.getSesion().getSalida().writeUTF(gson.toJson(m));
                         GoTravel.getSesion().getSalida().flush();
+
+                        mensajeField.setText("");
 
                     } catch (IOException e) {
                         e.printStackTrace();

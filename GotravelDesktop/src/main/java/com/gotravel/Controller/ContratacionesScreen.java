@@ -62,11 +62,9 @@ public class ContratacionesScreen implements Initializable {
 
         if(!busqueda.isBlank()) {
             for (Servicio s : getServiciosContratados()) {
-
                 if(s.getNombre().contains(busqueda)) {
                     contrataciones.add(s);
                 }
-
             }
         } else {
             contrataciones = getServiciosContratados();

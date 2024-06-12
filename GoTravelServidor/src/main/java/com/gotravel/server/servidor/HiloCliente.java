@@ -91,7 +91,7 @@ public class HiloCliente extends Thread {
                         sesionIniciada = true;
                         sesion.setUsuario(u);
                         enviarFotoUsuario(u);
-                    }
+                    } 
                 }
             }
             clientesConectados.put(sesion.getUsuario().getId(), this);
@@ -145,7 +145,7 @@ public class HiloCliente extends Thread {
                         case "finHilo" -> {
                             terminar = true;
                             clientesConectados.remove(sesion.getUsuario().getId());
-                            LOG.info("Se ha desconectado un usuario");
+                            LOG.info("Se ha desconectado un usuario: {}", sesion.getUsuario().getId());
                         }
                         case "finServer" -> {
                             sesion.getSalida().writeUTF("cerrando");
@@ -162,7 +162,7 @@ public class HiloCliente extends Thread {
 
         } catch (IOException e) {
             clientesConectados.remove(sesion.getUsuario().getId());
-            LOG.warn("Se ha interrumpido la conexion con un usuario");
+            LOG.warn("Se ha interrumpido la conexion con un usuario: {}", sesion.getUsuario().getId());
         } finally {
             if (sesion.getCliente() != null) {
                 try {
@@ -317,6 +317,9 @@ public class HiloCliente extends Thread {
         } else if (tabla.equalsIgnoreCase("serviciosContratados")) {
             List<Servicio> servicios = service.findServiciosContratadosByUsuario(idUsuario);
             jsonFromServer = gson.toJson(servicios);
+        } else if (tabla.equalsIgnoreCase("usuarios")) {
+            List<Usuario> usuarios = service.findAllUsuarios();
+            jsonFromServer = gson.toJson(usuarios);
         }
         return jsonFromServer;
     }
@@ -378,7 +381,13 @@ public class HiloCliente extends Thread {
             Suscripcion suscripcion = service.findSuscripcionByUsuarioId(idUsuario);
             return gson.toJson(suscripcion);
         } else if (tabla.equalsIgnoreCase("servicio")) {
-            List<Servicio> servicios = service.findServiciosByUsuarioId(idUsuario);
+            List<Servicio> servicios;
+            if(fromCliente.length > 2) {
+                int idOtroUsuario = Integer.parseInt(fromCliente[2]);
+                servicios = service.findAllServiciosByUsuarioId(idOtroUsuario);
+            } else {
+                servicios = service.findServiciosByUsuarioId(idUsuario);
+            }
             jsonFromServer = gson.toJson(servicios);
         } else if (tabla.equalsIgnoreCase("imagen")) {
             int idOtroUsuario = Integer.parseInt(fromCliente[2]);
@@ -400,6 +409,18 @@ public class HiloCliente extends Thread {
                 m.setReceptor(service.findMinimalUserInfoById(m.getReceptor().getId()));
             }
             jsonFromServer = gson.toJson(mensajes);
+        } else if (tabla.equalsIgnoreCase("resena")) {
+            int idOtroUsuario = Integer.parseInt(fromCliente[2]);
+            List<Resena> resenas = service.findResenasByUsuarioId(idOtroUsuario);
+            sesion.getSalida().writeUTF(gson.toJson(resenas));
+            for (Resena r : resenas) {
+                boolean usuarioTieneFoto = r.getUsuario().getFoto() != null;
+                sesion.getSalida().writeBoolean(usuarioTieneFoto);
+                if(usuarioTieneFoto) {
+                    sesion.getSalida().writeInt(r.getUsuario().getFoto().length);
+                    sesion.getSalida().write(r.getUsuario().getFoto());
+                }
+            }
         }
         return jsonFromServer;
     }
@@ -454,8 +475,6 @@ public class HiloCliente extends Thread {
             service.saveUsuario(u);
         }
 
-        sesionIniciada = true;
-        terminar = true;
     }
 
     private String findByEntityId(String[] fromCliente) throws IOException {
@@ -506,26 +525,42 @@ public class HiloCliente extends Thread {
             int idViaje = Integer.parseInt(fromCliente[2]);
             jsonFromServer = saveEtapa(jsonFromUser, idViaje);
         } else if (tabla.equalsIgnoreCase("servicio")) {
-            jsonFromServer = saveServicio(jsonFromUser);
+            jsonFromServer = saveServicio(jsonFromUser, sesion.getUsuario().getId());
         } else if (tabla.equalsIgnoreCase("resena")) {
             jsonFromServer = saveResena(jsonFromUser);
+        }else if (tabla.equalsIgnoreCase("tipoServicio")) {
+            jsonFromServer = saveTipoServicio(jsonFromUser);
         }
         return jsonFromServer;
     }
 
+    private String saveTipoServicio(String jsonFromUser) {
+        Tiposervicio tsFromUser = gson.fromJson(jsonFromUser, Tiposervicio.class);
+        tsFromUser = service.saveTipoServicio(tsFromUser);
+        return gson.toJson(tsFromUser);
+    }
+
     private String updateEntity(String[] fromCliente, int idUsuario) throws IOException {
         String tabla = fromCliente[1];
-        String jsonFromUser = sesion.getEntrada().readUTF();
         String jsonFromServer = "";
         if (tabla.equalsIgnoreCase("usuario")) {
+            String jsonFromUser = sesion.getEntrada().readUTF();
             jsonFromServer = saveUsuario(jsonFromUser);
         } else if (tabla.equalsIgnoreCase("viaje")) {
+            String jsonFromUser = sesion.getEntrada().readUTF();
             jsonFromServer = saveViaje(jsonFromUser);
         } else if (tabla.equalsIgnoreCase("etapa")) {
+            String jsonFromUser = sesion.getEntrada().readUTF();
             int idViaje = Integer.parseInt(fromCliente[2]);
             jsonFromServer = saveEtapa(jsonFromUser, idViaje);
         } else if (tabla.equalsIgnoreCase("servicio")) {
-            jsonFromServer = saveServicio(jsonFromUser);
+            String jsonFromUser = sesion.getEntrada().readUTF();
+            if(fromCliente.length > 2) {
+                int idOtroUsuario = Integer.parseInt(fromCliente[2]);
+                jsonFromServer = saveServicio(jsonFromUser, idOtroUsuario);
+            } else {
+                jsonFromServer = saveServicio(jsonFromUser, idUsuario);
+            }
         } else if (tabla.equalsIgnoreCase("contrasena")) {
             String contrasenaActual = fromCliente[2];
             String contrasenaNueva = fromCliente[3];
@@ -534,13 +569,16 @@ public class HiloCliente extends Thread {
                 u.setContrasena(contrasenaNueva);
                 jsonFromServer = saveUsuario(gson.toJson(u));
             }
+        } else if (tabla.equalsIgnoreCase("resena")) {
+            String jsonFromUser = sesion.getEntrada().readUTF();
+            jsonFromServer = saveResena(jsonFromUser);
         }
         return jsonFromServer;
     }
 
-    private String saveServicio(String jsonFromUser) {
+    private String saveServicio(String jsonFromUser, int idUsuario) {
         Servicio servicioFromUser = gson.fromJson(jsonFromUser, Servicio.class);
-        servicioFromUser.setUsuario(sesion.getUsuario());
+        servicioFromUser.setUsuario(service.findUsuarioById(idUsuario));
         servicioFromUser = service.saveServicio(servicioFromUser);
         return gson.toJson(servicioFromUser);
     }
@@ -561,8 +599,8 @@ public class HiloCliente extends Thread {
 
     private String saveUsuario(String jsonFromUser) {
         Usuario usuarioFromUser = gson.fromJson(jsonFromUser, Usuario.class);
-        usuarioFromUser.setRoles(sesion.getUsuario().getRoles());
-        usuarioFromUser.setFoto(sesion.getUsuario().getFoto());
+        usuarioFromUser.setRoles(service.findUsuarioById(usuarioFromUser.getId()).getRoles());
+        usuarioFromUser.setFoto(service.findUsuarioById(usuarioFromUser.getId()).getFoto());
         usuarioFromUser = service.saveUsuario(usuarioFromUser);
         sesion.setUsuario(usuarioFromUser);
         return gson.toJson(usuarioFromUser);
@@ -572,7 +610,6 @@ public class HiloCliente extends Thread {
         Resena resenaFromUser = gson.fromJson(jsonFromUser, Resena.class);
         resenaFromUser.setUsuario(sesion.getUsuario());
         resenaFromUser.setServicio(service.findServicioById(resenaFromUser.getId().getIdServicio()));
-        System.out.println(service.findServicioById(resenaFromUser.getId().getIdServicio()));
         resenaFromUser = service.saveResena(resenaFromUser);
         return gson.toJson(resenaFromUser);
     }
@@ -584,7 +621,8 @@ public class HiloCliente extends Thread {
         if (tabla.equalsIgnoreCase("usuario")) {
             Usuario u = service.findUsuarioById(idUsuario);
             u.setFoto(byteArray);
-            jsonFromServer = saveUsuario(gson.toJson(u));
+            sesion.setUsuario(u);
+            jsonFromServer = gson.toJson(service.saveUsuario(u));
         } else if (tabla.equalsIgnoreCase("servicio")) {
             int idServicio = Integer.parseInt(fromCliente[2]);
             Servicio s = service.findServicioById(idServicio);

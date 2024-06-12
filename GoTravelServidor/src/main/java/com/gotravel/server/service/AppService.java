@@ -44,6 +44,10 @@ public class AppService {
         }
     }
 
+    public List<Usuario> findAllUsuarios() {
+        return usuarioRepository.findAll();
+    }
+
     public Usuario findMinimalUserInfoById(int idUsuario) {
         Usuario u = usuarioRepository.findById(idUsuario).orElse(null);
 
@@ -162,6 +166,20 @@ public class AppService {
         return tipoServicioRepository.findAll();
     }
 
+    public Tiposervicio saveTipoServicio(Tiposervicio tsFromUser) {
+        try {
+            tsFromUser = tipoServicioRepository.save(tsFromUser);
+            return findTipoServicioByNombre(tsFromUser.getNombre());
+        } catch (Exception e) {
+            LOG.error("Error: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    private Tiposervicio findTipoServicioByNombre(String nombre) {
+        return tipoServicioRepository.findByNombre(nombre);
+    }
+
     @Autowired
     private ServicioRepository servicioRepository;
 
@@ -176,7 +194,7 @@ public class AppService {
     }
 
     public Servicio findServicioById(int id) {
-        return servicioRepository.findByIdAndOculto(id, "0").orElse(null);
+        return servicioRepository.findById(id).orElse(null);
     }
 
     public List<Servicio> findServiciosByUsuarioId(int idUsuario) {
@@ -203,6 +221,11 @@ public class AppService {
         }
 
         return devolver;
+    }
+
+
+    public List<Servicio> findAllServiciosByUsuarioId(int idOtroUsuario) {
+        return servicioRepository.findAllByUsuarioId(idOtroUsuario);
     }
 
     public List<Servicio> findAllServiciosByFechasAndTipoAndPais(LocalDate fechaInicioE, LocalDate fechaFinalE, String tipo, String pais) {
@@ -282,6 +305,10 @@ public class AppService {
 
     public Resena findResenaById(ResenaId id) {
         return resenaRepository.findById(id).orElse(null);
+    }
+
+    public List<Resena> findResenasByUsuarioId(int idOtroUsuario) {
+        return resenaRepository.findAllByUsuarioId(idOtroUsuario);
     }
 
     @Autowired

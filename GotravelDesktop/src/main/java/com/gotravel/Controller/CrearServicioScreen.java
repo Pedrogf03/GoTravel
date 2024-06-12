@@ -29,7 +29,8 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.concurrent.Executors;
 
-import static com.gotravel.Utils.Regex.*;
+import static com.gotravel.Utils.Regex.regexCamposAlfaNum;
+import static com.gotravel.Utils.Regex.regexCp;
 
 public class CrearServicioScreen implements Initializable {
 
@@ -93,7 +94,7 @@ public class CrearServicioScreen implements Initializable {
     @FXML
     void crearServicio() {
 
-        if(nombre.getText().isBlank() || precio.getText().isBlank() || choiceTipos.getValue() == null || fechaInicio.getValue() == null || fechaFinal.getValue() == null || /*hora == null*/ linea1.getText().isBlank() || ciudad.getText().isBlank() || estado.getText().isBlank() || choicePaises.getValue() == null || codigoPostal.getText().isBlank()) {
+        if(nombre.getText().isBlank() || precio.getText().isBlank() || choiceTipos.getValue() == null || fechaInicio.getValue() == null || (fechaFinal.getValue() == null && hora.getCalendar() == null) || linea1.getText().isBlank() || ciudad.getText().isBlank() || estado.getText().isBlank() || choicePaises.getValue() == null || codigoPostal.getText().isBlank()) {
             errorMsg.setText("Por favor rellena todos los campos obligatorios");
         } else {
 
@@ -108,14 +109,18 @@ public class CrearServicioScreen implements Initializable {
 
                             Double coste = Double.parseDouble(precio.getText().replace(",", "."));
 
-                            if(fechaFinal != null && fechaFinal.getValue().isBefore(fechaInicio.getValue())) {
+                            if(fechaFinal.getValue() != null && fechaFinal.getValue().isBefore(fechaInicio.getValue())) {
                                 errorMsg.setText("La fecha de final no puede ser anterior a la fecha de inicio");
                                 return;
                             }
 
-                            String horaS = LocalDateTime.ofInstant(hora.getCalendar().toInstant(), ZoneId.systemDefault()).toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+                            String horaS = null;
 
-                            Servicio servicio = new Servicio(nombre.getText(), descripcion.getText().isBlank() ? null : descripcion.getText(), coste, fechaInicio.getValue().format(Fechas.formatoFromDb), fechaFinal.getValue().format(Fechas.formatoFromDb), horaS, choiceTipos.getValue(), d);
+                            if(hora.getCalendar() != null) {
+                                horaS = LocalDateTime.ofInstant(hora.getCalendar().toInstant(), ZoneId.systemDefault()).toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+                            }
+
+                            Servicio servicio = new Servicio(nombre.getText(), descripcion.getText().isBlank() ? null : descripcion.getText(), coste, fechaInicio.getValue().format(Fechas.formatoFromDb), fechaFinal.getValue() != null ? fechaFinal.getValue().format(Fechas.formatoFromDb) : null, horaS, choiceTipos.getValue(), d);
 
                             if(GoTravel.getSesion().getSocket() != null && !GoTravel.getSesion().getSocket().isClosed()) {
 

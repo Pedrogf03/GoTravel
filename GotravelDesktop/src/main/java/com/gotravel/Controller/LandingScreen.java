@@ -14,7 +14,6 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
 import java.io.*;
-import java.lang.module.Configuration;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
@@ -144,7 +143,7 @@ public class LandingScreen implements Initializable {
 
                 SocketAddress socketAddress = new InetSocketAddress(dirIp, puerto);
                 Socket cliente = new Socket();
-                int tiempoDeEspera = 1000;
+                int tiempoDeEspera = 3000;
 
                 cliente.connect(socketAddress, tiempoDeEspera);
                 GoTravel.getSesion().setSocket(cliente);

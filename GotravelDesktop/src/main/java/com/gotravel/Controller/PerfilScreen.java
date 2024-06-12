@@ -95,6 +95,9 @@ public class PerfilScreen implements Initializable {
     private Text errorMsg;
 
     @FXML
+    private Text passwdErrorMsg;
+
+    @FXML
     private ImageView fotoEditar;
 
     @FXML
@@ -409,9 +412,11 @@ public class PerfilScreen implements Initializable {
             String contrasenaActualHash = GoTravel.toSha256(contrasenaActual.getText());
 
             if(contrasenaNuevaHash.equals(contrasenaActualHash)) {
-                errorMsg.setText("La nueva contraseña no puede ser igual a la anterior");
+                passwdErrorMsg.setText("La nueva contraseña no puede ser igual a la anterior");
+            } else if (!regexContrasena.matcher(contrasenaNueva.getText()).matches()) {
+                passwdErrorMsg.setText("La nueva contraseña es inválida");
             } else if (!contrasenaNuevaHash.equals(confirmarHash)) {
-                errorMsg.setText("Las contraseñas no coinciden");
+                passwdErrorMsg.setText("Las contraseñas no coinciden");
             } else {
 
                 if(GoTravel.getSesion().getSocket() != null && !GoTravel.getSesion().getSocket().isClosed()) {
@@ -490,7 +495,7 @@ public class PerfilScreen implements Initializable {
         email.setText(u.getEmail());
         email.setFont(Fonts.labelMedium);
 
-        if(u.getTfno() != null) {
+        if(!u.getTfno().isBlank()) {
             tfno.setText(u.getTfno());
             tfno.setFont(Fonts.labelMedium);
         } else {

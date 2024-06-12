@@ -30,6 +30,7 @@ public class Servicio {
     private List<Imagen> imagenes = new ArrayList<>();
     private List<Resena> resenas = new ArrayList<>();
     private String publicado = "0";
+    private String oculto = "0";
     private boolean contratado = false;
 
     public Servicio(String nombre, String descripcion, Double precio, String fechaInicio, String fechaFinal, String hora, TipoServicio tipoServicio, Direccion direccion) {

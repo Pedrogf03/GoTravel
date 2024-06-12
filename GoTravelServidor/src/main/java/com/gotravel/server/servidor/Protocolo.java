@@ -15,8 +15,6 @@ public class Protocolo {
 
     public String procesarMensaje(String entrada) {
 
-        System.out.println("PROTOCOLO: " + entrada);
-
         Gson gson = new GsonBuilder()
                 .excludeFieldsWithoutExposeAnnotation()
                 .serializeNulls()

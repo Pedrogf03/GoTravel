@@ -7,7 +7,6 @@ import com.gotravel.ImageApi.ImageApi;
 import com.gotravel.Model.Usuario;
 import com.gotravel.Model.Viaje;
 import com.gotravel.Utils.Fonts;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
@@ -75,9 +74,6 @@ public class HomeScreen implements Initializable {
 
     @FXML
     private VBox viajeMostrar;
-
-    @FXML
-    private FontAwesomeIconView iconoTfno;
 
     @FXML
     void crearServicio() throws IOException {
@@ -160,6 +156,9 @@ public class HomeScreen implements Initializable {
             }
 
             viajeMostrar.getChildren().add(vbox);
+        } else {
+            titleViajeMostrar.setFont(Fonts.titleSmall);
+            titleViajeMostrar.setText("No tienes ningún viaje planificado");
         }
 
         if(u.getFoto() != null){
@@ -182,12 +181,11 @@ public class HomeScreen implements Initializable {
         email.setText(u.getEmail());
         email.setFont(Fonts.labelMedium);
 
-        if(u.getTfno() != null) {
+        if(!u.getTfno().isBlank()) {
             tfno.setText(u.getTfno());
             tfno.setFont(Fonts.labelMedium);
         } else {
             infoUser.getChildren().remove(containerTelefono);
-            infoUser.getChildren().remove(iconoTfno);
         }
 
         rol.setText(u.getRoles().get(0).getNombre());
@@ -199,7 +197,7 @@ public class HomeScreen implements Initializable {
         try {
             imageHome.setImage(new Image(new ByteArrayInputStream(Objects.requireNonNull(ImageApi.getImage()))));
         } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
 
     }

@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.annotation.processing.Generated;
 import java.util.List;
 
 @Getter
@@ -24,6 +23,7 @@ public class Usuario {
     private byte[] foto;
     private boolean profesional;
     private boolean administrador;
+    private String oculto = "0";
 
     public Usuario(int id, String nombre, String apellidos, String email, String contrasena, String tfno) {
         this.id = id;

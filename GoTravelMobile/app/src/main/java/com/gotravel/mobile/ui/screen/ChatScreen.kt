@@ -118,7 +118,9 @@ fun ChatScreen(
 
                 // Efecto para desplazar la lista al final cuando cambie la lista de mensajes
                 LaunchedEffect(mensajes) {
-                    listState.scrollToItem(index = mensajes.size - 1)
+                    if(mensajes.isNotEmpty()){
+                        listState.scrollToItem(index = mensajes.size - 1)
+                    }
                 }
 
                 Column (
@@ -132,21 +134,8 @@ fun ChatScreen(
                         state = listState,
                         modifier = Modifier.weight(1f)
                     ) {
-                        var mensajeAnterior = mensajes[0]
-                        itemsIndexed(mensajes) { index, mensaje ->
-                            val fechaActual = LocalDate.parse(mensaje.fecha, formatoFromDb)
-                            val fechaAnterior = LocalDate.parse(mensajeAnterior.fecha, formatoFromDb)
-
-                            if (fechaAnterior.isBefore(fechaActual) || index == 0) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.Center
-                                ) {
-                                    Text(text = fechaActual.format(formatoFinal))
-                                }
-                            }
+                        items(mensajes) {mensaje ->
                             MensajeCard(mensaje)
-                            mensajeAnterior = mensaje
                         }
                     }
                     CajaDeTexto(

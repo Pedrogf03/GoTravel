@@ -83,7 +83,7 @@
                   </HBox>
                   <HBox fx:id="containerTelefono" alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" style="-fx-spacing: 50; -fx-padding: 30;">
                      <children>
-                        <FontAwesomeIconView fx:id="iconoTfno" glyphName="PHONE" size="50" />
+                        <FontAwesomeIconView glyphName="PHONE" size="50" />
                         <Label fx:id="tfno" text="Label" textFill="WHITE">
                            <font>
                               <Font size="36.0" />

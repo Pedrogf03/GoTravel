@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS `gotravel`.`usuario` (
   UNIQUE INDEX `Email_UNIQUE` (`email` ASC) VISIBLE,
   UNIQUE INDEX `Tfno_UNIQUE` (`tfno` ASC) VISIBLE)
 ENGINE = InnoDB
-AUTO_INCREMENT = 25
+AUTO_INCREMENT = 27
 DEFAULT CHARACTER SET = utf8mb3;
 
 
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS `gotravel`.`viaje` (
     FOREIGN KEY (`id_usuario`)
     REFERENCES `gotravel`.`usuario` (`id_usuario`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 19
+AUTO_INCREMENT = 26
 DEFAULT CHARACTER SET = utf8mb3;
 
 
@@ -69,13 +69,14 @@ CREATE TABLE IF NOT EXISTS `gotravel`.`etapa` (
   `coste_total` DOUBLE NOT NULL,
   `tipo` ENUM('transporte', 'estancia') NOT NULL,
   `id_viaje` INT NOT NULL,
+  `pais` VARCHAR(100) NOT NULL,
   PRIMARY KEY (`id_etapa`),
   INDEX `fk_Etapa_Viaje1_idx` (`id_viaje` ASC) VISIBLE,
   CONSTRAINT `fk_Etapa_Viaje1`
     FOREIGN KEY (`id_viaje`)
     REFERENCES `gotravel`.`viaje` (`id_viaje`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 26
+AUTO_INCREMENT = 32
 DEFAULT CHARACTER SET = utf8mb3;
 
 
@@ -93,7 +94,7 @@ CREATE TABLE IF NOT EXISTS `gotravel`.`pago` (
     FOREIGN KEY (`id_usuario`)
     REFERENCES `gotravel`.`usuario` (`id_usuario`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 14
+AUTO_INCREMENT = 16
 DEFAULT CHARACTER SET = utf8mb3;
 
 
@@ -110,7 +111,7 @@ CREATE TABLE IF NOT EXISTS `gotravel`.`direccion` (
   `pais` VARCHAR(100) NOT NULL,
   PRIMARY KEY (`id_direccion`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 17
+AUTO_INCREMENT = 31
 DEFAULT CHARACTER SET = utf8mb3;
 
 
@@ -154,7 +155,7 @@ CREATE TABLE IF NOT EXISTS `gotravel`.`servicio` (
     FOREIGN KEY (`id_usuario`)
     REFERENCES `gotravel`.`usuario` (`id_usuario`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 4
+AUTO_INCREMENT = 6
 DEFAULT CHARACTER SET = utf8mb3;
 
 
@@ -202,7 +203,31 @@ CREATE TABLE IF NOT EXISTS `gotravel`.`imagen` (
     FOREIGN KEY (`id_servicio`)
     REFERENCES `gotravel`.`servicio` (`id_servicio`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 56
+AUTO_INCREMENT = 61
+DEFAULT CHARACTER SET = utf8mb3;
+
+
+-- -----------------------------------------------------
+-- Table `gotravel`.`mensaje`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `gotravel`.`mensaje` (
+  `id_mensaje` INT NOT NULL AUTO_INCREMENT,
+  `id_emisor` INT NOT NULL,
+  `id_receptor` INT NOT NULL,
+  `texto` VARCHAR(100) NOT NULL,
+  `fecha` DATE NOT NULL,
+  `hora` TIME NOT NULL,
+  PRIMARY KEY (`id_mensaje`),
+  INDEX `fk_mensaje_usuario1_idx` (`id_emisor` ASC) VISIBLE,
+  INDEX `fk_mensaje_usuario2_idx` (`id_receptor` ASC) VISIBLE,
+  CONSTRAINT `fk_mensaje_usuario1`
+    FOREIGN KEY (`id_emisor`)
+    REFERENCES `gotravel`.`usuario` (`id_usuario`),
+  CONSTRAINT `fk_mensaje_usuario2`
+    FOREIGN KEY (`id_receptor`)
+    REFERENCES `gotravel`.`usuario` (`id_usuario`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 61
 DEFAULT CHARACTER SET = utf8mb3;
 
 
@@ -251,12 +276,16 @@ CREATE TABLE IF NOT EXISTS `gotravel`.`resena` (
   `id_usuario` INT NOT NULL,
   `id_servicio` INT NOT NULL,
   `puntuacion` INT NOT NULL,
-  `contenido` VARCHAR(200) NOT NULL,
+  `contenido` VARCHAR(500) NOT NULL,
   `oculto` ENUM('0', '1') NOT NULL DEFAULT '0',
   PRIMARY KEY (`id_usuario`, `id_servicio`),
+  INDEX `FKb88egtle2sr6ru3jrqy3rcajl` (`id_servicio` ASC) VISIBLE,
   CONSTRAINT `fk_Usuario_has_Contratacion_Usuario1`
     FOREIGN KEY (`id_usuario`)
-    REFERENCES `gotravel`.`usuario` (`id_usuario`))
+    REFERENCES `gotravel`.`usuario` (`id_usuario`),
+  CONSTRAINT `FKb88egtle2sr6ru3jrqy3rcajl`
+    FOREIGN KEY (`id_servicio`)
+    REFERENCES `gotravel`.`servicio` (`id_servicio`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb3;
 
@@ -290,36 +319,10 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb3;
 
 
--- -----------------------------------------------------
--- Table `gotravel`.`mensaje`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `gotravel`.`mensaje` (
-  `id_mensaje` INT NOT NULL,
-  `id_emisor` INT NOT NULL,
-  `id_receptor` INT NOT NULL,
-  `texto` VARCHAR(100) NOT NULL,
-  `fecha` DATE NOT NULL,
-  `hora` TIME NOT NULL,
-  `leido` ENUM('0', '1') NOT NULL,
-  PRIMARY KEY (`id_mensaje`),
-  INDEX `fk_mensaje_usuario1_idx` (`id_emisor` ASC) VISIBLE,
-  INDEX `fk_mensaje_usuario2_idx` (`id_receptor` ASC) VISIBLE,
-  CONSTRAINT `fk_mensaje_usuario1`
-    FOREIGN KEY (`id_emisor`)
-    REFERENCES `gotravel`.`usuario` (`id_usuario`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_mensaje_usuario2`
-    FOREIGN KEY (`id_receptor`)
-    REFERENCES `gotravel`.`usuario` (`id_usuario`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
-
-
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+
 
 
 -- -----------------------------------------------------

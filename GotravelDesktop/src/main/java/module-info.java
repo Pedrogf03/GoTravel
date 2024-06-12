@@ -9,6 +9,7 @@ module com.gotravel {
     requires jdk.httpserver;
     requires jfxtras.controls;
     requires java.desktop;
+    requires jdk.security.auth;
 
 
     opens com.gotravel to javafx.fxml;

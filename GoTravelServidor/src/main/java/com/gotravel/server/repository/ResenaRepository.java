@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface ResenaRepository extends JpaRepository<Resena, ResenaId> {
     List<Resena> findAllByServicioIdAndOculto(int idServicio, String oculto);
+
+    List<Resena> findAllByUsuarioId(int idUsuario);
 }
