@@ -199,12 +199,16 @@ fun CajaDeTexto(
 
     OutlinedTextField(
         value = texto,
-        onValueChange = { texto = it },
+        onValueChange = {
+            if (it.length <= 500) texto = it
+        },
         label = { Text("Escribe un mensaje...") },
         trailingIcon = {
             IconButton(onClick = {
-                enviarMensaje(texto)
-                texto = ""
+                if (texto.length <= 500) {
+                    enviarMensaje(texto)
+                    texto = ""
+                }
             }) {
                 Icon(
                     imageVector = Icons.Filled.Send,
@@ -218,8 +222,10 @@ fun CajaDeTexto(
             imeAction = ImeAction.Send
         ),
         keyboardActions = KeyboardActions(onSend = {
-            enviarMensaje(texto)
-            texto = ""
+            if (texto.length <= 500) {
+                enviarMensaje(texto)
+                texto = ""
+            }
         }),
         modifier = modifier
     )

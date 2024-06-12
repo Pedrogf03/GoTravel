@@ -43,6 +43,10 @@ public class ViajesScreen implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
+        if(!GoTravel.getSesion().getUsuario().isProfesional()) {
+            navPanel.getChildren().remove(serviciosButton);
+        }
+
         try {
             List<Viaje> allViajes = findViajesByUsuarioId();
             if(allViajes != null) {
@@ -154,8 +158,8 @@ public class ViajesScreen implements Initializable {
             flowPane.getChildren().add(vbox);
             FlowPane.setMargin(vbox, new Insets(10, 10, 10, 10));
             vbox.setOnMouseClicked(event -> {
-                ViajeScreen.setViajeId(v.getId());
                 try {
+                    ViajeScreen.setViajeId(v.getId());
                     GoTravel.setRoot("viaje");
                 } catch (IOException e) {
                     System.err.println(e.getCause() + ": " + e.getMessage());
@@ -203,6 +207,12 @@ public class ViajesScreen implements Initializable {
 
     @FXML
     private ScrollPane scrollPane;
+
+    @FXML
+    private VBox navPanel;
+
+    @FXML
+    private Button serviciosButton;
 
     @FXML
     void buscarViajes() throws IOException {

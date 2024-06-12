@@ -278,7 +278,7 @@ public class HiloCliente extends Thread {
                     );
             jsonFromServer = gson.toJson(servicios);
         } else if (option.equalsIgnoreCase("contratar")) {
-            int idEtapa = Integer.parseInt(fromCliente[2]);
+            int idEtapa = Integer.parseInt(fromCliente[3]);
             if(fromCliente.length > 4){
                 return contratarServicio(id, idEtapa, "desktop");
             } else {

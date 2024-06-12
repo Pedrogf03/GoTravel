@@ -145,6 +145,7 @@ public class CrearServicioScreen implements Initializable {
 
                                             if(s != null) {
                                                 ServicioScreen.setServicioId(s.getId());
+                                                ServicioScreen.setPrevScreen("servicios");
                                                 GoTravel.setRoot("servicio");
                                             }
 

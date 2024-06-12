@@ -1,0 +1,32 @@
+2024-06-12 18:07:30 [main] INFO  c.gotravel.server.ServerApplication - Starting ServerApplication using Java 17.0.10 with PID 11068 (C:\Users\bleik\Desktop\TFG-DAM\GoTravelServidor\target\classes started by bleik in C:\Users\bleik\Desktop\TFG-DAM\GoTravelServidor)
+2024-06-12 18:07:30 [main] INFO  c.gotravel.server.ServerApplication - No active profile set, falling back to 1 default profile: "default"
+2024-06-12 18:07:31 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2024-06-12 18:07:31 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 153 ms. Found 12 JPA repository interfaces.
+2024-06-12 18:07:32 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2024-06-12 18:07:32 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
+2024-06-12 18:07:32 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2024-06-12 18:07:32 [main] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2024-06-12 18:07:32 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-06-12 18:07:32 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@1e76afeb
+2024-06-12 18:07:32 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-06-12 18:07:34 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2024-06-12 18:07:35 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2024-06-12 18:07:35 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+2024-06-12 18:07:36 [main] INFO  c.gotravel.server.ServerApplication - Started ServerApplication in 6.678 seconds (process running for 8.345)
+2024-06-12 18:07:44 [main] INFO  c.gotravel.server.ServerApplication - Se ha conectado un usuario
+2024-06-12 18:07:59 [Thread-1] INFO  c.gotravel.server.ServerApplication - Se ha desconectado un usuario: 28
+2024-06-12 18:08:08 [main] INFO  c.gotravel.server.ServerApplication - Se ha conectado un usuario
+2024-06-12 18:08:36 [main] INFO  c.gotravel.server.ServerApplication - Se ha conectado un usuario
+2024-06-12 18:10:19 [Thread-3] WARN  c.gotravel.server.ServerApplication - Se ha interrumpido la conexion con un usuario: 28
+2024-06-12 18:11:15 [main] INFO  c.gotravel.server.ServerApplication - Se ha conectado un usuario
+2024-06-12 18:12:15 [Thread-4] INFO  c.gotravel.server.ServerApplication - Se ha desconectado un usuario: 28
+2024-06-12 18:15:12 [main] INFO  c.gotravel.server.ServerApplication - Se ha conectado un usuario
+2024-06-12 18:15:27 [Thread-5] INFO  c.gotravel.server.ServerApplication - Se ha desconectado un usuario: 27
+2024-06-12 18:15:41 [main] INFO  c.gotravel.server.ServerApplication - Se ha conectado un usuario
+2024-06-12 18:16:14 [Thread-7] WARN  c.gotravel.server.ServerApplication - Se ha interrumpido la conexion con un usuario: 28
+2024-06-12 18:16:33 [main] INFO  c.gotravel.server.ServerApplication - Se ha conectado un usuario
+2024-06-12 18:16:54 [Thread-8] INFO  c.gotravel.server.ServerApplication - Se ha desconectado un usuario: 28
+2024-06-12 20:15:07 [HikariPool-1 housekeeper] WARN  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=1h56m34s444ms155µs300ns).
+2024-06-12 20:18:59 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2024-06-12 20:18:59 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2024-06-12 20:18:59 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.

@@ -214,7 +214,7 @@ CREATE TABLE IF NOT EXISTS `gotravel`.`mensaje` (
   `id_mensaje` INT NOT NULL AUTO_INCREMENT,
   `id_emisor` INT NOT NULL,
   `id_receptor` INT NOT NULL,
-  `texto` VARCHAR(100) NOT NULL,
+  `texto` VARCHAR(500) NOT NULL,
   `fecha` DATE NOT NULL,
   `hora` TIME NOT NULL,
   PRIMARY KEY (`id_mensaje`),
@@ -438,6 +438,6 @@ END;
 //
 DELIMITER ;
 
--- Contraseña = 001
-INSERT INTO usuario (nombre, email, contrasena) values ('Administrador', 'inf@gotravel.com', '68b80d6619619255a4d004d54476de51f9157acd0a9d97cd294a0a3862cad3dd');
+-- Contraseña = admin123!
+INSERT INTO usuario (nombre, email, contrasena) values ('Administrador', 'inf@gotravel.com', '5c06eb3d5a05a19f49476d694ca81a36344660e9d5b98e3d6a6630f31c2422e7');
 INSERT INTO usuariorol (rol, id_usuario) values ('Administrador', (SELECT id_usuario FROM usuario WHERE email = 'inf@gotravel.com'));

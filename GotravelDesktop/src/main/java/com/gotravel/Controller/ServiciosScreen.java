@@ -216,8 +216,9 @@ public class ServiciosScreen implements Initializable {
             flowPane.getChildren().add(hbox);
             FlowPane.setMargin(hbox, new Insets(10, 10, 10, 10));
             hbox.setOnMouseClicked(event -> {
-                ServicioScreen.setServicioId(s.getId());
                 try {
+                    ServicioScreen.setServicioId(s.getId());
+                    ServicioScreen.setPrevScreen("servicios");
                     GoTravel.setRoot("servicio");
                 } catch (IOException e) {
                     System.err.println(e.getCause() + ": " + e.getMessage());

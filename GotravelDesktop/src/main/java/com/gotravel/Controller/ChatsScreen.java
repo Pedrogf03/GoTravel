@@ -128,6 +128,7 @@ public class ChatsScreen implements Initializable {
 
                     try {
                         ChatScreen.setOtroUsuario(usuarioAMostrar);
+                        ChatScreen.setPrevScreen("chats");
                         GoTravel.setRoot("chat");
                     } catch (IOException e) {
                         e.printStackTrace();

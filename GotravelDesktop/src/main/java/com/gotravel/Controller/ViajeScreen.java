@@ -278,8 +278,9 @@ public class ViajeScreen implements Initializable {
                 vboxContrataciones.getChildren().add(hbox);
                 VBox.setMargin(hbox, new Insets(10, 10, 10, 10));
                 hbox.setOnMouseClicked(event -> {
-                    ServicioScreen.setServicioId(s.getId());
                     try {
+                        ServicioScreen.setServicioId(s.getId());
+                        ServicioScreen.setPrevScreen("viaje");
                         GoTravel.setRoot("servicio");
                     } catch (IOException e) {
                         System.err.println(e.getMessage());

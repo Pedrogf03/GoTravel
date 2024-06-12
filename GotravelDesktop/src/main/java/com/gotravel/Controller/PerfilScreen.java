@@ -6,6 +6,7 @@ import com.gotravel.GoTravel;
 import com.gotravel.Model.Rol;
 import com.gotravel.Model.Usuario;
 import com.gotravel.Utils.Fonts;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
@@ -447,7 +448,15 @@ public class PerfilScreen implements Initializable {
                                     }
                                 }
                                 GoTravel.getSesion().setUsuario(usuarioFromServer);
-                                GoTravel.setRoot("perfil");
+
+                                Platform.runLater(() -> {
+                                    try {
+                                        GoTravel.setRoot("perfil");
+                                    } catch (IOException ex) {
+                                        ex.printStackTrace();
+                                    }
+                                });
+
                             }
 
                         } catch (IOException e) {

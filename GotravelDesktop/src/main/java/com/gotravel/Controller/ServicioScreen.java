@@ -47,6 +47,9 @@ public class ServicioScreen implements Initializable {
     @Setter
     private static int etapaId;
 
+    @Setter
+    private static String prevScreen;
+
     private static HttpServer server;
 
     @FXML
@@ -203,7 +206,7 @@ public class ServicioScreen implements Initializable {
 
     @FXML
     void navigateUp() throws IOException {
-        GoTravel.setRoot("servicios");
+        GoTravel.setRoot(prevScreen);
     }
 
     @Override
@@ -808,6 +811,7 @@ public class ServicioScreen implements Initializable {
     @FXML
     void navigateToChat() throws IOException {
         ChatScreen.setOtroUsuario(s.getUsuario());
+        ChatScreen.setPrevScreen("servicio");
         GoTravel.setRoot("chat");
     }
 

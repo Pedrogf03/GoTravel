@@ -16,12 +16,14 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import javafx.util.converter.DefaultStringConverter;
 import lombok.Setter;
 
 import java.io.ByteArrayInputStream;
@@ -44,6 +46,9 @@ public class ChatScreen implements Initializable {
     private Usuario u = GoTravel.getSesion().getUsuario();
     private List<Mensaje> mensajes;
     private boolean escuchando = true;
+
+    @Setter
+    private static String prevScreen;
 
     @FXML
     private TextField mensajeField;
@@ -94,7 +99,7 @@ public class ChatScreen implements Initializable {
     @FXML
     void navigateUp() throws IOException {
         pararEscuchaDeMensajes();
-        GoTravel.setRoot("chats");
+        GoTravel.setRoot(prevScreen);
     }
 
     private void pararEscuchaDeMensajes() {
@@ -174,6 +179,15 @@ public class ChatScreen implements Initializable {
             usernameText.setText(otroUsuario.getNombre());
 
         }
+
+        mensajeField.setTextFormatter(new TextFormatter<>(new DefaultStringConverter(), "", change -> {
+            String newText = change.getControlNewText();
+            if (newText.length() > 500) {
+                return null;
+            } else {
+                return change;
+            }
+        }));
 
     }
 
