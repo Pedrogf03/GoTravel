@@ -82,6 +82,15 @@ public class AdminPanelScreen implements Initializable {
             scrollPane.setFitToWidth(true);
 
             for (Usuario u : usuarios) {
+
+                for(Rol r : u.getRoles()) {
+                    if(r.getNombre().equalsIgnoreCase("profesional")) {
+                        u.setProfesional(true);
+                    } else if (r.getNombre().equalsIgnoreCase("administrador")) {
+                        u.setAdministrador(true);
+                    }
+                }
+
                 VBox vboxUsuario = new VBox();
                 vboxUsuario.setPadding(new Insets(10));
                 vboxUsuario.setSpacing(5);
@@ -160,9 +169,15 @@ public class AdminPanelScreen implements Initializable {
 
                 hboxBotonesServiciosResenas.getChildren().addAll(btnServicios, btnResenas);
 
-                Button btnOcultar = getBotonOcultar(u);
+                Button btnOcultar = getButton(u.getOculto().equals("0") ? "Ocultar" : "Devolver acceso", e -> {
+                    ocultarUsuario(u);
+                });
 
-                vboxUsuario.getChildren().addAll(hboxImagenInfo, hboxBotonesServiciosResenas, btnOcultar);
+                Button btnHacerAdmin = getButton(u.isAdministrador() ? "Quitar administrador" : "Hacer Administrador", e -> {
+                    hacerAdministrador(u);
+                });
+
+                vboxUsuario.getChildren().addAll(hboxImagenInfo, hboxBotonesServiciosResenas, btnOcultar, btnHacerAdmin);
 
                 flowPane.getChildren().add(vboxUsuario);
             }
@@ -192,6 +207,69 @@ public class AdminPanelScreen implements Initializable {
                 });
             }
         });
+
+    }
+
+    private void hacerAdministrador(Usuario u) {
+
+        if(GoTravel.getSesion().getSocket() != null && !GoTravel.getSesion().getSocket().isClosed()) {
+
+            try {
+                new Thread(() -> {
+
+                    Gson gson = new GsonBuilder()
+                            .serializeNulls()
+                            .setLenient()
+                            .create();
+
+                    try {
+
+                        boolean esAdmin = false;
+                        for (Rol rol : u.getRoles()) {
+                            if (rol.getNombre().equalsIgnoreCase("Administrador")) {
+                                esAdmin = true;
+                                break;
+                            }
+                        }
+
+                        if (esAdmin) {
+                            u.getRoles().removeIf(r -> r.getNombre().equalsIgnoreCase("Administrador"));
+                        } else {
+                            Rol adminRol = new Rol("administrador");
+                            u.getRoles().add(adminRol);
+                        }
+                        u.setFoto(null);
+
+                        System.out.println(u);
+
+                        GoTravel.getSesion().getSalida().writeUTF("update;usuario");
+                        GoTravel.getSesion().getSalida().flush();
+
+                        GoTravel.getSesion().getSalida().writeUTF(gson.toJson(u));
+                        GoTravel.getSesion().getSalida().flush();
+
+                        String jsonFromServer = GoTravel.getSesion().getEntrada().readUTF();
+                        Usuario user = gson.fromJson(jsonFromServer, Usuario.class);
+
+                        if(user != null) {
+                            GoTravel.setRoot("adminPanel");
+                        }
+
+                    } catch (IOException e) {
+                        System.err.println(e.getMessage());
+                        try {
+                            GoTravel.setRoot("landing");
+                        } catch (IOException ex) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                }).start();
+            } catch (Exception e) {
+                System.err.println(e.getMessage());
+            }
+
+        }
 
     }
 
@@ -298,25 +376,6 @@ public class AdminPanelScreen implements Initializable {
 
         return null;
 
-    }
-
-    private Button getBotonOcultar(Usuario u) {
-        Button btnOcultar;
-        if(u.getOculto().equals("0")) {
-            btnOcultar = new Button("Ocultar");
-        } else {
-            btnOcultar = new Button("Devolver acceso");
-        }
-        btnOcultar.setFont(Fonts.titleSmall);
-        btnOcultar.setStyle("-fx-background-color: #3D5F90; -fx-text-fill: white;");
-        btnOcultar.setCursor(Cursor.HAND);
-
-        btnOcultar.setOnAction(e -> {
-
-            ocultarUsuario(u);
-
-        });
-        return btnOcultar;
     }
 
     private void ocultarUsuario(Usuario u) {

@@ -599,7 +599,6 @@ public class HiloCliente extends Thread {
 
     private String saveUsuario(String jsonFromUser) {
         Usuario usuarioFromUser = gson.fromJson(jsonFromUser, Usuario.class);
-        usuarioFromUser.setRoles(service.findUsuarioById(usuarioFromUser.getId()).getRoles());
         usuarioFromUser.setFoto(service.findUsuarioById(usuarioFromUser.getId()).getFoto());
         usuarioFromUser = service.saveUsuario(usuarioFromUser);
         sesion.setUsuario(usuarioFromUser);
